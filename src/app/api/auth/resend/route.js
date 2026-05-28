@@ -15,6 +15,7 @@ export async function POST(request) {
     try {
         await connectDB();
         const { email } = await request.json();
+        console.log("EMAIL: ", email)
 
 
 
@@ -33,36 +34,49 @@ export async function POST(request) {
         const invitationCode = generateInvitationCode();
 
         // check if user exists
-      await Invitation.findOneAndUpdate({
-            email: email,
+        const resendInvitation = await Invitation.findOneAndUpdate({
+            email,
             isUsed: false,
-            purpose: "email_verification",
+            purpose: "email_verification"
+            
 
         },
 
             {
                 $set: {
                     invitationCode,
+                    expiresAt: new Date(currentTime.getTime() + 15 * 60 * 1000), // 15 minutes from now
+                    "metadata.ipAddress": request.ip || "Unknown",
+                    "metadata.userAgent": request.headers.get("user-agent") || "Unknown",
+                    "metadata.attemptsCount": 0 // reset attempts count on resend
 
                 }
             },
-            {new:true}
+            { returnDocument: "after", upsert: true }
         );
 
+        if (!resendInvitation) {
+            return NextResponse.json({
+                success: false,
+                message: "Invitation not found"
+            },
+                { status: 404 }
+            );
+        }
         await sendMail(email, invitationCode);
 
 
         return NextResponse.json({
-            success:true,
-            message:"Verification code sent to email"
-        }, 
-        {status:200}
-    );
+            success: true,
+            message: "Verification code sent to email"
+        },
+            { status: 200 }
+        );
 
 
 
 
-    } 
+    }
     catch (error) {
 
         console.error("OTP verification error:", error);

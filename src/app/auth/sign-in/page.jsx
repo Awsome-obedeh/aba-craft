@@ -1,10 +1,23 @@
 "use client"
+
+
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { FaGoogle } from "react-icons/fa";
 import { LuSquareArrowOutUpRight } from "react-icons/lu";
+import { toast } from "react-toastify";
+import { FaRegEyeSlash } from "react-icons/fa6";
+import { IoEyeSharp } from "react-icons/io5";
+import { useAuthStore } from "@/app/store/authStore";
+import { api } from "@/app/lib/axios";
+
 
 export default function LoginPage() {
+    const [loading, setLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const router = useRouter();
 
     const {
         register,
@@ -17,53 +30,29 @@ export default function LoginPage() {
 
     const onSubmit = async (data) => {
         try {
-
-
-
             setLoading(true);
-            // api
-            const payload = {
-                ...data
-            }
-            const res = await axios.post('/api/auth/sign-in', payload);
-            console.log(res)
+            const res = await api.post('/auth/sign-in', { ...data });
 
+            // Extract token and user data from backend response
+            const { accessToken, user } = res.data;
 
-            router.push('/dashboard/vendor/upload-product')
-        }
-        catch (error) {
-            console.error("SIGN UP ERROR:", error);
+            console.log("ACCESS TOKEN:", accessToken, "USER:", user);
 
-            // Axios server error
-            if (error.response) {
-                toast.error(
-                    error.response.data.message ||
-                    "Something went wrong"
-                );
-            }
+            // Save to memory (Zustand) -> Interceptor picks this up immediately
+            useAuthStore.getState().setAuthData(accessToken, user);
 
-            // Network error
-            else if (error.request) {
-                toast.error(
-                    "Network error. Check your internet connection."
-                );
-            }
-
-            // Unexpected error
-            else {
-                toast.error(
-                    "Unexpected error occurred"
-                );
-            }
-        }
-        finally {
-            setLoading(false)
+            toast.success("Welcome back!");
+            // router.push('/dashboard/vendor/upload-product');
+        } catch (error) {
+            // ... your error handling
+        } finally {
+            setLoading(false);
         }
     }
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-white px-4">
-            <div className="w-full max-w-md text-center">
+            <form className="w-full max-w-md text-center" onSubmit={handleSubmit(onSubmit)}>
                 {/* Logo */}
                 <div className="flex justify-center mb-6">
                     <div className="w-16 h-16 bg-black rounded-full flex items-center justify-center">
@@ -76,7 +65,7 @@ export default function LoginPage() {
                 {/* Title */}
                 <h1 className="text-xl font-semibold">Welcome to Abacraft</h1>
                 <p className="text-sm text-gray-500 mt-2">
-                    Use your email
+                    Use your email and password to log in
                 </p>
 
                 {/* Input */}
@@ -102,21 +91,45 @@ export default function LoginPage() {
                 </div>
                 <div className="mt-6 text-left">
                     <label className="text-xs text-black">Password *</label>
-                    <input
-                        type="password"
-                        className="w-full mt-1 border border-black rounded-md p-3 outline-none focus:ring-2 focus:ring-black"
-                        placeholder="Enter password "
-                    />
+
+                    <div className="border border-black flex items-center rounded-md mt-1 p-3 outline-none focus-within:ring-2 focus-within:ring-black gap-3">
+
+                        <input
+                            type={showPassword ? "text" : "password"}
+                            className="w-[80%] mt-1  outline-none"
+                            placeholder="Enter password "
+                            {...register("password", {
+                                required: "Password is required",
+                                minLength: {
+                                    value: 8,
+                                    message: "Password must be at least 8 characters long"
+                                }
+                            })}
+                        />
+
+                        <div className="justify-end flex w-full">
+                            {showPassword ? (
+
+                                <IoEyeSharp size={20} className="cursor-pointer" onClick={() => setShowPassword(false)} />
+                            ) : (
+                                <FaRegEyeSlash size={20} className="cursor-pointer" onClick={() => setShowPassword(true)} />
+                            )}
+                        </div>
+                    </div>
+
+                    {errors.password && (
+                        <p className="text-xs text-red-500 mt-1">{errors.password.message}</p>
+                    )}
                 </div>
 
-                <Link href="/vendor/sign-up" className="cursor-pointer text-sm text-black text-left py-2 flex gap-2 items-center">Sell on Aba Craft
+                <Link href="sign-up" className="cursor-pointer text-sm text-black text-left py-2 flex gap-2 items-center">Sell on Aba Craft
 
                     <LuSquareArrowOutUpRight size={20} />
                 </Link>
 
                 {/* Button */}
                 <button className="w-full mt-6 bg-black text-white py-3 rounded-md font-medium hover:opacity-90 transition">
-                    Continue
+                    {loading ? "Logging in..." : "Continue"}
                 </button>
 
                 {/* Divider */}
@@ -135,7 +148,7 @@ export default function LoginPage() {
                         <FaGoogle size={20} />
                     </button>
                 </div>
-            </div>
+            </form>
         </div>
     )
 

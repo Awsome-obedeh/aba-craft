@@ -7,6 +7,8 @@ import { useState } from "react";
 import { CiCircleCheck } from "react-icons/ci";
 import { MdCancel } from "react-icons/md";
 import { toast } from "react-toastify";
+import { FaRegEyeSlash } from "react-icons/fa6";
+import { IoEyeSharp } from "react-icons/io5";
 
 import { useRouter } from "next/navigation";
 
@@ -14,6 +16,7 @@ export default function SignUpPage() {
     const router = useRouter();
 
     const [loading, setLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
 
 
     const {
@@ -83,7 +86,7 @@ export default function SignUpPage() {
             }
             const res = await axios.post('/api/auth/sign-up', payload);
             console.log(res)
-          
+
             toast.success("Verification Code Sent to email");
             localStorage.setItem("email", payload.email);
             router.push('/auth/verify')
@@ -171,21 +174,30 @@ export default function SignUpPage() {
 
                     <div className="mt-6 text-left">
                         <label className="text-xs text-black">Password *</label>
-                        <input
-                            type="password"
-                            className="w-full mt-1 border border-black rounded-md p-3 outline-none focus:ring focus:ring-black"
-                            placeholder="Enter password "
-                            {...register("password", {
-                                required: "Password is required",
+                        <div className="border border-black flex items-center  rounded-md mt-1 p-3 outline-none focus-within:ring-2 focus-within:ring-black gap-3">
 
-                                pattern: {
-                                    value:
-                                        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/,
+                            <input
+                                type={showPassword ? "text" : "password"}
+                                className="w-[80%] mt-1  outline-none"
+                                placeholder="Enter password "
+                                {...register("password", {
+                                    required: "Password is required",
+                                    minLength: {
+                                        value: 8,
+                                        message: "Password must be at least 8 characters long"
+                                    }
+                                })}
+                            />
 
-                                    message: "Password does not meet requirements",
-                                },
-                            })}
-                        />
+                            <div className="justify-end flex w-full">
+                                {showPassword ? (
+
+                                    <IoEyeSharp size={20} className="cursor-pointer" onClick={() => setShowPassword(false)} />
+                                ) : (
+                                    <FaRegEyeSlash size={20} className="cursor-pointer" onClick={() => setShowPassword(true)} />
+                                )}
+                            </div>
+                        </div>
 
                         {errors.password && (
                             <p className="text-red-500 text-sm mt-4">

@@ -23,27 +23,27 @@ const sidebarLinks = {
     },
     {
       name: "Upload Product",
-      href: "/dashboard/upload-product",
+      href: "/dashboard/vendor/upload-product",
       icon: FiUpload,
     },
     {
       name: "My Inventory",
-      href: "/dashboard/inventory",
+      href: "/dashboard/vendor/inventory",
       icon: FiBox,
     },
     {
       name: "Orders & Leads",
-      href: "/dashboard/orders",
+      href: "/dashboard/vendor/orders",
       icon: FiShoppingBag,
     },
     {
       name: "Sales Automation",
-      href: "/dashboard/sales",
+      href: "/dashboard/vendor/sales",
       icon: FiGrid,
     },
     {
       name: "Profile & Verification",
-      href: "/dashboard/profile",
+      href: "/dashboard/vendor/profile",
       icon: FiUser,
     },
   ],
@@ -78,7 +78,7 @@ const sidebarLinks = {
 export default function Sidebar({ role}) {
   const [open, setOpen] = useState(false);
 
-  console.log("Sidebar rendered with role:", role);
+ 
 
   const links = sidebarLinks[role];
 
@@ -118,7 +118,7 @@ export default function Sidebar({ role}) {
 
         <div className="flex flex-col justify-between h-[90%]">
           <div className="space-y-2 px-3 py-5">
-            {links.map((link, index) => {
+            {links?.map((link, index) => {
               const Icon = link.icon;
 
               return (
@@ -131,7 +131,7 @@ export default function Sidebar({ role}) {
                   <span className="text-sm">{link.name}</span>
                 </Link>
               );
-            })}
+            }) || <p className="text-sm text-gray-500">No links available</p>}
           </div>
 
           <div className="px-3 pb-5 space-y-2">

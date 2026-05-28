@@ -75,9 +75,9 @@ const productSchema = new mongoose.Schema(
 
 
         category: {
-            type: String,
+            type: mongoose.Schema.Types.ObjectId,
             required: true,
-            trim: true,
+            ref: "Category",
         },
 
 
@@ -85,6 +85,17 @@ const productSchema = new mongoose.Schema(
             type: String,
             trim: true,
             default: "",
+        },
+
+        isActive:{
+            type: Boolean,
+            default: true,
+        },
+
+        createdBy: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+            required: true,
         },
 
         redirectToWhatsapp: {
@@ -139,6 +150,14 @@ const productSchema = new mongoose.Schema(
 // Auto-update stock status
 productSchema.pre("save", function () {
     this.inStock = this.quantity > 0;
+
+    //  if (!this.slug) {
+    // this.slug = this.name
+    //   .toLowerCase()
+    //   .trim()
+    //   .replace(/\s+/g, "-")
+    //   .replace(/[^\w\-]+/g, "");
+//   }
   
 });
 

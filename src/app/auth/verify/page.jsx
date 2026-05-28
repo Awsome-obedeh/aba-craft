@@ -7,13 +7,14 @@ import { useEffect, useState } from "react";
 import { CiCircleCheck } from "react-icons/ci";
 import { MdCancel } from "react-icons/md";
 import { toast } from "react-toastify";
+import { useRouter } from "next/navigation";
 export default function SignUpPage() {
 
     const [loading, setLoading] = useState(false);
-    const [verify, setVerify] = useState(false);
+    
     const [email, setEmail] = useState('')
-    const [resendOtp, setResendOtp] = useState(false);
-
+ 
+const router=useRouter()
     const {
         register,
         handleSubmit,
@@ -53,6 +54,11 @@ export default function SignUpPage() {
 
             toast.success("Email Verified Successfully");
 
+            // localStorage.removeItem("email");
+            reset();
+
+            router.push("sign-in");
+
         }
         catch (error) {
 
@@ -76,11 +82,13 @@ export default function SignUpPage() {
     }
 
 
-    const resentOtpCode = async () => {
+    const handleResendCode = async () => {
         try {
+            
             setLoading(true)
-            const res = await axios.post('/api/auth/resend', email);
+            const res = await axios.post('/api/auth/resend', {email});
             if (res.data) {
+                setLoading(false)
                 toast.success(res.data.message)
             }
         }
@@ -117,7 +125,7 @@ export default function SignUpPage() {
                 width={400}
                 height={400}
             />
-            <div className="flex items-center justify-center bg-white px-4 flex-1">
+            <div className="flex flex-col items-center justify-center bg-white px-4 flex-1">
                 <form className="w-full max-w-md text-center" onSubmit={handleSubmit(onSubmit)}>
                     {/* Logo */}
                     <div className="flex justify-center mb-6">
@@ -181,12 +189,9 @@ export default function SignUpPage() {
 
 
                     <button className="w-full mt-6 bg-black text-white py-3 rounded-md font-medium hover:opacity-90 transition">
-                        Verify
+                        {loading ? "Verifying..." : "Verify"}
                     </button>
 
-                    <button className="w-full mt-6 bg-black text-white py-3 rounded-md font-medium hover:opacity-90 transition">
-                        resend code
-                    </button>
 
 
 
@@ -194,6 +199,9 @@ export default function SignUpPage() {
                     {/* Divider */}
 
                 </form>
+                    <button onClick={handleResendCode} className=" mt-6 text-sm  text-black text-right cursor-pointer rounded-md  hover:opacity-90 transition">
+                         { loading ? "Sending..." : "Resend Code" }
+                    </button>
             </div >
         </div >
 

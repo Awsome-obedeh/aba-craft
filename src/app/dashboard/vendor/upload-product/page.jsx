@@ -4,18 +4,22 @@ import AISidePanel from "@/components/upload/AISidePanel";
 import { GiCloudUpload } from "react-icons/gi";
 import { FiCamera, FiUploadCloud, } from "react-icons/fi";
 import { useForm } from "react-hook-form";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { toast } from "react-toastify";
 import axios from "axios";
 import { CheckBox } from "@/components/CheckBox";
+import { api } from "@/app/lib/axios";
+import { useRouter } from "next/navigation";
 
 export default function UploadProductPage() {
+    const router= useRouter();
 
     const [loading, setLoading] = useState(false);
     const [selectedImages, setSelectedImages] = useState([]);
     const [previewImages, setPreviewImages] = useState([]);
     const [featured, setFeatured] = useState(false);
+    const [categories, setCategories] = useState([]);
 
     const {
         register,
@@ -25,7 +29,7 @@ export default function UploadProductPage() {
         watch
     } = useForm({
         defaultValues: {
-            isFeatured:false
+            isFeatured: false
         }
     });
     const isFeaturedActive = watch("isFeatured");
@@ -128,27 +132,91 @@ export default function UploadProductPage() {
         };
 
         console.log(payload);
-        try{
+        try {
 
-            const res=await axios.post('/api/product', payload )
-            if(res.data.success){
+            const res = await api.post('/products', payload)
+            if (res.data.success) {
                 toast.success("Product uploaded successfully");
                 reset();
                 setSelectedImages([]);
                 setPreviewImages([]);
+                router.push("inventory");
 
-                console.log ("Product created:", res.data.product);
-            } else {
-                toast.error("Failed to upload product");
+
             }
         } catch (error) {
-            console.error(error);
-            toast.error("An error occurred while uploading the product");
+            console.error("Upload error:", error);
+
+            // Axios server error
+            if (error.response) {
+                toast.error(
+                    error.response.data.message ||
+                    "Something went wrong"
+                );
+            }
+
+            // Network error
+            else if (error.request) {
+                toast.error(
+                    "Network error. Check your internet connection."
+                );
+            }
+
+            // Unexpected error
+            else {
+                toast.error(
+                    "Unexpected error occurred"
+                );
+            }
         } finally {
             setLoading(false);
         }
     }
 
+    const fetchCategories = async () => {
+        try {
+
+            const res = await api.get('/category');
+            if (res.data.success) {
+                setCategories(res.data.categories);
+            }
+        }
+
+        catch (error) {
+
+            console.error("Error fetching categories:", error);
+            // Axios server error
+            if (error.response) {
+                toast.error(
+                    error.response.data.message ||
+                    "Something went wrong"
+                );
+            }
+
+            // Network error
+            else if (error.request) {
+                toast.error(
+                    "Network error. Check your internet connection."
+                );
+            }
+
+            // Unexpected error
+            else {
+                toast.error(
+                    "Unexpected error occurred"
+                );
+            }
+        }
+
+
+
+
+    }
+    useEffect(() => {
+        fetchCategories();
+    }, []);
+
+    //  console.log("Categories:", categories);
 
     const role = "vendor"
     return (
@@ -288,10 +356,11 @@ export default function UploadProductPage() {
                                         required: "Category is required"
                                     })}
                                 >
-                                    <option value=""></option>
-                                    <option>Select category</option>
-                                    <option value="Electronics">Electronics</option>
-                                    <option value="Clothing">Clothing</option>
+                                    {categories?.map((category) => (
+                                        <option key={category._id} value={category._id} className="capitalize">
+                                            {category.categoryName}
+                                        </option>
+                                    ))}
 
 
                                 </select>
@@ -309,7 +378,7 @@ export default function UploadProductPage() {
                                 </label>
 
                                 <input
-                                    type="number"
+                                    type="text"
                                     placeholder="0.00"
                                     {...register("price", {
                                         required: "Price is required"
@@ -359,7 +428,7 @@ export default function UploadProductPage() {
                                     })}
                                     className="w-full mt-2 border rounded-lg p-3 outline-none"
                                 />
-                            
+
                             </div>
 
                             <div>
@@ -381,7 +450,7 @@ export default function UploadProductPage() {
                                     label="Make Featured"
                                     description="Make this product a featured product to display it at the lop of listed products."
                                     checked={isFeaturedActive}
-                                   
+
                                     {...register("isFeatured")}
                                 />
                             </div>
@@ -408,14 +477,15 @@ export default function UploadProductPage() {
                             </div>
                         </div>
 
-                        <label htmlFor="media-upload" className="border-2 border-dashed rounded-2xl p-8 flex flex-col items-center justify-center text-center">
+                        <label htmlFor="media-upload" className="cursor-pointer border-2 border-dashed rounded-2xl p-8 flex flex-col items-center justify-center text-center">
 
                             <input
                                 type="file"
                                 multiple
                                 accept="image/*"
                                 onChange={handleImageChange}
-                                className="w-full border p-3 rounded-lg"
+                                className="w-full border p-3 rounded-lg cursor-pointer outline-none hidden"
+                                id="media-upload"
                             />
 
                             <FiUploadCloud

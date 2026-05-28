@@ -61,7 +61,7 @@ export async function POST(request) {
           usedAt: currentTime
         } // Successfully matched! Burn it immediately
       },
-      { new: true } // Return the updated document configuration
+      { returnDocument: "after" } // Return the updated document configuration
     );
 
 
@@ -86,7 +86,7 @@ export async function POST(request) {
         // Atomic increment operator guarantees safety across concurrent execution requests
         $inc: { "metadata.attemptsCount": 1 }
       },
-      { new: true }
+      { returnDocument: "after" }
     );
 
 

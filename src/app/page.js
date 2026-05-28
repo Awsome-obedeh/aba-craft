@@ -1,7 +1,9 @@
-import Link from "next/link";
+import React from 'react'
 
-export default function Home() {
+export default function page() {
   return (
-  <Link href="/auth/sign-up" className="text-xl font-semibold">Sell on Abacraft</Link>
-);
+    <div>
+      Sell on thirveabia
+    </div>
+  )
 }

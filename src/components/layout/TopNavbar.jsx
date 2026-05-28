@@ -6,7 +6,7 @@ import {
     FiSearch,
 } from "react-icons/fi";
 
-export default function TopNavbar() {
+export default function TopNavbar({email,role}) {
     return (
         <header className=" sticky top-0 z-30 bg-white border-b border-gray-200 px-4 md:px-8 py-4">
             <div className="flex items-center justify-between gap-4">
@@ -53,10 +53,10 @@ export default function TopNavbar() {
 
                         <div className="hidden md:block">
                             <h4 className="text-sm font-semibold">
-                                Sandra Ejiofor
+                                {email}
                             </h4>
                             <p className="text-xs text-gray-500">
-                                Vendor
+                                {role}
                             </p>
                         </div>
 
