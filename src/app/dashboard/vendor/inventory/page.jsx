@@ -26,7 +26,7 @@ export default function InventoryPage() {
     const fetchProducts = async () => {
         try {
             setProdLoading(false);
-            const res = await api.get('/products');
+            const res = await api.get('/products/vendor');
             setProducts(res.data.products);
         }
 
@@ -74,7 +74,7 @@ export default function InventoryPage() {
                     </h1>
 
                     <p className="text-gray-500">
-                        Manage approved vendor products
+                        View and manage your products and categories. Keep your inventory up-to-date to attract more customers!
                     </p>
                 </div>
 
@@ -96,12 +96,10 @@ export default function InventoryPage() {
                                 Categories & Stocks
                             </h2>
 
-                            <button className="border px-4 py-2 rounded">
-                                Filter
-                            </button>
+                           
                         </div>
 
-                        <div className="grid md:grid-cols-5 gap-4">
+                        <div className="grid md:grid-cols-3 lg:grid-cols-5 gap-4">
 
                             {catLoading ? (
                                 <p>Loading categories...</p>
@@ -133,12 +131,12 @@ export default function InventoryPage() {
                                 Product Details
                             </h2>
 
-                            <Link href="inventory" className="text-blue-500 cursor-pointer underline">
+                            <Link href="/dashboard/products" className="text-blue-500 cursor-pointer underline">
                                 See All
                             </Link>
                         </div>
 
-                        <div className="grid md:grid-cols-3 gap-5">
+                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
 
                             {
                                 prodLoading ? (
