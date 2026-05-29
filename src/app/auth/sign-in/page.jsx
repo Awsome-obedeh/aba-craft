@@ -42,7 +42,7 @@ export default function LoginPage() {
             useAuthStore.getState().setAuthData(accessToken, user);
 
             toast.success("Welcome back!");
-            // router.push('/dashboard/vendor/upload-product');
+            router.push('/dashboard/vendor/upload-product');
         } catch (error) {
             // ... your error handling
         } finally {
