@@ -1,11 +1,14 @@
 import React from 'react'
+import { BiReset } from "react-icons/bi";
 
 export default function ProductsFilterControl({handleApplyFilters, handleClearFilters, search, setSearch, category, setCategory, brand, setBrand, minPrice, setMinPrice, maxPrice, setMaxPrice, hasDiscount, setHasDiscount, hasPercentageDiscount, setHasPercentageDiscount}) {
   return (
      <form onSubmit={handleApplyFilters} className="border-b lg:border-b-0 lg:border-r border-black p-8 space-y-8 bg-white">
                        <div className="flex justify-between items-center">
-                           <h2 className="text-sm font-bold uppercase tracking-widest">Filter System</h2>
-                           <button type="button" onClick={handleClearFilters} className="text-xs uppercase  tracking-wider bg-black/80 px-2 rounded-md  text-white hover:opacity-100 font-mono">Reset</button>
+                           <h2 className="text-sm font-bold uppercase tracking-widest">Filter Products</h2>
+                           <button type="button" onClick={handleClearFilters} className="text-xs uppercase  tracking-wider  px-2 py-2 cursor-pointer rounded-md  text-white bg-black hover:opacity-100 active:rotate-45 transition-transform duration-300">
+                            <BiReset size={30}/>
+                           </button>
                        </div>
    
                        <div className="space-y-6">
@@ -43,7 +46,7 @@ export default function ProductsFilterControl({handleApplyFilters, handleClearFi
                            </div>
                        </div>
    
-                       <button type="submit" className="w-full bg-black text-white text-xs font-bold uppercase tracking-widest py-3 hover:bg-neutral-800 transition-colors duration-200 rounded-md">Apply </button>
+                       <button type="submit" className="w-full bg-black text-white py-3 rounded-md font-medium hover:opacity-90 transition">Apply </button>
                    </form>
    
   )

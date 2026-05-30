@@ -2,6 +2,7 @@
 import connectDB from "@/app/lib/connect";
 import { verifyAuth } from "@/app/lib/verifyAuth";
 import Product from "@/models/Products";
+import Category from "@/models/Category";
 import { NextResponse } from "next/server";
 
 
@@ -24,7 +25,7 @@ export async function GET(req, { params }) {
         // Await the dynamic routing params wrapper cleanly
         const { slug } = await params;
 
-        // Query product details and swap reference IDs for text category fields
+        // Query product details and 
         const product = await Product.findOne({ slug, isActive: true })
             .populate({
                 path: "category",
@@ -62,4 +63,76 @@ export async function GET(req, { params }) {
             { status: 500 }
         );
     }
+}
+
+export const PUT = async (req, { params }) => {
+    const auth = await verifyAuth(req, ["vendor", "admin"]);
+
+    // If authentication or authorization fails, i
+    if (!auth.isValid) {
+        return NextResponse.json({
+            success: false,
+            message: auth.message
+        },
+
+            { status: auth.status });
+    }
+
+    try {
+        await connectDB();
+
+        const { slug } = await params;
+        const body = await req.json();
+
+        console.log("Received update request for product slug:", slug, "with body:", body);
+
+     
+
+        // find category ID based on category name provided in the update request
+        if (body.category) {
+            const categoryDoc = await Category.findOne({ categoryName: body.category });
+            if (categoryDoc) {
+                body.category = categoryDoc._id; // Replace category name with its ID for the product update
+            }
+        }
+
+        const product = await Product.findOneAndUpdate(
+            { slug },
+            body,
+            { returnDocument: "after" })
+            .lean();
+
+        if (!product) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    message: "Requested object resource could not be found."
+                },
+                { status: 404 }
+            );
+        }
+
+
+        console.log("Updated product details:", product);
+
+        return NextResponse.json(
+            {
+                success: true,
+                message: "Product updated successfully.",
+                data: product
+            },
+            { status: 200 });
+    }
+    catch (error) {
+        console.error("Product update failure:", error);
+        return NextResponse.json(
+            {
+                success: false,
+                message: "Internal server error occurred."
+            },
+            { status: 500 }
+        );
+    }
+
+
 }

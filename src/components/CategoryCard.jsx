@@ -13,3 +13,11 @@ export default function CategoryCard({ category }) {
     </div>
   );
 }
+
+export const CategoryList=({category})=>{
+  return (
+    <option value={category.categoryName|| ""}>
+      {category.categoryName}
+    </option>
+  )
+}

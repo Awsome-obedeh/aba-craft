@@ -79,7 +79,7 @@ export default function ProductsPage() {
         <div className="min-h-screen bg-white text-black font-sans selection:bg-black selection:text-white antialiased">
             {/* Minimalist Top Nav Header Area */}
             <header className="border-b border-black py-6 px-6 md:px-12 flex justify-between items-baseline">
-                <h1 className="text-2xl font-black uppercase tracking-tighter">ARCHIVE STUDIO</h1>
+                <h1 className="text-2xl font-black uppercase tracking-tighter">Aba Crafts</h1>
                 <p className="text-xs font-mono uppercase text-neutral-400">{pagination.totalItems} Objects Catalogued</p>
             </header>
 

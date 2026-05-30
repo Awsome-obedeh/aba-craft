@@ -13,14 +13,16 @@ import CategoryCard from '@/components/CategoryCard';
 import Link from 'next/link';
 import { api } from '@/app/lib/axios';
 
+
 export default function InventoryPage() {
     const router = useRouter();
-    const { user, accessToken } = useAuthStore();
     const [products, setProducts] = useState([]);
     const [categories, setCategories] = useState([]);
     const [prodLoading, setProdLoading] = useState(true);
     const [catLoading, setCatLoading] = useState(true);
 
+
+    const { user, accessToken } = useAuthStore();
     console.log("InventoryPage rendered. User:", user, "Token:", accessToken);
 
     const fetchProducts = async () => {
@@ -96,7 +98,7 @@ export default function InventoryPage() {
                                 Categories & Stocks
                             </h2>
 
-                           
+
                         </div>
 
                         <div className="grid md:grid-cols-3 lg:grid-cols-5 gap-4">
@@ -131,9 +133,13 @@ export default function InventoryPage() {
                                 Product Details
                             </h2>
 
-                            <Link href="/dashboard/products" className="text-blue-500 cursor-pointer underline">
-                                See All
-                            </Link>
+                            {products.length > 0 && (
+                                <Link href="/dashboard/products" className="text-blue-500 cursor-pointer underline">
+                                    See All
+                                </Link>
+
+                            )}
+
                         </div>
 
                         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -146,6 +152,7 @@ export default function InventoryPage() {
                                         <ProductCard
                                             key={product._id}
                                             product={product}
+                                            role={role}
                                         />
                                     )) || (
                                         <p className="text-gray-500">
@@ -173,6 +180,9 @@ export default function InventoryPage() {
 
                 </div>
             </div>
+
+        
+
 
         </DashboardLayout>
     );

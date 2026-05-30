@@ -31,6 +31,13 @@ const sidebarLinks = {
       href: "/dashboard/vendor/inventory",
       icon: FiBox,
     },
+
+     {
+      name: "My Products",
+      href: "/dashboard/products",
+      icon: FiShoppingBag,
+    },
+    
     {
       name: "Orders & Leads",
       href: "/dashboard/vendor/orders",
@@ -45,7 +52,10 @@ const sidebarLinks = {
       name: "Profile & Verification",
       href: "/dashboard/vendor/profile",
       icon: FiUser,
+
+      
     },
+   
   ],
 
   buyer: [
@@ -72,6 +82,11 @@ const sidebarLinks = {
       href: "/dashboard/users",
       icon: FiUser,
     },
+    {
+      name: "My Products",
+      href: "/dashboard/products",
+      icon: FiShoppingBag,
+    }
   ],
 };
 
