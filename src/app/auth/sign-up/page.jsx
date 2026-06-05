@@ -1,5 +1,6 @@
 "use client";
 import Image from "next/image";
+import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { FaGoogle } from "react-icons/fa";
 import axios from "axios";
@@ -76,20 +77,15 @@ export default function SignUpPage() {
 
     const onSubmit = async (data) => {
         try {
-
-
-
             setLoading(true);
-            // api
-            const payload = {
-                ...data
-            }
+            // Vendor-only sign-up: force role regardless of what the client sends.
+            const payload = { ...data, role: "vendor" };
             const res = await axios.post('/api/auth/sign-up', payload);
-            console.log(res)
 
-            toast.success("Verification Code Sent to email");
+            toast.success("Verification code sent to email");
             localStorage.setItem("email", payload.email);
-            router.push('/auth/verify')
+            // Vendor path: send them to sign-in after verify (existing logic).
+            router.push('/auth/verify');
         }
         catch (error) {
             console.error("SIGN UP ERROR:", error);
@@ -144,9 +140,9 @@ export default function SignUpPage() {
                     </div>
 
                     {/* Title */}
-                    <h1 className="text-xl font-semibold">Create an Account</h1>
+                    <h1 className="text-xl font-semibold">Open a vendor account</h1>
                     <p className="text-sm text-gray-500 mt-2">
-                        Use your email to create an account
+                        Sell your handcrafted goods on AbaCraft.
                     </p>
 
                     {/* Input */}
@@ -268,6 +264,14 @@ export default function SignUpPage() {
                     <button className={`w-full mt-6 ${loading ? 'bg-gray-500' : 'bg-black'}  text-white py-3 rounded-md font-medium hover:opacity-90 transition`}>
                         {loading ? "Loading..." : "Continue"}
                     </button>
+
+                    <p className="text-xs text-gray-500 mt-4">
+                        Just here to shop?{" "}
+                        <Link href="/auth/customer-signup" className="text-black font-medium underline">
+                            Create a buyer account
+                        </Link>
+                        .
+                    </p>
 
 
 

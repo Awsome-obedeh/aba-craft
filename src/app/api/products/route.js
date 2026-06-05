@@ -116,7 +116,7 @@ export const POST = async (req) => {
 
 export const GET = async (req) => {
 
-    const auth = await verifyAuth(req, ["vendor", "admin"]);
+    const auth = await verifyAuth(req, ["vendor", "admin", "customer"]);
 
     // If authentication or authorization fails, i
     if (!auth.isValid) {
@@ -129,10 +129,10 @@ export const GET = async (req) => {
     }
     try {
         await connectDB();
-        
+
         const { searchParams } = new URL(req.url);
-        
-        // Core Pagination Parameters 
+
+        // Core Pagination Parameters
         const page = Math.max(1, parseInt(searchParams.get("page")) || 1);
         const limit = Math.max(1, parseInt(searchParams.get("limit")) || 9);
         const skip = (page - 1) * limit;
@@ -145,12 +145,16 @@ export const GET = async (req) => {
         const maxPrice = searchParams.get("maxPrice");
         const hasDiscount = searchParams.get("hasDiscount");
         const hasPercentageDiscount = searchParams.get("hasPercentageDiscount");
+        // Vendors asking for "my products" pass ?scope=mine. Customers and
+        // admins always see the full catalog (admins see everything including
+        // unpublished).
+        const scope = searchParams.get("scope");
 
         let query = {};
         query.isActive = true; // Only fetch active products
 
         if (search) query.productName  = { $regex: search, $options: "i" };
-        if (category) query.category = category; 
+        if (category) query.category = category;
         if (brand) query.brand = { $regex: `^${brand}$`, $options: "i" };
 
         if (minPrice || maxPrice) {
@@ -167,12 +171,30 @@ export const GET = async (req) => {
             query.discountPercentage = { $gt: 0, $ne: null };
         }
 
-        if(auth.user.id && auth.user.role === "vendor") query.createdBy = auth.user.id; // Ensure vendors only see their products, admins can see all
+        // Visibility rules:
+        //  - customers: only published + approved
+        //  - admins: everything
+        //  - vendors (?scope=mine): only their own
+        //  - vendors (default browse): also see only published+approved
+        if (auth.user.role === "customer") {
+            query.isPublished = true;
+            query.status = "approved";
+        } else if (auth.user.role === "admin") {
+            // admins see everything — no extra filter
+        } else if (auth.user.role === "vendor") {
+            if (scope === "mine") {
+                query.createdBy = auth.user.id;
+            } else {
+                // vendor browsing the storefront sees what customers see
+                query.isPublished = true;
+                query.status = "approved";
+            }
+        }
 
         //  Run execution query along with parallel total counter
         const [products, totalItems] = await Promise.all([
             Product.find(query)
-                .select("productName price discountPrice discountPercentage brand category productImages slug")
+                .select("productName price discountPrice discountPercentage brand category productImages slug quantity")
                 .sort({ createdAt: -1 })
                 .skip(skip)
                 .limit(limit)
@@ -183,8 +205,8 @@ export const GET = async (req) => {
 
         const totalPages = Math.ceil(totalItems / limit);
 
-        return NextResponse.json({ 
-            success: true, 
+        return NextResponse.json({
+            success: true,
            data:products,
             pagination: {
                 totalItems,

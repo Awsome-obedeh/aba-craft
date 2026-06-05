@@ -8,7 +8,7 @@ import { NextResponse } from "next/server";
 
 export async function GET(req, { params }) {
 
-    const auth = await verifyAuth(req, ["vendor", "admin"]);
+    const auth = await verifyAuth(req, ["vendor", "admin", "customer"]);
 
     // If authentication or authorization fails, i
     if (!auth.isValid) {
@@ -25,8 +25,16 @@ export async function GET(req, { params }) {
         // Await the dynamic routing params wrapper cleanly
         const { slug } = await params;
 
-        // Query product details and 
-        const product = await Product.findOne({ slug, isActive: true })
+        // Visibility filter for non-admins: a customer (or a vendor browsing
+        // the storefront) should only see products that are published AND
+        // approved. Admins can pull anything.
+        const visibility =
+            auth.user.role === "admin"
+                ? {}
+                : { isPublished: true, status: "approved" };
+
+        // Query product details and
+        const product = await Product.findOne({ slug, isActive: true, ...visibility })
             .populate({
                 path: "category",
                 select: "categoryName slug"

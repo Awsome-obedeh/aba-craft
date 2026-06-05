@@ -42,6 +42,20 @@ export const POST = async (req) => {
             )
         }
 
+        // Don't issue tokens to unverified accounts — they still need to
+        // complete the OTP flow. (Both sign-up paths now run verify before
+        // login, so this is the safety net.)
+        if (!user.emailVerified) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    message: "Please verify your email before signing in.",
+                    code: "EMAIL_NOT_VERIFIED",
+                },
+                { status: 403 }
+            )
+        }
+
         // jwt token
         const payload = {
             id: user._id,
