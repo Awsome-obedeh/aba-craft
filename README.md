@@ -116,6 +116,3 @@ Visit `http://localhost:3000`.
 - **Payments.** The mock payment flow is shaped like Paystack's (`init` returns an `authorizationUrl`, `verify` returns success/failure) so swapping in real Paystack later is a one-route change.
 - **Roles.** A user can be `vendor`, `admin`, or `customer`. There is no public storefront; both vendors and customers must sign in to browse or sell. Vendors see only their own products in their "My Products" view; the storefront shows the union of all approved+published products.
 
-## Local AI prompt log
-
-A running log of prompts given to the AI assistant during development lives in [`prompts.md`](prompts.md), which is gitignored. It's a working scratchpad, not documentation.
