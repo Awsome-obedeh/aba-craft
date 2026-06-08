@@ -68,8 +68,9 @@ const router=useRouter()
             }
 
             else if (error.request) {
-                toast.error(error.response.data.message ||
-                    "Network Error, check internet connections")
+                // No response from server — pure network/connectivity error.
+                // Do NOT touch error.response here; it is undefined.
+                toast.error("Network Error, check internet connection")
             }
 
             else {
@@ -101,8 +102,9 @@ const router=useRouter()
             }
 
             else if (error.request) {
-                toast.error(error.response.data.message ||
-                    "Network Error, check internet connections")
+                // No response from server — pure network/connectivity error.
+                // Do NOT touch error.response here; it is undefined.
+                toast.error("Network Error, check internet connection")
             }
 
             else {

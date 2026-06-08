@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
 import {
   FiGrid,
   FiUpload,
@@ -13,6 +15,17 @@ import {
   FiMenu,
   FiX,
 } from "react-icons/fi";
+import { logout } from "@/app/lib/logout";
+
+async function handleLogout(router) {
+    try {
+        await logout(router);
+        toast.success("Logged out");
+    } catch {
+        // logout() already handles its own errors and redirects;
+        // this catch is just to keep the click handler from bubbling.
+    }
+}
 
 const sidebarLinks = {
   vendor: [
@@ -34,7 +47,7 @@ const sidebarLinks = {
 
      {
       name: "My Products",
-      href: "/dashboard/products",
+      href: "/dashboard/vendor/products",
       icon: FiShoppingBag,
     },
     
@@ -58,15 +71,15 @@ const sidebarLinks = {
    
   ],
 
-  buyer: [
+  customer: [
     {
-      name: "Dashboard",
-      href: "/dashboard",
+      name: "Browse Products",
+      href: "/dashboard/products",
       icon: FiGrid,
     },
     {
       name: "My Orders",
-      href: "/dashboard/orders",
+      href: "/account/orders",
       icon: FiShoppingBag,
     },
   ],
@@ -92,8 +105,7 @@ const sidebarLinks = {
 
 export default function Sidebar({ role}) {
   const [open, setOpen] = useState(false);
-
- 
+  const router = useRouter();
 
   const links = sidebarLinks[role];
 
@@ -155,7 +167,11 @@ export default function Sidebar({ role}) {
               Settings
             </button>
 
-            <button className="flex items-center gap-3 px-4 py-3 w-full rounded-lg hover:bg-red-500 transition">
+            <button
+              type="button"
+              onClick={() => handleLogout(router)}
+              className="flex items-center gap-3 px-4 py-3 w-full rounded-lg hover:bg-red-500 transition"
+            >
               <FiLogOut />
               Logout
             </button>
