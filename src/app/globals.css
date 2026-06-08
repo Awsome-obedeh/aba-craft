@@ -10,6 +10,26 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* Custom Earthy/Artisan Colors */
+  --color-clay: #C4572A;
+  --color-clay-dark: #A3431D;
+  --color-clay-light: #FDF1EC;
+  --color-forest: #1E3329;
+  --color-gold: #E5A93C;
+  --color-cream: #FAF7F2;
+  --color-dark: #121413;
+  
+  /* Text and Borders */
+  --color-brandText: #2A2F2D;
+  --color-muted: #66706B;
+  --color-brandBorder: #E6EAE7;
+
+  /* Custom Elevation/Shadows */
+  --shadow-brand-lg: 0 10px 25px -5px rgba(30, 51, 41, 0.05), 0 8px 10px -6px rgba(30, 51, 41, 0.05);
+
+  /* Scale Animation Modifiers */
+  --scale-102: 1.02;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -28,4 +48,17 @@ body {
 
 .gift{
   background: red;
+}
+
+.badge-approved{
+  background: green ;
+  color:white
+}
+.badge-review{
+  background:orange ;
+  color:white
+}
+.badge-banned{
+  background: red ;
+  color:white
 }

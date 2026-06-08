@@ -64,13 +64,13 @@ export default function Sidebar() {
       >
         {/* Close button (mobile) */}
         <div className="flex justify-between items-center p-4 md:hidden">
-          <h2 className="text-lg font-bold">AbaCraft</h2>
+          <h2 className="text-lg font-bold">Aba Crafts</h2>
           <FiX size={24} onClick={() => setIsOpen(false)} />
         </div>
 
         {/* Logo */}
         <div className="hidden md:block p-6 text-xl font-bold border-b border-gray-700">
-          AbaCraft
+          Aba Crafts
         </div>
 
         {/* Menu */}

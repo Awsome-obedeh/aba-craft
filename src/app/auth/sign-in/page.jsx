@@ -41,8 +41,19 @@ export default function LoginPage() {
             // Save to memory (Zustand) -> Interceptor picks this up immediately
             useAuthStore.getState().setAuthData(accessToken, user);
 
-            toast.success("Welcome back!");
-            router.push('/dashboard/vendor/upload-product');
+
+            if (user.role === "vendor") {
+                toast.success("Welcome back!");
+
+                router.replace('/dashboard/vendor/');
+
+            }
+            if (user.role=== "admin") {
+                toast.success("Welcome back!");
+
+
+                router.replace('/dashboard/admin/');
+            }
         } catch (error) {
             // ... your error handling
         } finally {
@@ -63,7 +74,7 @@ export default function LoginPage() {
                 </div>
 
                 {/* Title */}
-                <h1 className="text-xl font-semibold">Welcome to Abacraft</h1>
+                <h1 className="text-xl font-semibold">Welcome to Aba Crafts</h1>
                 <p className="text-sm text-gray-500 mt-2">
                     Use your email and password to log in
                 </p>
@@ -122,7 +133,7 @@ export default function LoginPage() {
                     )}
                 </div>
 
-                <Link href="sign-up" className="cursor-pointer text-sm text-black text-left py-2 flex gap-2 items-center">Sell on Aba Craft
+                <Link href="sign-up" className="cursor-pointer text-sm text-black text-left py-2 flex gap-2 items-center">Sell on Aba Crafts
 
                     <LuSquareArrowOutUpRight size={20} />
                 </Link>

@@ -1,13 +1,47 @@
 "use client"
 import { formatPrice } from "@/utils/priceFormater";
 import EditProductModal from "./EditProductModal";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { api } from "@/app/lib/axios";
 import { toast } from "react-toastify";
+import { DeleteConfirmationModal } from "./DeleteConfirmationModal";
+import { useRouter } from "next/navigation";
 
-export default function ProductCard({ product, role }) {
+export default function ProductCard({ product, role, setProducts }) {
+  const router = useRouter();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isPending, startTransition] = useTransition(false);
+
+  const handleDelete = async () => {
+    try {
+      setLoading(true);
+      const res = await api.delete(`/products/${product.slug}`);
+      if (res.data.success) {
+        setLoading(false);
+        toast.success("Product deleted successfully!");
+        
+        
+        startTransition(() => {
+          setIsDeleteModalOpen(false);
+          setProducts((prev) => prev.filter((p) => p.slug !== product.slug));
+          //  update UI accordingly
+          router.refresh()
+        });
+      }
+    } catch (error) {
+      console.error(error);
+      setLoading(false);
+      if (error.response) {
+        toast.error(
+          error.response.data.message ||
+          "Something went wrong"
+        );
+      }
+
+    }
+  }
 
   return (
     <div className="border rounded-xl p-4">
@@ -32,11 +66,11 @@ export default function ProductCard({ product, role }) {
         ) : product.discountPercentage > 0 ? (
           <>
 
-          <div className="flex flex-col lg:flex-row gap-4 items-center flex-wrap">
+            <div className="flex flex-col lg:flex-row gap-4 items-center flex-wrap">
 
-            <span className=" text-base font-black text-black">{formatPrice(((product.price - (product.discountPercentage / 100) * product.price)))}</span>
-            <span className="text-xs text-neutral-500 line-through">{formatPrice(product.price)}</span>
-          </div>
+              <span className=" text-base font-black text-black">{formatPrice(((product.price - (product.discountPercentage / 100) * product.price)))}</span>
+              <span className="text-xs text-neutral-500 line-through">{formatPrice(product.price)}</span>
+            </div>
 
             <span className="text-xs bg-green-200 p-1 text-center rounded-sm text-green-600 font-semibold ml-auto">{product.discountPercentage}% OFF</span>
 
@@ -67,7 +101,7 @@ export default function ProductCard({ product, role }) {
 
       <div className="flex gap-2 mt-4">
 
-        <button className="border flex-1 py-2 rounded">
+        <button className="border bg-red-500 text-white flex-1 py-2 rounded" onClick={() => setIsDeleteModalOpen(true)}>
           Delete
         </button>
 
@@ -121,6 +155,13 @@ export default function ProductCard({ product, role }) {
         role={role}
         loading={loading}
 
+      />
+
+      <DeleteConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDelete}
+        productName={product.productName}
       />
 
     </div>

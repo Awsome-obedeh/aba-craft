@@ -74,17 +74,17 @@ const sidebarLinks = {
   admin: [
     {
       name: "Dashboard",
-      href: "/dashboard",
+      href: "/dashboard/admin/",
       icon: FiGrid,
     },
     {
       name: "Manage Users",
-      href: "/dashboard/users",
+      href: "/dashboard/admin/users",
       icon: FiUser,
     },
     {
-      name: "My Products",
-      href: "/dashboard/products",
+      name: "Approve Products",
+      href: "/dashboard/admin/publish-products",
       icon: FiShoppingBag,
     }
   ],
@@ -121,7 +121,7 @@ export default function Sidebar({ role}) {
         lg:translate-x-0`}
       >
         <div className="flex items-center justify-between p-5 border-b border-gray-800">
-          <h1 className="text-xl font-bold">AbaCraft</h1>
+          <h1 className="text-xl font-bold">Aba Crafts</h1>
 
           <button
             onClick={() => setOpen(false)}

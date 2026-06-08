@@ -6,7 +6,7 @@ export const sendMail = async (email, otp) => {
   try {
     // Create Nodemailer transporter
     const transporter = nodemailer.createTransport({
-      service:process.env.EMAIL_HOST,
+      service: process.env.EMAIL_HOST,
       port: 465,
       auth: {
         user: process.env.EMAIL_ADDRESS,
@@ -20,7 +20,7 @@ export const sendMail = async (email, otp) => {
     // Beautiful HTML template
     const htmlTemplate = `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; line-height:1.2">
-                <h2>Welcome to Aba Craft</h2>
+                <h2>Welcome to Aba Crafts</h2>
                 <p>You're a step closer to creating your shop and start selling.</p>
              
                 <p>Your Registration Code:</p>
@@ -33,14 +33,76 @@ export const sendMail = async (email, otp) => {
                
             </div>
 
-            <p style="text-align:center; color:gray; font-size:10px; padding:10px 0">This is an automated email, no need to reply.</p>
-              `;
+            <p style="text-align:center; color:gray; font-size:10px; padding:10px 0">This is an automated email, no need to reply.</p>`
+
 
     // Mail options
     const mailOptions = {
-      from:  process.env.EMAIL_ADDRESS,
+      from: process.env.EMAIL_ADDRESS,
       to: email,
-      subject: process.env.VERIFICATION_EMAIL_SUBJECT,
+      subject:  process.env.VERIFICATION_EMAIL_SUBJECT,
+      html: htmlTemplate,
+    };
+
+    // Send the email
+    const info = await transporter.sendMail(mailOptions);
+    console.log(" Email sent:", info.response);
+
+  } catch (error) {
+    console.error(" Error sending email:", error);
+  }
+
+};
+export const sendProductApprovalMail = async (email, productSlug, productImage, subject) => {
+  try {
+    // Create Nodemailer transporter
+    const transporter = nodemailer.createTransport({
+      service: process.env.EMAIL_HOST,
+      port: 465,
+      auth: {
+        user: process.env.EMAIL_ADDRESS,
+        pass: process.env.EMAIL_APP_PASSWORD,
+      },
+      tls: {
+        rejectUnauthorized: false,
+      },
+    });
+
+    // Beautiful HTML template
+    const htmlTemplate = `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; line-height:1.2">
+                <h2>Product Approved</h2>
+                <p>Your product has been approved and is now live on Aba Crafts.</p>
+             
+                <p>Product Name:</p>
+                <h3 style="background-color: #f0f0f0; padding: 15px; text-align: center;">
+                ${productSlug}
+                </h3>
+
+                <p>Product Image:</p>
+                <h3 style="background-color: #f0f0f0; padding: 15px; text-align: center;">
+                <img src="${productImage}" alt="Product Image" style="max-width:100%; height:auto;"/>
+                </h3>
+                <p>Your product is now visible to buyers on the marketplace.</p>
+                
+                  <a href="${process.env.FRONT_END_URL}/market-place/${productSlug}" target="_blank">
+                    <button style="display:block; margin: 20px auto; padding: 10px 20px; background-color: black; color: white; border: none; border-radius: 5px; text-decoration: none;">
+                    View Product
+                    </button>
+                  </a>
+                
+                <span>Thank you for being a part of Aba Crafts!</span>
+               
+            </div>
+
+            <p style="text-align:center; color:gray; font-size:10px; padding:10px 0">This is an automated email, no need to reply.</p>`
+
+
+    // Mail options
+    const mailOptions = {
+      from: process.env.EMAIL_ADDRESS,
+      to: email,
+      subject: subject,
       html: htmlTemplate,
     };
 

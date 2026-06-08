@@ -58,6 +58,7 @@ export async function POST(request) {
       {
         $set: {
           isUsed: true,
+          emailVerified: true,  
           usedAt: currentTime
         } // Successfully matched! Burn it immediately
       },

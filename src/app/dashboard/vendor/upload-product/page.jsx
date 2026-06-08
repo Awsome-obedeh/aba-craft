@@ -454,6 +454,9 @@ export default function UploadProductPage() {
                                     {...register("isFeatured")}
                                 />
                             </div>
+
+
+                            
                         </div>
                     </section>
 

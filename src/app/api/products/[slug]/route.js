@@ -21,28 +21,53 @@ export async function GET(req, { params }) {
     }
     try {
         await connectDB();
+        let product;
 
         // Await the dynamic routing params wrapper cleanly
         const { slug } = await params;
 
-        // Query product details and 
-        const product = await Product.findOne({ slug, isActive: true })
-            .populate({
-                path: "category",
-                select: "categoryName slug"
-            })
-            .lean();
+        // admin can see all products, vendors can only see their own products, so we need to check the role and filter accordingly
+        if (auth.user.role === "admin") {
+            product = await Product.findOne({slug, isActive: true})
+                .populate({
+                    path: "category",
+                    select: "categoryName slug"
+                })
+                .lean();
 
-        if (!product) {
-            return NextResponse.json(
-                {
-                    success: false,
-                    message: "Requested object resource could not be found."
-                },
-                { status: 404 }
-            );
+            if (!product) {
+                return NextResponse.json(
+                    {
+                        success: false,
+                        message: "Requested object resource could not be found."
+                    },
+                    { status: 404 }
+                );
+            }
+
         }
 
+        else if (auth.user.role === "vendor") {
+
+
+
+            product = await Product.findOne({ slug, isActive: true, createdBy: auth.user.id })
+                .populate({
+                    path: "category",
+                    select: "categoryName slug"
+                })
+                .lean();
+
+            if (!product) {
+                return NextResponse.json(
+                    {
+                        success: false,
+                        message: "Requested object resource could not be found."
+                    },
+                    { status: 404 }
+                );
+            }
+        }
         // Production Safety Check: Ensure the images field is always returning an array matrix structure
         const safeImagesArray = Array.isArray(product.productImages) && product.productImages.length > 0
             ? product.productImages
@@ -86,7 +111,7 @@ export const PUT = async (req, { params }) => {
 
         console.log("Received update request for product slug:", slug, "with body:", body);
 
-     
+
 
         // find category ID based on category name provided in the update request
         if (body.category) {
@@ -135,4 +160,57 @@ export const PUT = async (req, { params }) => {
     }
 
 
+}
+
+export const DELETE = async (req, { params }) => {
+    const auth = await verifyAuth(req, ["vendor", "admin"]);
+    // If authentication or authorization fails, 
+    if (!auth.isValid) {
+        return NextResponse.json({
+            success: false,
+            message: auth.message
+        },
+            { status: auth.status });
+    }
+    try {
+        await connectDB();
+        const { slug } = await params;
+
+        const deletedProduct = await Product.findOneAndUpdate(
+            { slug: slug },
+            { isActive: false },
+            { returnDocument: "after" }
+
+        )
+
+        if (!deletedProduct) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    message: "Product not found or already deleted."
+                },
+                { status: 404 }
+            );
+        }
+
+        return NextResponse.json(
+            {
+                success: true,
+                message: "Product deleted successfully.",
+                data: deletedProduct
+            },
+            { status: 200 }
+        );
+    }
+
+    catch (error) {
+        console.error("Product deletion error:", error);
+        return NextResponse.json(
+            {
+                success: false,
+                message: "Internal server error occurred."
+            },
+            { status: 500 }
+        );
+    }
 }

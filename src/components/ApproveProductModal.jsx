@@ -1,7 +1,8 @@
 import React, { useEffect } from 'react';
-import { MdDelete } from "react-icons/md";
+import { FcApproval } from "react-icons/fc";
+import { CiCircleCheck } from "react-icons/ci";
 
-export const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, productName }) => {
+export const ApproveProductModal = ({ isOpen, onClose, onConfirm, slug, loading}) => {
     // Prevent background scrolling when modal is active
     useEffect(() => {
         if (isOpen) {
@@ -30,17 +31,17 @@ export const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, productNam
                 {/* Core Layout */}
                 <div className="flex flex-col items-center gap-4">
                     {/* Aesthetic Warning Icon Wrapper */}
-                    <div className="flex-shrink-0 w-12 h-12 rounded-full bg-rose-100 flex items-center justify-center text-red-500">
-                        <MdDelete size={24} />
+                    <div className="flex-shrink-0 w-12 h-12 rounded-full bg-rose-100 flex items-center justify-center ">
+                        <FcApproval size={34} />
                     </div>
 
                     {/* Information Area */}
                     <div className="space-y-1 mx-auto text-center">
                        
                         <h3 className="text-lg font-bold text-black  tracking-tight leading-relaxed">
-                            Are you sure you want to delete             </h3>
-                        <p className="text-md text-black ">"{productName}"?</p>
-                        <p className="text-md text-black ">This action is permanent and cannot be undone. </p>
+                            Are you sure you want to Approve            </h3>
+                        <p className="text-md text-black ">"{slug}"?</p>
+                        <p className="text-md text-black ">This product will become visible in the market places for buyers. </p>
 
                     </div>
                 </div>
@@ -57,9 +58,9 @@ export const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, productNam
                     <button
                         type="button"
                         onClick={onConfirm}
-                        className="px-5 py-2.5 text-sm font-semibold text-white bg-red-500 hover:bg-rose-600 active:bg-rose-700 shadow-sm shadow-rose-500/20 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-rose-500/50"
-                    >
-                        Delete Product
+                        className={`px-5 py-2.5 flex items-center gap-3 text-sm font-semibold text-white  ${loading ? 'bg-gray-500' : 'bg-black'}    hover:bg-black/70 active:bg-black/80 shadow-sm shadow-green-500/20 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500/50`}
+                    > 
+                      {loading ? "Approving..." : "Approve Product"} <CiCircleCheck size={30} />
                     </button>
                 </div>
 

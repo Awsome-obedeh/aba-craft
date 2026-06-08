@@ -98,6 +98,12 @@ const productSchema = new mongoose.Schema(
             required: true,
         },
 
+        businessId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Business",
+            required: false,
+        },
+
         redirectToWhatsapp: {
             type: Boolean,
 

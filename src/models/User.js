@@ -49,7 +49,14 @@ const userSchema = new mongoose.Schema({
 
     onBoardingStatus:{
         type:String,
-        enum:['in_progress', 'completed']
+        enum:['in_progress', 'completed'],
+        default:"in_progress"
+    },
+
+    verificationMethod:{
+        type:String,
+        enum:['NIN', 'voters_card', 'bvn'],
+        required:false
     }
 
 }, {timestamps:true});

@@ -19,10 +19,10 @@ export const POST = async (req) => {
     }
 
 
-    console.log(auth)
+    // console.log(auth)
 
 
-    const { productName, description, price, quantity, category, brand, isFeatured, productImages, discountPrice, discountPercentage, redirectWhatsapp } = await req.json();
+    const { productName, businessId, description, price, quantity, category, brand, isFeatured, productImages, discountPrice, discountPercentage, redirectWhatsapp } = await req.json();
 
     // Basic validation
     if (!productName || !description || !price || !quantity || !category || !brand || !productImages) {
@@ -43,6 +43,7 @@ export const POST = async (req) => {
         const existingProduct =
             await Product.findOne({
                 slug,
+                isActive:true
             });
 
         if (existingProduct) {
@@ -63,6 +64,7 @@ export const POST = async (req) => {
         // Create Product
         const product = await Product.create({
             createdBy: auth.user.id, // Associate product with the authenticated vendor/admin
+            businessId:businessId || '', // shops that own produt
             productName,
             description,
             price,
@@ -167,12 +169,13 @@ export const GET = async (req) => {
             query.discountPercentage = { $gt: 0, $ne: null };
         }
 
-        if(auth.user.id && auth.user.role === "vendor") query.createdBy = auth.user.id; // Ensure vendors only see their products, admins can see all
+        // Ensure vendors only see their products, admins can see all
+        if(auth.user.id && auth.user.role === "vendor") query.createdBy = auth.user.id;
 
         //  Run execution query along with parallel total counter
         const [products, totalItems] = await Promise.all([
             Product.find(query)
-                .select("productName price discountPrice discountPercentage brand category productImages slug")
+                .select("productName price discountPrice discountPercentage brand category productImages slug ")
                 .sort({ createdAt: -1 })
                 .skip(skip)
                 .limit(limit)

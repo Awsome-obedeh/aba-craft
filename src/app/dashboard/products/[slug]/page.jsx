@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useEffect, useState, use } from 'react';
+import React, { useEffect, useState, use, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/app/lib/axios';
 import EditProductModal from '@/components/EditProductModal';
@@ -12,6 +12,8 @@ import { useAuthStore } from '@/app/store/authStore';
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { IoChevronBackCircleOutline } from "react-icons/io5";
 import { toast } from 'react-toastify';
+import { DeleteConfirmationModal } from '@/components/DeleteConfirmationModal';
+import { ApproveProductModal } from '@/components/ApproveProductModal';
 
 export default function ProductDetailsPage({ params }) {
     const router = useRouter();
@@ -21,6 +23,11 @@ export default function ProductDetailsPage({ params }) {
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
+    const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+    const [isProductUpdated, setIsProductUpdated] = useState(false);
+    const [isPending, startTransition] = useTransition();
 
     // Interactive Core Image Gallery Mechanics Configuration
     const [activeImage, setActiveImage] = useState('');
@@ -68,7 +75,7 @@ export default function ProductDetailsPage({ params }) {
         }
 
         fetchProductDetails();
-    }, [slug]);
+    }, [slug,router, accessToken, user]);
 
     console.log("Loaded product details:", product);
 
@@ -91,6 +98,108 @@ export default function ProductDetailsPage({ params }) {
     const handleMouseLeave = () => {
         setZoomStyle({ display: 'none', backgroundPosition: '0% 0%' });
     };
+
+    const handleEdit = async (fields) => {
+        try {
+            setLoading(true);
+            const res = await api.put(`/products/${product.slug}`, fields);
+            if (res.data.success) {
+                setLoading(false);
+                setProduct(res.data.data);
+                toast.success("Product updated successfully!");
+                setIsEditModalOpen(false);
+            }
+        } catch (error) {
+            setLoading(true);
+            console.error("EDITING PRODUCT ERROR:", error);
+            if (error.response) {
+                toast.error(
+                    error.response.data.message ||
+                    "Something went wrong"
+                );
+            }
+
+            // Network error
+            else if (error.request) {
+                toast.error(
+                    "Network error. Check your internet connection."
+                )
+            }
+
+            // Unexpected error
+            else {
+                toast.error(
+                    "Unexpected error occurred"
+                );
+            }
+        }
+
+    }
+
+
+    const handleDelete = async () => {
+        try {
+            const res = await api.delete(`/products/${product.slug}`);
+            if (res.data.success) {
+                toast.success("Product deleted successfully!");
+
+                startTransition(() => {
+                    //  update UI accordingly
+                    router.replace('/dashboard/products');
+                    setIsDeleteModalOpen(false);
+                });
+            }
+        } catch (error) {
+            console.error("DELETING PRODUCT ERROR:", error);
+            if (error.response) {
+                toast.error(
+                    error.response.data.message ||
+                    "Something went wrong"
+                );
+            }
+        }
+    }
+
+    const handleApprove = async() => {
+    // API Call would happen here: await fetch(`/api/admin/approve/${productId}`, { method: 'POST' })
+    // Remove approved product from local view state
+    try{
+        setIsProductUpdated(true)
+        const res = await api.put(`/products/admin/approve/${product.slug}`);
+        if(res.data.success){
+            setIsProductUpdated(false);
+       
+            toast.success("Product approved successfully!");
+            router.replace('/dashboard/admin/publish-products');
+            setProduct(res.data.data);
+        }
+    }
+
+    catch(error){
+       setIsProductUpdated(false);
+        console.error("APPROVING PRODUCT ERROR:", error);
+        if (error.response) {
+            toast.error(
+                error.response.data.message ||
+                "Something went wrong"
+            );
+        }
+        else if (error.request) {
+            toast.error(
+                "Network error. Check your internet connection."
+            );
+        }
+
+        else {
+            toast.error(
+                "Unexpected error occurred"
+            );
+        }
+    }
+    // setProducts(prev => prev.filter(p => p.id !== productId));
+  };
+
+
 
     if (loading) return <div className="min-h-screen bg-white text-black flex items-center justify-center  text-xs uppercase tracking-widest animate-pulse">loading...</div>;
     if (!product) return <div className="min-h-screen bg-white text-black flex items-center justify-center  text-xs uppercase tracking-widest">No Data Found.</div>;
@@ -262,14 +371,42 @@ export default function ProductDetailsPage({ params }) {
                             </div>
                         </div>
 
-                        <div className="mt-12 space-y-3">
+                        <div className="mt-12 space-y-3 grid md:grid-cols-2 items-baseline gap-4">
                             <button
                                 onClick={() => setIsEditModalOpen(true)}
                                 className="w-full bg-black text-white py-3 rounded-md font-medium hover:opacity-90 transition"
                             >
                                 Edit Product Details
                             </button>
+
+                            <button
+                                onClick={() => setIsDeleteModalOpen(true)}
+                                className="w-full bg-red-600 text-white py-3 rounded-md font-medium hover:opacity-90 transition"
+                            >
+                                Delete Product
+                            </button>
                         </div>
+
+                        {
+                            role === "admin" && product.status === "under_review" || product.status === "rejected" ? (
+                                <div className="mt-12 space-y-3 grid md:grid-cols-2 items-baseline gap-4">
+                                    <button
+                                        onClick={() => setIsApproveModalOpen(true)}
+                                        className="w-full bg-black text-white py-3 rounded-md font-medium hover:opacity-90 transition"
+                                    >
+                                        Approve Product
+                                    </button>
+
+                                    <button
+                                        onClick={() => setIsRejectModalOpen(true)}
+                                        className="w-full bg-red-600 text-white py-3 rounded-md font-medium hover:opacity-90 transition"
+                                    >
+                                        Reject Product
+                                    </button>
+                                </div>
+                            ):''
+                        } 
+
                     </div>
                 </main>
 
@@ -278,46 +415,35 @@ export default function ProductDetailsPage({ params }) {
                     onClose={() => setIsEditModalOpen(false)}
                     product={product}
                     loading={loading}
-                    onSave={async (fields) => {
-                        try {
-                            setLoading(true);
-                            const res = await api.put(`/products/${product.slug}`, fields);
-                            if (res.data.success) {
-                                setLoading(false);
-                                setProduct(res.data.data);
-                                toast.success("Product updated successfully!");
-                                setIsEditModalOpen(false);
-                            }
-                        } catch (error) {
-                            setLoading(false);
-                            console.error("EDITING PRODUCT ERROR:", error);
-                            if (error.response) {
-                                toast.error(
-                                    error.response.data.message ||
-                                    "Something went wrong"
-                                );
-                            }
-
-                            // Network error
-                            else if (error.request) {
-                                toast.error(
-                                    "Network error. Check your internet connection."
-                                )
-                            }
-
-                            // Unexpected error
-                            else {
-                                toast.error(
-                                    "Unexpected error occurred"
-                                );
-                            }
-                        }
-
-                    }}
+                    onSave={handleEdit}
                     // take role to decide admin having more update features than regular users in the future, such as modifying product status, featured flag, and publish visibility
 
                     role={role}
                 />
+                <DeleteConfirmationModal
+                    isOpen={isDeleteModalOpen}
+                    onClose={() => setIsDeleteModalOpen(false)}
+                    onConfirm={handleDelete}
+                    productName={product?.productName}
+                />
+
+                <ApproveProductModal
+                    isOpen={isApproveModalOpen}
+                    onClose={() => setIsApproveModalOpen(false)}
+                    onConfirm={handleApprove}
+                    slug={product?.slug}
+                    loading={isProductUpdated}
+                />
+                {/* <RejectProductModal
+                    isOpen={isRejectModalOpen}
+                    onClose={() => setIsRejectModalOpen(false)}
+                    onConfirm={() => {
+                        // Implement the reject product logic here, such as calling an API endpoint to update the product status to "rejected"
+                        // After successful rejection, you can refetch the product details to reflect the updated status
+                        toast.success("Product rejected successfully!");
+                    }}
+                    slug={product?.slug}
+                /> */}
             </div>
         </DashboardLayout>
     );

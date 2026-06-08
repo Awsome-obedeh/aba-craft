@@ -21,6 +21,18 @@ export const POST = async (req) => {
         }
 
         const user = await User.findOne({ email });
+
+        if(!user.emailVerified){
+            return NextResponse.json(
+                {
+                    success: false,
+                    message: "Please verify your email address before signing in."
+                },
+                { status: 401 }
+            )
+        };
+
+        
         if (!user) {
             return NextResponse.json(
                 {
@@ -52,6 +64,7 @@ export const POST = async (req) => {
         const accessToken = generateAccessToken(payload);
         const refreshToken = generateRefreshToken(payload);
 
+        
         const cookieStore = await cookies();
 
         cookieStore.set(

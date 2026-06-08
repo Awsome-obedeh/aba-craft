@@ -153,13 +153,19 @@ export default function InventoryPage() {
                                             key={product._id}
                                             product={product}
                                             role={role}
+                                            setProducts={setProducts}
                                         />
                                     )) || (
-                                        <p className="text-gray-500">
-                                            No products found. <Link href="upload-product" className="text-blue-500 underline">
-                                                Please add some products.
+                                        <div className='flex items-center justify-center gap-4'>
+
+                                            <p className="text-gray-500">
+                                                No products found.
+
+                                            </p>
+                                            <Link href="upload-product" className="bg-black text-center text-white w-max px-3 py-2 rounded-md ">
+                                                Add products
                                             </Link>
-                                        </p>
+                                        </div>
                                     )}
 
                         </div>
@@ -181,7 +187,7 @@ export default function InventoryPage() {
                 </div>
             </div>
 
-        
+
 
 
         </DashboardLayout>
