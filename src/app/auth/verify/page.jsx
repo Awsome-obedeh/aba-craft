@@ -10,7 +10,8 @@ import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 export default function SignUpPage() {
 
-    const [loading, setLoading] = useState(false);
+    const [isVerifying, setIsVerifying] = useState(false);
+    const [isResending, setIsResending] = useState(false);
     
     const [email, setEmail] = useState('')
  
@@ -42,9 +43,8 @@ const router=useRouter()
         try {
 
 
-
-            setLoading(true);
-            // api
+            setIsVerifying(true);
+                // api
             const payload = {
                 ...data,
                 email
@@ -68,8 +68,9 @@ const router=useRouter()
             }
 
             else if (error.request) {
-                toast.error(error.response.data.message ||
-                    "Network Error, check internet connections")
+                // No response from server — pure network/connectivity error.
+                // Do NOT touch error.response here; it is undefined.
+                toast.error("Network Error, check internet connection")
             }
 
             else {
@@ -77,7 +78,7 @@ const router=useRouter()
             }
         }
         finally {
-            setLoading(false)
+            setIsVerifying(false)
         }
     }
 
@@ -85,10 +86,10 @@ const router=useRouter()
     const handleResendCode = async () => {
         try {
             
-            setLoading(true)
+            setIsResending(true)
             const res = await axios.post('/api/auth/resend', {email});
             if (res.data) {
-                setLoading(false)
+                setIsResending(false)
                 toast.success(res.data.message)
             }
         }
@@ -101,8 +102,9 @@ const router=useRouter()
             }
 
             else if (error.request) {
-                toast.error(error.response.data.message ||
-                    "Network Error, check internet connections")
+                // No response from server — pure network/connectivity error.
+                // Do NOT touch error.response here; it is undefined.
+                toast.error("Network Error, check internet connection")
             }
 
             else {
@@ -110,7 +112,7 @@ const router=useRouter()
             }
         }
         finally {
-            setLoading(false)
+            setIsResending(false)
         }
     }
     return (
@@ -189,7 +191,7 @@ const router=useRouter()
 
 
                     <button className="w-full mt-6 bg-black text-white py-3 rounded-md font-medium hover:opacity-90 transition">
-                        {loading ? "Verifying..." : "Verify"}
+                        {isVerifying ? "Verifying..." : "Verify"}
                     </button>
 
 
@@ -200,7 +202,7 @@ const router=useRouter()
 
                 </form>
                     <button onClick={handleResendCode} className=" mt-6 text-sm  text-black text-right cursor-pointer rounded-md  hover:opacity-90 transition">
-                         { loading ? "Sending..." : "Resend Code" }
+                         { isResending ? "Sending..." : "Resend Code" }
                     </button>
             </div >
         </div >

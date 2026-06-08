@@ -1,14 +1,22 @@
 "use client";
 
+import { useState } from "react";
+import Link from "next/link";
 import {
     FiBell,
     FiChevronDown,
     FiSearch,
+    FiShoppingCart,
 } from "react-icons/fi";
+import { useCartStore } from "@/app/store/cartStore";
 
-export default function TopNavbar({email,role}) {
+export default function TopNavbar({ email, role }) {
+    // SSR-safe: only count items on the client (cart store hydrates from localStorage)
+    const [mounted] = useState(typeof window !== "undefined");
+    const itemCount = useCartStore((s) => s.items.reduce((n, i) => n + i.quantity, 0));
+
     return (
-        <header className=" sticky top-0 z-30 bg-white border-b border-gray-200 px-4 md:px-8 py-4">
+        <header className="sticky top-0 z-30 bg-white border-b border-gray-200 px-4 md:px-8 py-4">
             <div className="flex items-center justify-between gap-4">
 
                 {/* Search */}
@@ -23,6 +31,16 @@ export default function TopNavbar({email,role}) {
 
                 {/* Right */}
                 <div className="flex items-center gap-4 ml-auto">
+
+                    {/* Cart */}
+                    <Link href="/cart" className="relative" aria-label="Cart">
+                        <FiShoppingCart size={22} />
+                        {mounted && itemCount > 0 && (
+                            <span className="absolute -top-2 -right-2 bg-black text-white text-[10px] h-4 min-w-4 px-1 rounded-full flex items-center justify-center">
+                                {itemCount}
+                            </span>
+                        )}
+                    </Link>
 
                     {/* Notification */}
                     <div className="relative">

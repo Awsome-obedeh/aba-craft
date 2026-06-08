@@ -41,21 +41,43 @@ export default function LoginPage() {
             // Save to memory (Zustand) -> Interceptor picks this up immediately
             useAuthStore.getState().setAuthData(accessToken, user);
 
-
-            if (user.role === "vendor") {
-                toast.success("Welcome back!");
-
-                router.replace('/dashboard/vendor/');
-
+            // Honor ?redirect= (validated by caller to prevent open redirects),
+            // otherwise default per role so a customer doesn't land on a vendor page.
+            const params = new URLSearchParams(window.location.search);
+            const requestedRedirect = params.get("redirect");
+            let next;
+            if (requestedRedirect && requestedRedirect.startsWith("/") && !requestedRedirect.startsWith("//")) {
+                next = requestedRedirect;
+            } else if (user.role === "vendor") {
+                next = "/dashboard/vendor/upload-product";
+            } else if (user.role === "admin") {
+                next = "/dashboard";
+            } else {
+                next = "/dashboard/products";
             }
-            if (user.role=== "admin") {
-                toast.success("Welcome back!");
 
-
-                router.replace('/dashboard/admin/');
-            }
+            toast.success("Welcome back!");
+            router.push(next);
         } catch (error) {
-            // ... your error handling
+            // Server replied with EMAIL_NOT_VERIFIED — send them back to the
+            // verify screen rather than dumping a generic toast.
+            if (error.response?.data?.code === "EMAIL_NOT_VERIFIED") {
+                localStorage.setItem("email", data.email);
+                toast.info("Verify your email to continue");
+                router.push("/auth/verify");
+                return;
+            }
+
+            // Generic axios error fallback (kept narrow on purpose — verify page
+            // hit a bug previously from `error.response.data.message` on a
+            // request error).
+            if (error.response) {
+                toast.error(error.response.data?.message || "Something went wrong");
+            } else if (error.request) {
+                toast.error("Network error. Check your internet connection.");
+            } else {
+                toast.error("Unexpected error occurred");
+            }
         } finally {
             setLoading(false);
         }
@@ -133,10 +155,15 @@ export default function LoginPage() {
                     )}
                 </div>
 
-                <Link href="sign-up" className="cursor-pointer text-sm text-black text-left py-2 flex gap-2 items-center">Sell on Aba Crafts
-
-                    <LuSquareArrowOutUpRight size={20} />
-                </Link>
+                <div className="text-left text-sm text-gray-600 space-y-1">
+                    <Link href="sign-up" className="text-black flex gap-2 items-center hover:underline">
+                        Sell on Aba Crafts
+                        <LuSquareArrowOutUpRight size={20} />
+                    </Link>
+                    <Link href="customer-signup" className="text-black hover:underline block">
+                        Create a buyer account
+                    </Link>
+                </div>
 
                 {/* Button */}
                 <button className="w-full mt-6 bg-black text-white py-3 rounded-md font-medium hover:opacity-90 transition">

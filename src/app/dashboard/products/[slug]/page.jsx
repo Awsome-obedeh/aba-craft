@@ -9,6 +9,7 @@ import { formatPrice } from '@/utils/priceFormater';
 import Link from 'next/link';
 import { formatDate } from '@/utils/DateFormater';
 import { useAuthStore } from '@/app/store/authStore';
+import { useCartStore } from '@/app/store/cartStore';
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { IoChevronBackCircleOutline } from "react-icons/io5";
 import { toast } from 'react-toastify';
@@ -28,6 +29,10 @@ export default function ProductDetailsPage({ params }) {
     const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
     const [isProductUpdated, setIsProductUpdated] = useState(false);
     const [isPending, startTransition] = useTransition();
+
+    // Customer-facing add-to-cart
+    const [qty, setQty] = useState(1);
+    const addToCart = useCartStore((s) => s.addItem);
 
     // Interactive Core Image Gallery Mechanics Configuration
     const [activeImage, setActiveImage] = useState('');
@@ -372,12 +377,64 @@ export default function ProductDetailsPage({ params }) {
                         </div>
 
                         <div className="mt-12 space-y-3 grid md:grid-cols-2 items-baseline gap-4">
-                            <button
-                                onClick={() => setIsEditModalOpen(true)}
-                                className="w-full bg-black text-white py-3 rounded-md font-medium hover:opacity-90 transition"
-                            >
-                                Edit Product Details
-                            </button>
+                            {user?.role === "customer" ? (
+                                <>
+                                    {/* Customer purchase actions */}
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-xs uppercase tracking-widest text-neutral-500">Quantity</span>
+                                        <div className="flex items-center border border-black rounded-md">
+                                            <button
+                                                type="button"
+                                                onClick={() => setQty((q) => Math.max(1, q - 1))}
+                                                className="px-3 py-2 hover:bg-black hover:text-white transition"
+                                                aria-label="Decrease quantity"
+                                            >−</button>
+                                            <span className="px-4 py-2 min-w-12 text-center font-mono">{qty}</span>
+                                            <button
+                                                type="button"
+                                                onClick={() => setQty((q) => Math.min(product?.quantity || 1, q + 1))}
+                                                className="px-3 py-2 hover:bg-black hover:text-white transition"
+                                                aria-label="Increase quantity"
+                                            >+</button>
+                                        </div>
+                                        <span className="text-[10px] text-neutral-500 ml-auto">{product?.quantity} in stock</span>
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        disabled={!product || (product.quantity ?? 0) <= 0}
+                                        onClick={() => {
+                                            if (!product) return;
+                                            addToCart(product, qty);
+                                            toast.success(`Added ${qty} × ${product.productName} to cart`);
+                                        }}
+                                        className="w-full bg-black text-white py-3 rounded-md font-medium hover:opacity-90 transition disabled:opacity-40 disabled:cursor-not-allowed"
+                                    >
+                                        {(product?.quantity ?? 0) <= 0 ? "Out of stock" : "Add to cart"}
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        disabled={!product || (product.quantity ?? 0) <= 0}
+                                        onClick={() => {
+                                            if (!product) return;
+                                            addToCart(product, qty);
+                                            router.push("/cart");
+                                        }}
+                                        className="w-full border border-black py-3 rounded-md font-medium hover:bg-black hover:text-white transition disabled:opacity-40 disabled:cursor-not-allowed"
+                                    >
+                                        Buy now
+                                    </button>
+                                </>
+                            ) : (
+                                /* Vendor / admin: edit product */
+                                <button
+                                    onClick={() => setIsEditModalOpen(true)}
+                                    className="w-full bg-black text-white py-3 rounded-md font-medium hover:opacity-90 transition"
+                                >
+                                    Edit Product Details
+                                </button>
+                            )}
 
                             <button
                                 onClick={() => setIsDeleteModalOpen(true)}

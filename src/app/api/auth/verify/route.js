@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 import Invitation from "@/models/Invitation";
 
 import connectDB from "@/app/lib/connect";
+import User from "@/models/User";
+
 
 
 
@@ -58,13 +60,24 @@ export async function POST(request) {
       {
         $set: {
           isUsed: true,
-          emailVerified: true,  
+
           usedAt: currentTime
         } // Successfully matched! Burn it immediately
       },
       { returnDocument: "after" } // Return the updated document configuration
     );
 
+    await User.findOneAndUpdate({
+      email,
+      emailVerified:false
+    },
+    {
+      $set:{
+        emailVerified:true
+      }
+    },
+    {returnDocument:"after"}
+  )
 
     if (validOtpRecord) {
       return NextResponse.json({

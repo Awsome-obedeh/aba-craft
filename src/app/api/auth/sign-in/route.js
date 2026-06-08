@@ -22,16 +22,7 @@ export const POST = async (req) => {
 
         const user = await User.findOne({ email });
 
-        if(!user.emailVerified){
-            return NextResponse.json(
-                {
-                    success: false,
-                    message: "Please verify your email address before signing in."
-                },
-                { status: 401 }
-            )
-        };
-
+        
         
         if (!user) {
             return NextResponse.json(
@@ -39,9 +30,20 @@ export const POST = async (req) => {
                     success: false,
                     message: "Invalid credentials"
                 },
-                { status: 401 }
+                { status: 400 }
             )
         }
+
+        if(!user.emailVerified){
+            return NextResponse.json(
+                {
+                    success: false,
+                    message: "Please verify your email address before signing in."
+                },
+                { status: 400 }
+            )
+        };
+
 
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
@@ -50,7 +52,21 @@ export const POST = async (req) => {
                     success: false,
                     message: "Invalid credentials"
                 },
-                { status: 401 }
+                { status: 400 }
+            )
+        }
+
+        // Don't issue tokens to unverified accounts — they still need to
+        // complete the OTP flow. (Both sign-up paths now run verify before
+        // login, so this is the safety net.)
+        if (!user.emailVerified) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    message: "Please verify your email before signing in.",
+                    code: "EMAIL_NOT_VERIFIED",
+                },
+                { status: 403 }
             )
         }
 
