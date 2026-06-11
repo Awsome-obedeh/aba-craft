@@ -7,12 +7,12 @@ import { useAuthStore } from '@/app/store/authStore';
 import { api } from '@/app/lib/axios';
 import { toast } from 'react-toastify';
 const INITIAL_VENDORS = [
-  { id: '1', name: 'Royal leather works', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100', status: 'under_review', totalProducts: 0, joinedDate: 'May 16, 2026' },
-  { id: '2', name: 'Elegant leather', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100', status: 'approved', totalProducts: 125, joinedDate: 'Feb 12, 2026' },
-  { id: '3', name: 'Kings Concept leather', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100', status: 'under_review', totalProducts: 0, joinedDate: 'Apr 16, 2026' },
-  { id: '4', name: 'Eites crafts & sons', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100', status: 'under_review', totalProducts: 0, joinedDate: 'Jan 16, 2026' },
-  { id: '5', name: 'Gifted hands leather', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100', status: 'approved', totalProducts: 40, joinedDate: 'May 16, 2025' },
-  { id: '6', name: 'Leather Artisans', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100', status: 'banned', totalProducts: 14, joinedDate: 'May 16, 2025' },
+  { id: '1', name: 'Royal leather works', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100', status: 'pending', totalProducts: 0, joinedDate: 'May 16, 2026' },
+  { id: '2', name: 'Elegant leather', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100', status: 'pending', totalProducts: 125, joinedDate: 'Feb 12, 2026' },
+  { id: '3', name: 'Kings Concept leather', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100', status: 'pending', totalProducts: 0, joinedDate: 'Apr 16, 2026' },
+  { id: '4', name: 'Eites crafts & sons', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100', status: 'pending', totalProducts: 0, joinedDate: 'Jan 16, 2026' },
+  { id: '5', name: 'Gifted hands leather', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100', status: 'pending', totalProducts: 40, joinedDate: 'May 16, 2025' },
+  { id: '6', name: 'Leather Artisans', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100', status: 'pending', totalProducts: 14, joinedDate: 'May 16, 2025' },
 ];
 
 export default function AdminDashboardPage() {
@@ -36,28 +36,28 @@ export default function AdminDashboardPage() {
   const role = user?.role;
   const email = user?.email;
   const getDashboardData = async () => {
-
     try {
       const res = await api.get('/admin/vendors');
       setVendors(res.data.vendors);
       setTotalVendors(res.data.totalVendors);
       setPendingVendors(res.data.pendingVendors);
-    }
-
-    catch (error) {
+    } catch (error) {
       console.error('Error fetching vendors:', error);
-      // Optionally, set an error state here to display an error message in the UI
       if (error.response) {
         toast.error(error.response.data.message || 'Failed to fetch vendors');
       }
     }
+  };
 
-  }
+  useEffect(() => {
+    // Avoid calling a state-updating async function directly in the effect body.
+    // React lint expects the state changes to happen in an async callback.
+    const run = async () => {
+      await getDashboardData();
+    };
 
-
-  useEffect(() => { 
-    getDashboardData();
-  },[]);
+    run();
+  }, []);
   console.log("Vendors data:", vendors);
 
 
@@ -105,20 +105,21 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Grid Row: Metric Cards */}
-        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-          <MetricCard
-            title="Total Active vendors"
-            value={totalVendors || ''}
-            subtext="Updated just now"
-            trend="+18% from last month"
-            isTrendPositive={true}
-          />
-          <MetricCard
-            title="Pending Verifications"
-            value={pendingVendors || ''}
-            subtext="Needs your attention"
-          />
-          
+          <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+            <MetricCard
+              key="total-active"
+              title="Total Active vendors"
+              value={totalVendors || ''}
+              subtext="Updated just now"
+              trend="+18% from last month"
+              isTrendPositive={true}
+            />
+            <MetricCard
+              key="pending-verifications"
+              title="Pending Verifications"
+              value={pendingVendors || ''}
+              subtext="Needs your attention"
+            />
         </div>
 
         {/* Control Area: Filtering Tabs & Export */}
@@ -165,7 +166,7 @@ export default function AdminDashboardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-sm">
-                {filteredVendors.map((vendor) => {
+                {filteredVendors.map((vendor, idx) => {
                   const isSelected = selectedIds.includes(vendor.id);
                   return (
                     <tr

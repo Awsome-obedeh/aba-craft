@@ -1,60 +1,59 @@
+import { NextResponse } from "next/server";
+import { v2 as cloudinary } from "cloudinary";
 import connectDB from "@/app/lib/connect";
 import { verifyAuth } from "@/app/lib/verifyAuth";
-import { v2 as cloudinary } from "cloudinary";
-import VendorVerification from "@/models/VendorVerification";
-import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
+function getOwnerIdFromPayload(payload) {
+  return (
+    payload?.userId ||
+    payload?.user_id ||
+    payload?.sub ||
+    payload?.id
+  );
+}
+
+// This endpoint accepts a multipart file upload and stores the document in Cloudinary.
+// UI expects: { url } (or { secure_url }).
 export async function POST(req) {
   const auth = await verifyAuth(req, ["vendor"]);
 
   if (!auth.isValid) {
-    return NextResponse.json({ success: false, message: auth.message }, { status: auth.status });
+    return NextResponse.json(
+      { success: false, message: auth.message },
+      { status: auth.status }
+    );
   }
 
-  // Expects multipart/form-data with:
-  // - file: image or pdf
-  // - publicId (optional)
-
   try {
-    await connectDB();
-
-    const formData = await req.formData();
-    const file = formData.get("file");
-    const publicId = formData.get("publicId")?.toString();
-
-    if (!file) {
-      return NextResponse.json({ success: false, message: "CAC file is required." }, { status: 400 });
-    }
-
-    // Validate basic file type
-    const mimeType = file.type || "";
-    const isPdf = mimeType === "application/pdf";
-    const isImage = mimeType.startsWith("image/");
-
-    if (!isPdf && !isImage) {
-      return NextResponse.json(
-        { success: false, message: "Invalid file type. Upload an image or PDF." },
-        { status: 400 }
-      );
-    }
-
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-
+    // Cloudinary config (admin secret not required for unsigned upload)
     cloudinary.config({
       cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
       api_key: process.env.CLOUDINARY_API_KEY,
       api_secret: process.env.CLOUDINARY_API_SECRET,
     });
 
-    const uploadRes = await new Promise((resolve, reject) => {
-      const stream = cloudinary.uploader.upload_stream(
+    await connectDB();
+
+    const formData = await req.formData();
+    const file = formData.get("file");
+
+    if (!file) {
+      return NextResponse.json(
+        { success: false, message: "CAC file is required." },
+        { status: 400 }
+      );
+    }
+
+    // The file object from FormData in Next.js has: { name, type, arrayBuffer() }
+    const buffer = Buffer.from(await file.arrayBuffer());
+
+    const uploadResult = await new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
         {
           resource_type: "auto",
-          folder: "aba-craft/vendor-verifications",
-          public_id: publicId || undefined,
+          folder: "abacraft/vendor_verification/cac",
         },
         (error, result) => {
           if (error) return reject(error);
@@ -62,28 +61,24 @@ export async function POST(req) {
         }
       );
 
-      stream.end(buffer);
+      uploadStream.end(buffer);
     });
 
-    const url = uploadRes.secure_url;
+    const url = uploadResult?.secure_url || uploadResult?.url;
 
-    const ownerId = auth.user.userId || auth.user.user_id || auth.user.sub || auth.user.id;
-
-    const existing = await VendorVerification.findOne({ ownerId });
-
-    if (!existing) {
-      // Create placeholder pending record so we can attach the URL.
-      await VendorVerification.create({
-        ownerId,
-        status: "pending",
-        cacDocumentUrl: url,
-      });
-    } else {
-      existing.cacDocumentUrl = url;
-      await existing.save();
+    if (!url) {
+      return NextResponse.json(
+        { success: false, message: "Cloudinary did not return a URL." },
+        { status: 500 }
+      );
     }
 
-    return NextResponse.json({ success: true, url }, { status: 200 });
+    // Optionally: we could upsert the document URL here, but the UI currently
+    // POSTs to /vendor/verification with the URL after upload.
+    return NextResponse.json(
+      { success: true, url },
+      { status: 200 }
+    );
   } catch (error) {
     return NextResponse.json(
       {
