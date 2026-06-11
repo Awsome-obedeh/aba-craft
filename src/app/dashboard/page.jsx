@@ -22,7 +22,7 @@ export default function DashboardIndexPage() {
                 router.replace("/dashboard/products");
                 break;
             case "admin":
-                router.replace("/dashboard/products");
+                router.replace("/dashboard/admin");
                 break;
             default:
                 router.replace("/auth/sign-in");

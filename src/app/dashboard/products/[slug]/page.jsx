@@ -1,7 +1,6 @@
-
 'use client';
 
-import React, { useEffect, useState, use, useTransition } from 'react';
+import React, { useEffect, useState, use, useTransition, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/app/lib/axios';
 import EditProductModal from '@/components/EditProductModal';
@@ -15,6 +14,7 @@ import { IoChevronBackCircleOutline } from "react-icons/io5";
 import { toast } from 'react-toastify';
 import { DeleteConfirmationModal } from '@/components/DeleteConfirmationModal';
 import { ApproveProductModal } from '@/components/ApproveProductModal';
+import { RejectProductModal } from '@/components/RejectProductModal';
 
 export default function ProductDetailsPage({ params }) {
     const router = useRouter();
@@ -28,6 +28,7 @@ export default function ProductDetailsPage({ params }) {
     const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
     const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
     const [isProductUpdated, setIsProductUpdated] = useState(false);
+    const [isProcessingReject, setIsProcessingReject] = useState(false);
     const [isPending, startTransition] = useTransition();
 
     // Customer-facing add-to-cart
@@ -38,7 +39,8 @@ export default function ProductDetailsPage({ params }) {
     const [activeImage, setActiveImage] = useState('');
     const [zoomStyle, setZoomStyle] = useState({ display: 'none', backgroundPosition: '0% 0%' });
     const { user, accessToken } = useAuthStore();
-    const fetchProductDetails = async () => {
+    
+    const fetchProductDetails = useCallback(async () => {
         try {
             const res = await api.get(`/products/${slug}`);
             const data = res.data.data;
@@ -71,18 +73,17 @@ export default function ProductDetailsPage({ params }) {
         } finally {
             setLoading(false);
         }
-    };
+    }, [slug]);
 
     useEffect(() => {
-
         if (!accessToken && !user) {
             router.push('/auth/sign-in');
         }
 
+        // ESLint false positive: calling async function that internally sets state
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         fetchProductDetails();
-    }, [slug,router, accessToken, user]);
-
-    console.log("Loaded product details:", product);
+    }, [slug, router, accessToken, user]);
 
     // Zero-Dependency Magnification Math Processing Engine (Pan-On-Hover)
     const handleMouseMove = (e) => {
@@ -202,8 +203,39 @@ export default function ProductDetailsPage({ params }) {
         }
     }
     // setProducts(prev => prev.filter(p => p.id !== productId));
-  };
+  }
 
+    const handleReject = async (rejectionReason) => {
+        try {
+            setIsProcessingReject(true);
+            const res = await api.put(`/products/admin/reject/${product.slug}`, { rejectionReason });
+            if (res.data.success) {
+                setIsProcessingReject(false);
+                toast.success("Product rejected successfully!");
+                fetchProductDetails();
+                setIsRejectModalOpen(false);
+            }
+        } catch (error) {
+            setIsProcessingReject(false);
+            console.error("REJECTING PRODUCT ERROR:", error);
+            if (error.response) {
+                toast.error(
+                    error.response.data.message ||
+                    "Something went wrong"
+                );
+            }
+            else if (error.request) {
+                toast.error(
+                    "Network error. Check your internet connection."
+                );
+            }
+            else {
+                toast.error(
+                    "Unexpected error occurred"
+                );
+            }
+        }
+    };
 
 
     if (loading) return <div className="min-h-screen bg-white text-black flex items-center justify-center  text-xs uppercase tracking-widest animate-pulse">loading...</div>;
@@ -234,7 +266,7 @@ export default function ProductDetailsPage({ params }) {
                             onMouseLeave={handleMouseLeave}
                         >
 
-                            <img src={activeImage} alt={product.name} className="max-h-[85%] max-w-[85%]
+                            <img src={activeImage} alt={product.productName} className="max-h-[85%] max-w-[85%]
                             object-contain transition-opacity duration-200 group-hover:opacity-0" />
 
 
@@ -253,12 +285,12 @@ export default function ProductDetailsPage({ params }) {
                                         type="button"
                                         onClick={() => setActiveImage(imgUrl)}
                                         className={`aspect-square bg-white border flex items-center justify-center p-2 group transition-all duration-200 ${activeImage === imgUrl
-                                            ? 'border-black border-2 shadow-xs'
-                                            : 'border-neutral-200 hover:border-black'
-                                            }`}
+                                                ? 'border-black border-2 shadow-xs'
+                                                : 'border-neutral-200 hover:border-black'
+                                                }`}
                                     >
 
-                                        <img src={imgUrl} alt={`Thumbnail allocation view reference ${idx + 1}`} className="max-h-full max-w-full object-contain opacity-70 group-hover:opacity-100 transition-opacity" />
+                                        <img src={imgUrl} alt={`Thumbnail ${idx + 1}`} className="max-h-full max-w-full object-contain opacity-70 group-hover:opacity-100 transition-opacity" />
                                     </button>
                                 ))}
                             </div>
@@ -308,7 +340,6 @@ export default function ProductDetailsPage({ params }) {
                                 }
 
 
-
                             </div>
 
                             <div className="space-y-3  text-xs">
@@ -341,13 +372,12 @@ export default function ProductDetailsPage({ params }) {
                                     <span className="text-black uppercase"> Product Visible To Buyers</span>
 
                                     <span
-                                        className={`px-3 py-1 rounded-full text-sm ${product.published
+                                        className={`px-3 py-1 rounded-full text-sm ${product.isPublished
                                             ? "bg-green-300 text-green-700"
                                             : "bg-gray-200 text-gray-700"
-
                                             }`}
                                     >
-                                        {product.published ? "Visible" : "Hidden"}
+                                        {product.isPublished ? "Visible" : "Hidden"}
                                     </span>
                                 </div>
 
@@ -364,10 +394,6 @@ export default function ProductDetailsPage({ params }) {
                                         <span className="font-bold leading-relaxed whitespace-pre-wrap -tracking-wide">{product?.rejectionReason}</span>
                                     </div>
                                 )}
-                                {/* <div className="flex justify-between border-b border-neutral-100 pb-2">
-                                    <span className="text-neutral-400 uppercase">Index Routing Slug</span>
-                                    <span className="font-bold">{product?.slug}</span>
-                                </div> */}
                             </div>
 
                             <div className="pt-4">
@@ -445,7 +471,7 @@ export default function ProductDetailsPage({ params }) {
                         </div>
 
                         {
-                            role === "admin" && product.status === "under_review" || product.status === "rejected" ? (
+                            role === "admin" && (product.status === "under_review" || product.status === "rejected") ? (
                                 <div className="mt-12 space-y-3 grid md:grid-cols-2 items-baseline gap-4">
                                     <button
                                         onClick={() => setIsApproveModalOpen(true)}
@@ -461,7 +487,7 @@ export default function ProductDetailsPage({ params }) {
                                         Reject Product
                                     </button>
                                 </div>
-                            ):''
+                            ):null
                         } 
 
                     </div>
@@ -473,8 +499,6 @@ export default function ProductDetailsPage({ params }) {
                     product={product}
                     loading={loading}
                     onSave={handleEdit}
-                    // take role to decide admin having more update features than regular users in the future, such as modifying product status, featured flag, and publish visibility
-
                     role={role}
                 />
                 <DeleteConfirmationModal
@@ -491,16 +515,14 @@ export default function ProductDetailsPage({ params }) {
                     slug={product?.slug}
                     loading={isProductUpdated}
                 />
-                {/* <RejectProductModal
+                <RejectProductModal
                     isOpen={isRejectModalOpen}
                     onClose={() => setIsRejectModalOpen(false)}
-                    onConfirm={() => {
-                        // Implement the reject product logic here, such as calling an API endpoint to update the product status to "rejected"
-                        // After successful rejection, you can refetch the product details to reflect the updated status
-                        toast.success("Product rejected successfully!");
-                    }}
+                    onConfirm={handleReject}
                     slug={product?.slug}
-                /> */}
+                    productName={product?.productName}
+                    loading={isProcessingReject}
+                />
             </div>
         </DashboardLayout>
     );

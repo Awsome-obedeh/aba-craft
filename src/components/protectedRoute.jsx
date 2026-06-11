@@ -2,40 +2,37 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/context/AuthContext";
+import { useAuthStore } from "@/app/store/authStore";
 
 export default function ProtectedRoute({
   children,
   allowedRoles = [],
 }) {
-  const { user, loading, isAuthenticated } = useAuth();
-
+  const { user } = useAuthStore();
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading) {
-      // Not logged in
-      if (!isAuthenticated) {
-        router.push("/login");
-      }
-
-      // Role authorization
-      if (
-        allowedRoles.length > 0 &&
-        !allowedRoles.includes(user?.role)
-      ) {
-        router.push("/login");
-      }
+    // Not logged in - check for access token existence
+    const token = useAuthStore.getState().accessToken;
+    if (!token || !user) {
+      router.push("/auth/sign-in");
+      return;
     }
-  }, [loading, isAuthenticated, user, router, allowedRoles]);
 
-  if (loading) {
+    // Role authorization
+    if (
+      allowedRoles.length > 0 &&
+      user?.role &&
+      !allowedRoles.includes(user.role)
+    ) {
+      router.push("/auth/sign-in");
+    }
+  }, [user, router, allowedRoles]);
+
+  // Show loading while checking
+  const token = typeof window !== "undefined" ? useAuthStore.getState().accessToken : null;
+  if (!token || !user) {
     return <p>Loading...</p>;
-  }
-
-  // Prevent unauthorized render
-  if (!isAuthenticated) {
-    return null;
   }
 
   return children;

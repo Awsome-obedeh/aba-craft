@@ -40,7 +40,7 @@ export const ApproveProductModal = ({ isOpen, onClose, onConfirm, slug, loading}
                        
                         <h3 className="text-lg font-bold text-black  tracking-tight leading-relaxed">
                             Are you sure you want to Approve            </h3>
-                        <p className="text-md text-black ">"{slug}"?</p>
+                        <p className="text-md text-black ">{slug}?</p>
                         <p className="text-md text-black ">This product will become visible in the market places for buyers. </p>
 
                     </div>

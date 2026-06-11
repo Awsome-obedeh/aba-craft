@@ -3,37 +3,30 @@ import { verifyAuth } from "@/app/lib/verifyAuth";
 import Product from "@/models/Products";
 import { NextResponse } from "next/server";
 import User from "@/models/User";
-import { sendProductApprovalMail } from "@/app/lib/send-mail";
+import { sendProductRejectionMail } from "@/app/lib/send-mail";
 
 export const PUT = async (req, { params }) => {
     const auth = await verifyAuth(req, ["admin"]);
 
-    // If authentication or authorization fails, i
     if (!auth.isValid) {
         return NextResponse.json({
             success: false,
             message: auth.message
-        },
-
-            { status: auth.status });
+        }, { status: auth.status });
     }
 
     try {
         await connectDB();
 
         const { slug } = await params;
-
-
-        
-
-
-
-
-
+        const body = await req.json();
 
         const product = await Product.findOneAndUpdate(
             { slug, isActive: true },
-            { status: "approved", isPublished: true },
+            { 
+                status: "rejected", 
+                rejectionReason: body.rejectionReason || "No reason provided"
+            },
             { returnDocument: "after" }
         ).lean();
 
@@ -47,34 +40,29 @@ export const PUT = async (req, { params }) => {
             );
         }
 
-      
-
-      
-        // send notification to the vendor about the approval
-        console.log("Product ownwer:", product.createdBy);
-       const vendorId=product.createdBy.toString();
-        // get vendor email
+        // Send notification to vendor about rejection
+        const vendorId = product.createdBy.toString();
         const vendorEmail = await User.findById(vendorId).select("email").lean();
-        await sendProductApprovalMail(
-            vendorEmail.email,
-            product.slug,
-            product.productImages[0],
-            "Your product has been approved!"
+        if (vendorEmail?.email) {
+            await sendProductRejectionMail(
+                vendorEmail.email,
+                product.productName,
+                product.slug,
+                body.rejectionReason
+            );
+        }
+
+        return NextResponse.json(
+            {
+                success: true,
+                message: "Product rejected successfully.",
+                data: product
+            },
+            { status: 200 }
         );
 
-            return NextResponse.json(
-                {
-                    success: true,
-                    message: "Product approved successfully.",
-                    data: product
-                },
-                { status: 200 });
-
-      
-
-    }
-    catch (error) {
-        console.error("Product approval failure:", error);
+    } catch (error) {
+        console.error("Product rejection failure:", error);
         return NextResponse.json(
             {
                 success: false,
@@ -83,6 +71,4 @@ export const PUT = async (req, { params }) => {
             { status: 500 }
         );
     }
-
-
-}
+};

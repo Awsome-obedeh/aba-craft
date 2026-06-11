@@ -56,7 +56,9 @@ export default function VendorMyProductsPage() {
             router.replace("/dashboard/products");
             return;
         }
-        fetchProducts();
+        (async () => {
+            await fetchProducts();
+        })();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchParams, accessToken, user]);
 

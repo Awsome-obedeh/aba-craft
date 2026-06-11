@@ -39,7 +39,7 @@ export const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, productNam
                        
                         <h3 className="text-lg font-bold text-black  tracking-tight leading-relaxed">
                             Are you sure you want to delete             </h3>
-                        <p className="text-md text-black ">"{productName}"?</p>
+                        <p className="text-md text-black ">{productName}?</p>
                         <p className="text-md text-black ">This action is permanent and cannot be undone. </p>
 
                     </div>

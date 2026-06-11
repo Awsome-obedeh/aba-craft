@@ -10,8 +10,13 @@
 - [x] Create `src/app/dashboard/vendor/profile/page.jsx` (verification form + status)
 
 
-## Step 2: Lint issues cleanup (optional / follow-up)
-- [ ] Fix react-hooks/set-state-in-effect errors (auth verify, dashboard admin pages, products pages, vendor inventory/products, EditProductModal)
-- [ ] Fix react/no-unescaped-entities in modals
-- [ ] Address remaining warnings (next/no-img-element, jsx-a11y/alt-text, react-hooks/incompatible-library)
+## Step 2: Admin UI/UX Improvements (completed)
+- [x] Fix admin dashboard - removed hardcoded mock data, added user data from store, fixed badge styling
+- [x] Fix publish-products page - corrected loading state logic, added search functionality
+- [x] Created RejectProductModal component for admin product rejection
+- [x] Added active link highlighting to Sidebar
+- [x] Updated dashboard redirect to route admin to /dashboard/admin
 
+## Step 3: Lint issues cleanup (optional / follow-up)
+- [ ] Fix react-hooks/set-state-in-effect errors (auth verify, products pages, vendor inventory/products, EditProductModal)
+- [ ] Address warnings (next/no-img-element, jsx-a11y/alt-text, react-hooks/incompatible-library)

@@ -236,15 +236,15 @@ export default function UploadProductPage() {
 
                         </div>
 
-                        <div className="flex gap-3">
-                            <button type="submit" className="border px-5 py-2 rounded-lg bg-white">
-                                Save Draft
-                            </button>
+<div className="flex gap-3">
+                             <button type="submit" name="action" value="draft" className="border px-5 py-2 rounded-lg bg-white">
+                                 Save Draft
+                             </button>
 
-                            <button type="submit" className="bg-black text-white px-5 py-2 rounded-lg">
-                                Save Draft
-                            </button>
-                        </div>
+                             <button type="submit" name="action" value="publish" className="bg-black text-white px-5 py-2 rounded-lg">
+                                 Submit for Review
+                             </button>
+                         </div>
                     </div>
 
                     <section className="bg-white border rounded-2xl p-5">

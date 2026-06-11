@@ -53,6 +53,63 @@ export const sendMail = async (email, otp) => {
   }
 
 };
+export const sendProductRejectionMail = async (email, productName, productSlug, rejectionReason) => {
+  try {
+    const transporter = nodemailer.createTransport({
+      service: process.env.EMAIL_HOST,
+      port: 465,
+      auth: {
+        user: process.env.EMAIL_ADDRESS,
+        pass: process.env.EMAIL_APP_PASSWORD,
+      },
+      tls: {
+        rejectUnauthorized: false,
+      },
+    });
+
+    const htmlTemplate = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; line-height:1.2">
+        <h2>Product Rejected</h2>
+        <p>Your product submission has been reviewed and rejected.</p>
+      
+        <p>Product Name:</p>
+        <h3 style="background-color: #f0f0f0; padding: 15px; text-align: center;">
+          ${productName}
+        </h3>
+
+        <p>Reason for rejection:</p>
+        <h3 style="background-color: #fff0f0; padding: 15px; text-align: center; color: #d32f2f;">
+          ${rejectionReason || "No reason provided"}
+        </h3>
+
+        <p>You can edit and resubmit your product for review.</p>
+        
+        <a href="${process.env.FRONT_END_URL}/dashboard/vendor/upload-product" target="_blank">
+          <button style="display:block; margin: 20px auto; padding: 10px 20px; background-color: black; color: white; border: none; border-radius: 5px; text-decoration: none;">
+            Edit Product
+          </button>
+        </a>
+        
+        <span>Thank you for being a part of Aba Crafts!</span>
+      </div>
+
+      <p style="text-align:center; color:gray; font-size:10px; padding:10px 0">This is an automated email, no need to reply.</p>`;
+
+    const mailOptions = {
+      from: process.env.EMAIL_ADDRESS,
+      to: email,
+      subject: "Your product has been rejected - Aba Crafts",
+      html: htmlTemplate,
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log("Rejection email sent:", info.response);
+
+  } catch (error) {
+    console.error(" Error sending rejection email:", error);
+  }
+};
+
 export const sendProductApprovalMail = async (email, productSlug, productImage, subject) => {
   try {
     // Create Nodemailer transporter

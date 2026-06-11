@@ -83,7 +83,7 @@ export const GET = async (req) => {
         }));
         return NextResponse.json({
             success: true,
-            vendors,
+            vendors: formattedVendors,
             totalVendors,
             pendingVendors
         },

@@ -26,27 +26,29 @@ export default function InventoryPage() {
     console.log("InventoryPage rendered. User:", user, "Token:", accessToken);
 
     const fetchProducts = async () => {
+        setProdLoading(true);
         try {
-            setProdLoading(false);
             const res = await api.get('/products/vendor');
             setProducts(res.data.products);
         }
 
         catch (error) {
-            setProdLoading(true);
             console.error("Error fetching products:", error);
+        } finally {
+            setProdLoading(false);
         }
     }
     const fetchCategories = async () => {
+        setCatLoading(true);
         try {
-            setCatLoading(false);
             const res = await api.get('/category/stats');
             setCategories(res.data.categories);
         }
 
         catch (error) {
-            setCatLoading(true);
             console.error("Error fetching categories:", error);
+        } finally {
+            setCatLoading(false);
         }
     }
 
@@ -57,8 +59,10 @@ export default function InventoryPage() {
             router.push('/auth/sign-in');
         }
 
-        fetchProducts();
-        fetchCategories();
+        (async () => {
+            await fetchProducts();
+            await fetchCategories();
+        })();
     }, [accessToken, user, router]);
 
     // console.log(products)

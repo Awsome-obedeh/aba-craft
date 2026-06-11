@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import {
   FiGrid,
@@ -68,7 +68,7 @@ const sidebarLinks = {
 
       
     },
-   
+    
   ],
 
   customer: [
@@ -87,7 +87,7 @@ const sidebarLinks = {
   admin: [
     {
       name: "Dashboard",
-      href: "/dashboard/admin/",
+      href: "/dashboard/admin",
       icon: FiGrid,
     },
     {
@@ -104,80 +104,93 @@ const sidebarLinks = {
 };
 
 export default function Sidebar({ role}) {
-  const [open, setOpen] = useState(false);
-  const router = useRouter();
+   const [open, setOpen] = useState(false);
+   const router = useRouter();
+   const pathname = usePathname();
 
-  const links = sidebarLinks[role];
+   const links = sidebarLinks[role];
 
-  return (
-    <>
-      {/* Mobile Menu Button */}
-      <button
-        onClick={() => setOpen(true)}
-        className="lg:hidden fixed top-4 left-4 z-50 bg-black text-white p-2 rounded-md"
-      >
-        <FiMenu />
-      </button>
+   const isActive = (href) => {
+     if (href === '/dashboard/admin' && pathname === '/dashboard/admin') {
+       return pathname === '/dashboard/admin' || pathname === '/dashboard/admin/';
+     }
+     return pathname === href || pathname.startsWith(href + '/');
+   };
 
-      {/* Overlay */}
-      {open && (
-        <div
-          className="fixed inset-0 bg-black/40 z-40 lg:hidden"
-          onClick={() => setOpen(false)}
-        />
-      )}
+   return (
+     <>
+       {/* Mobile Menu Button */}
+       <button
+         onClick={() => setOpen(true)}
+         className="lg:hidden fixed top-4 left-4 z-50 bg-black text-white p-2 rounded-md"
+       >
+         <FiMenu />
+       </button>
 
-      <aside
-        className={`fixed top-0 left-0 h-screen w-[250px] bg-black text-white z-50 transform transition-transform duration-300
-        ${open ? "translate-x-0" : "-translate-x-full"}
-        lg:translate-x-0`}
-      >
-        <div className="flex items-center justify-between p-5 border-b border-gray-800">
-          <h1 className="text-xl font-bold">Aba Crafts</h1>
+       {/* Overlay */}
+       {open && (
+         <div
+           className="fixed inset-0 bg-black/40 z-40 lg:hidden"
+           onClick={() => setOpen(false)}
+         />
+       )}
 
-          <button
-            onClick={() => setOpen(false)}
-            className="lg:hidden"
-          >
-            <FiX size={20} />
-          </button>
-        </div>
+       <aside
+         className={`fixed top-0 left-0 h-screen w-[250px] bg-black text-white z-50 transform transition-transform duration-300
+         ${open ? "translate-x-0" : "-translate-x-full"}
+         lg:translate-x-0`}
+       >
+         <div className="flex items-center justify-between p-5 border-b border-gray-800">
+           <h1 className="text-xl font-bold">Aba Crafts</h1>
 
-        <div className="flex flex-col justify-between h-[90%]">
-          <div className="space-y-2 px-3 py-5">
-            {links?.map((link, index) => {
-              const Icon = link.icon;
+           <button
+             onClick={() => setOpen(false)}
+             className="lg:hidden"
+           >
+             <FiX size={20} />
+           </button>
+         </div>
 
-              return (
-                <Link
-                  key={index}
-                  href={link.href}
-                  className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white hover:text-black transition"
-                >
-                  <Icon size={18} />
-                  <span className="text-sm">{link.name}</span>
-                </Link>
-              );
-            }) || <p className="text-sm text-gray-500">No links available</p>}
-          </div>
+         <div className="flex flex-col justify-between h-[90%]">
+           <div className="space-y-2 px-3 py-5">
+             {links?.map((link, index) => {
+               const Icon = link.icon;
+               const active = isActive(link.href);
 
-          <div className="px-3 pb-5 space-y-2">
-            <button className="flex items-center gap-3 px-4 py-3 w-full rounded-lg hover:bg-white hover:text-black transition">
-              <FiSettings />
-              Settings
-            </button>
+               return (
+                 <Link
+                   key={index}
+                   href={link.href}
+                   className={`flex items-center gap-3 px-4 py-3 rounded-lg transition ${
+                     active 
+                       ? 'bg-white text-black font-semibold' 
+                       : 'hover:bg-white hover:text-black'
+                   }`}
+                 >
+                   <Icon size={18} />
+                   <span className="text-sm">{link.name}</span>
+                 </Link>
+               );
+             }) || <p className="text-sm text-gray-500">No links available</p>}
+           </div>
 
-            <button
-              type="button"
-              onClick={() => handleLogout(router)}
-              className="flex items-center gap-3 px-4 py-3 w-full rounded-lg hover:bg-red-500 transition"
-            >
-              <FiLogOut />
-              Logout
-            </button>
-          </div>
-        </div>
-      </aside>
-    </>
-  );
+           <div className="px-3 pb-5 space-y-2">
+             <button className="flex items-center gap-3 px-4 py-3 w-full rounded-lg hover:bg-white hover:text-black transition">
+               <FiSettings />
+               Settings
+             </button>
+
+             <button
+               type="button"
+               onClick={() => handleLogout(router)}
+               className="flex items-center gap-3 px-4 py-3 w-full rounded-lg hover:bg-red-500 transition"
+             >
+               <FiLogOut />
+               Logout
+             </button>
+           </div>
+         </div>
+       </aside>
+     </>
+   );
 }

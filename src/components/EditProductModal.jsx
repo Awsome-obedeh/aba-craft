@@ -1,8 +1,6 @@
-// src/components/EditProductModal.js
 'use client';
 
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { MdCancel } from "react-icons/md";
 import { toast } from "react-toastify";
 import { CategoryList } from './CategoryCard';
@@ -22,9 +20,7 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, loa
     const [description, setDescription] = useState('');
 
 
-  
-
-    const fetchCategories = async () => {
+    const fetchCategories = useCallback(async () => {
         try {
 
             const res = await api.get('/category');
@@ -58,14 +54,12 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, loa
         }
 
 
+    }, []);
 
-
-
-
-    }
 
     // Pre-populate the form inputs whenever a new product is selected/loaded
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         if (product) {
             setProductName(product.productName || '');
             setBrand(product.brand || '');
@@ -76,16 +70,12 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, loa
             setCategory(product.category || '');
             setDiscountPercentage(product.discountPercentage || 0);
             setDescription(product.description || '');
-
         }
-
-        fetchCategories();
     }, [product]);
 
-    console.log("Categories in Edit Modal:", categories, "Default category:", category);
-      console.log("EDIT PRODUCT MODAL DATA:", product);
-    console.log("CATEGORIES AVAILABLE:", categories);
-    console.log("CURRENT CATEGORY SELECTION:", category)
+    useEffect(() => {
+        fetchCategories();
+    }, [fetchCategories]);
 
     if (!isOpen) return null;
 

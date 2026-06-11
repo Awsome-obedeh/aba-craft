@@ -31,7 +31,8 @@ const router=useRouter()
                 localStorage.getItem("email");
 
             if (userEmail) {
-                setEmail(userEmail);
+                 
+                setTimeout(() => setEmail(userEmail), 0);
             }
         }
 

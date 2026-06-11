@@ -3,17 +3,11 @@
 import { useAuthStore } from '@/app/store/authStore'
 import DashboardLayout from '@/components/layout/DashboardLayout'
 import React, { useEffect } from 'react'
+import { useRouter } from 'next/navigation';
 
 export default function VendorDashboardPage() {
     const {user, accessToken}=useAuthStore();
-
-    useEffect(()=>{
-         if (!accessToken && !user) {
-            router.push('/auth/sign-in');
-        }
-
-
-    }, [user, accessToken]);
+    const router = useRouter();
 
      const role = user?.role;
     const email = user?.email;

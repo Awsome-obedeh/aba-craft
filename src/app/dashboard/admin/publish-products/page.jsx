@@ -7,65 +7,49 @@ import { toast } from 'react-toastify';
 import { useAuthStore } from '@/app/store/authStore';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useRouter } from 'next/navigation';
-// import { DeleteConfirmationModal } from './DeleteConfirmationModal'; // If you want to reuse your modal
-
-// Sample Data mimicking an API response of pending items
-const INITIAL_PENDING_PRODUCTS = [
-  { id: 1, name: "Wireless Headphones Pro", price: 89.99, vendor: "TechNexus", image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300" },
-  { id: 2, name: "Mechanical Keyboard K8", price: 129.50, vendor: "TechNexus", image: "https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=300" },
-  { id: 3, name: "Leather Minimalist Wallet", price: 45.00, vendor: "ApexCraft", image: "https://images.unsplash.com/photo-1627124793833-dd1ca9c3f094?w=300" },
-  { id: 4, name: "Ergonomic Office Chair", price: 299.00, vendor: "ApexCraft", image: "https://images.unsplash.com/photo-1505816014357-96b5ff457e9a?w=300" },
-  { id: 5, name: "4K UltraWide Monitor 34\"", price: 499.99, vendor: "FutureVision", image: "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=300" }
-];
+import { FiSearch } from 'react-icons/fi';
+import { RejectProductModal } from '@/components/RejectProductModal';
 
 export default function AdminPendingProducts() {
 
   const { user, accessToken } = useAuthStore();
   const router = useRouter();
 
+  const role = user?.role;
+  const email = user?.email;
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [rejectionModal, setRejectionModal] = useState({ show: false, productId: null, slug: null, productName: '' });
+
+  // Fetch pending products
   useEffect(() => {
     if (!accessToken && !user) {
       router.push('/auth/sign-in');
+      return;
     }
 
-
-  }, [user, accessToken]);
-
-  const role = user?.role;
-  const email = user?.email;
-  const [products, setProducts] = useState();
-  const [loading, setLoading] = useState(false);
-
-
-
-  // get product
-  const getVendorPendingProducts = async () => {
-    const res = await api.get('/products/admin/pending');
-
-    try {
-      setLoading(true);
-
-      if (res.status) {
-        setLoading(true)
-        setProducts(res.data.products);
-
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const res = await api.get('/products/admin/pending');
+        if (res.status === 200 || res.status === 201) {
+          setProducts(res.data.products || []);
+        }
+      } catch (error) {
+        console.error('Error fetching products:', error);
+        toast.error("Error fetching pending products");
+      } finally {
+        setLoading(false);
       }
-    }
+    };
 
-    catch (error) {
-      setLoading(false);
-      toast.error("error fetching vendor's products");
-    }
-  };
+    fetchProducts();
+  }, [user, accessToken, router]);
 
-  useEffect(() => {
-    getVendorPendingProducts();
-  }, []);
-
-  //  Group products by vendor dynamically
-
-
-  const groupedProducts = loading && products.length > 0 && products.reduce((acc, product) => {
+  // Group products by vendor dynamically
+  const groupedProducts = products.reduce((acc, product) => {
     const vendor = product.vendorName;
     if (!acc[vendor]) {
       acc[vendor] = [];
@@ -74,21 +58,58 @@ export default function AdminPendingProducts() {
     return acc;
   }, {});
 
+  // Filter products by search query
+  const filteredProducts = products.filter(product =>
+    product.productName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    product.vendorName?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
+  // Regroup filtered products
+  const filteredGroupedProducts = filteredProducts.reduce((acc, product) => {
+    const vendor = product.vendorName;
+    if (!acc[vendor]) {
+      acc[vendor] = [];
+    }
+    acc[vendor].push(product);
+    return acc;
+  }, {});
 
+  const handleRejectClick = (productId, slug, productName) => {
+    setRejectionModal({ show: true, productId, slug, productName });
+  };
 
+  const handleRejectConfirm = async (rejectionReason) => {
+    try {
+      setIsProcessing(true);
+      await api.put(`/products/admin/reject/${rejectionModal.slug}`, { rejectionReason });
+      setProducts(prev => prev.filter(p => p.id !== rejectionModal.productId));
+      toast.success('Product rejected successfully');
+      setRejectionModal({ show: false, productId: null, slug: null, productName: '' });
+    } catch (error) {
+      console.error('Error rejecting product:', error);
+      toast.error('Failed to reject product');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
-  console.log("PENDING PRODUCTS", products, "GROUPED PRODUCTS: ", groupedProducts,);
-
-
-  const handleReject = (productId) => {
-    // API Call or open your modal here
-    setProducts(prev => prev.filter(p => p.id !== productId));
+  const handleApprove = async (productId, slug) => {
+    try {
+      setIsProcessing(true);
+      await api.put(`/products/admin/approve/${slug}`);
+      setProducts(prev => prev.filter(p => p.id !== productId));
+      toast.success('Product approved successfully');
+    } catch (error) {
+      console.error('Error approving product:', error);
+      toast.error('Failed to approve product');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
 
-    <DashboardLayout role={role}>
+    <DashboardLayout role={role} email={email}>
       <div className="min-h-screen bg-slate-50/50 p-6 sm:p-10 font-sans">
         {/* Header section */}
         <div className="mb-10 max-w-7xl mx-auto">
@@ -96,14 +117,32 @@ export default function AdminPendingProducts() {
           <p className="text-sm text-slate-500 mt-1">Review and approve product listings submitted by your vendors.</p>
         </div>
 
+        {/* Search Bar */}
+        <div className="max-w-7xl mx-auto mb-6">
+          <div className="relative">
+            <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Search products, vendors..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/10"
+            />
+          </div>
+        </div>
+
         <div className="max-w-7xl mx-auto space-y-12">
-          {loading && Object.keys(groupedProducts).length === 0 ? (
+          {loading ? (
+            <div className="text-center py-20 bg-white border border-dashed border-slate-200 rounded-2xl">
+              <p className="text-slate-400 font-medium">Loading pending products...</p>
+            </div>
+          ) : Object.keys(filteredGroupedProducts).length === 0 ? (
             <div className="text-center py-20 bg-white border border-dashed border-slate-200 rounded-2xl">
               <p className="text-slate-400 font-medium">All caught up! No pending products to review.</p>
             </div>
           ) : (
-            // 2. Loop through each vendor group
-            Object.entries(groupedProducts).map(([vendorName, vendorProducts]) => (
+            // Loop through each vendor group
+            Object.entries(filteredGroupedProducts).map(([vendorName, vendorProducts]) => (
               <section key={vendorName} className="space-y-4">
 
                 {/* Vendor Row Header */}
@@ -119,7 +158,7 @@ export default function AdminPendingProducts() {
 
                 {/* Responsive horizontal grid row for this vendor's items */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                  {loading && vendorProducts.map((product) => (
+                  {vendorProducts.map((product) => (
                     <div
                       key={product.id}
                       className="group bg-white rounded-2xl border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.02)] overflow-hidden flex flex-col hover:shadow-[0_12px_30px_rgba(0,0,0,0.04)] transition-all duration-300"
@@ -127,7 +166,7 @@ export default function AdminPendingProducts() {
                       {/* Product Image preview */}
                       <Link href={`/dashboard/products/${product.slug}`} className="relative aspect-video w-full bg-slate-100 overflow-hidden">
                         <img
-                          src={product.productImages}
+                          src={product.productImages?.[0] || product.productImages}
                           alt={product.productName}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         />
@@ -150,8 +189,9 @@ export default function AdminPendingProducts() {
                         {/* Action Triggers */}
                         <div className="grid grid-cols-2 gap-2 mt-4">
                           <button
-                            onClick={() => handleReject(product.id)}
-                            className="px-3 py-2 text-xs font-medium text-slate-600 hover:text-rose-600 hover:bg-rose-50 rounded-xl border border-slate-100 transition-colors"
+                            onClick={() => handleRejectClick(product.id, product.slug, product.productName)}
+                            disabled={isProcessing}
+                            className="px-3 py-2 text-xs font-medium text-slate-600 hover:text-rose-600 hover:bg-rose-50 rounded-xl border border-slate-100 transition-colors disabled:opacity-50"
                           >
                             Reject
                           </button>
@@ -171,8 +211,15 @@ export default function AdminPendingProducts() {
           )}
         </div>
 
-
       </div>
+
+      <RejectProductModal
+        isOpen={rejectionModal.show}
+        onClose={() => setRejectionModal({ show: false, productId: null, slug: null, productName: '' })}
+        onConfirm={handleRejectConfirm}
+        productName={rejectionModal.productName}
+        loading={isProcessing}
+      />
     </DashboardLayout>
   );
-}   
+}

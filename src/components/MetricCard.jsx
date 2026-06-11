@@ -20,6 +20,11 @@ export const MetricCard = ({ title, value, subtext, trend, isTrendPositive, icon
           </span>
         )}
       </div>
+      
+      {/* Enhanced visual indicator */}
+      <div className="absolute inset-0">
+        <div className="absolute top-0 left-0 h-0.5 w-full bg-gradient-to-r from-indigo-500 to-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+      </div>
     </div>
   );
 };

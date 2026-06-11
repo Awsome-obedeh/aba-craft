@@ -116,3 +116,45 @@ Visit `http://localhost:3000`.
 - **Payments.** The mock payment flow is shaped like Paystack's (`init` returns an `authorizationUrl`, `verify` returns success/failure) so swapping in real Paystack later is a one-route change.
 - **Roles.** A user can be `vendor`, `admin`, or `customer`. There is no public storefront; both vendors and customers must sign in to browse or sell. Vendors see only their own products in their "My Products" view; the storefront shows the union of all approved+published products.
 
+## Admin Dashboard Enhancements
+
+The admin dashboard has been significantly improved with better UI/UX:
+
+### MetricCard Component
+- Enhanced visual design with gradient hover indicators
+- Improved spacing and typography for better readability
+- Added icon support for visual communication of metric types
+
+### Admin Dashboard Page
+- **Enhanced Header**: Gradient background, icons, and descriptive section titles
+- **Improved Metrics Dashboard**: Three metric cards with relevant icons showing total vendors, pending verifications, and verified vendors count (replacing mock growth rate with real data)
+- **Advanced Filtering & Sorting**:
+  - Multi-column sorting (name, status, total products, joined date)
+  - Visual sort indicators (↑/↓) in table headers
+  - Persistent search functionality
+  - Tab-based filtering (All Vendors, Pending Verification, Verified, Suspended)
+- **Improved Vendor Table**:
+  - Better avatar display with borders
+  - Email visibility under vendor names
+  - Enhanced action buttons (View Details ✏️, Edit)
+  - Improved row hover effects and selection styling
+- **Enhanced Bulk Operations**:
+  - Gradient-styled action buttons with hover effects
+  - Success feedback toasts for bulk operations
+  - Improved visual design with shadows and transformations
+
+### User Management Page
+- **Complete User Administration**: Dedicated interface for managing all platform users
+- **Role-Based Filtering**: Filter users by role (All Users, Admins, Vendors, Customers)
+- **Search Functionality**: Real-time search across names, emails, and business names
+- **Bulk Operations**: Select multiple users for batch actions
+- **User Statistics**: Quick overview of total users and role distribution
+- **Enhanced User Table**: 
+  - Avatar display with role-based color coding
+  - Status indicators (Active/Inactive)
+  - Join dates and contact information
+  - Action buttons for viewing details and deleting users
+- **Responsive Design**: Works across different screen sizes
+
+These improvements make the admin interface more intuitive, visually appealing, and functional while maintaining all existing vendor management capabilities.
+

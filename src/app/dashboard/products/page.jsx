@@ -1,9 +1,8 @@
 // src/app/products/page.js
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-
 
 
 import { formatPrice } from '@/utils/priceFormater';
@@ -18,6 +17,7 @@ import DashboardLayout from "@/components/layout/DashboardLayout";
 export default function ProductsPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
+
 
     // Application state wrappers
     const [products, setProducts] = useState([]);
@@ -34,7 +34,7 @@ export default function ProductsPage() {
     const [hasPercentageDiscount, setHasPercentageDiscount] = useState(searchParams.get('hasPercentageDiscount') === 'true');
     const { user, accessToken } = useAuthStore();
 
-    const fetchProducts = async () => {
+    const fetchProducts = useCallback(async () => {
         setLoading(true);
         try {
             const res = await api.get(`/products?${searchParams.toString()}`);
@@ -45,7 +45,7 @@ export default function ProductsPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [searchParams]);
 
 
     useEffect(() => {
@@ -54,9 +54,10 @@ export default function ProductsPage() {
             router.push('/auth/sign-in');
         }
 
-
-        fetchProducts();
-    }, [searchParams, router, accessToken, user]);
+        (async () => {
+            await fetchProducts();
+        })();
+    }, [searchParams, router, accessToken, user, fetchProducts]);
 
 
     // Consolidates existing parameters and pushes a modified URL query 
@@ -156,7 +157,7 @@ export default function ProductsPage() {
                                         <div className="mt-8 flex items-baseline gap-2 font-mono">
                                             {product.discountPrice > 0 ? (
                                                 <>
-                                                    <span className="text-base font-black text-black">{formatPrice(product.discountPrice)}</span>
+                                                    <span className="text-base font-black text-black">{formatPrice(product.price - product.discountPrice)}</span>
                                                     <span className="text-xs text-neutral-500 line-through">{formatPrice(product.price)}</span>
                                                 </>
 
@@ -164,7 +165,7 @@ export default function ProductsPage() {
                                                 <>
                                                     <div className="flex flex-col items-baseline gap-2">
 
-                                                        <p className=" text-base font-black text-black">{formatPrice((product.discountPercentage / 100) * product.price)}</p>
+                                                        <p className=" text-base font-black text-black">{formatPrice(product.price - (product.discountPercentage / 100) * product.price)}</p>
                                                         <span className="text-xs text-neutral-500 line-through">{formatPrice(product.price)}</span>
                                                     </div>
 
@@ -176,7 +177,6 @@ export default function ProductsPage() {
 
 
                                             }
-
 
 
                                         </div>
