@@ -88,7 +88,11 @@ export default function AdminUsersPage() {
    // Handle delete user
    const handleDeleteUser = async (userId) => {
      try {
-       await api.delete(`/admin/users/${userId}`);
+       if (!userId) return;
+
+       // Backend only implements DELETE /admin/users (bulk via request body)
+       await api.delete(`/admin/users`, { data: { ids: [userId] } });
+
        setUsers(prev => prev.filter(user => user.id !== userId));
        toast.success('User deleted successfully');
      } catch (error) {

@@ -89,17 +89,26 @@ export const DELETE = async (req) => {
         } else {
             // Individual delete: expect /admin/users/{id} in URL
             const url = new URL(req.url);
-            const pathname = url.pathname; // /api/admin/users/{id} or /api/admin/users
+            const pathname = url.pathname; // e.g., /api/admin/users/123 or /api/admin/users
             
-            // Check if this is an individual delete request (has ID in path)
-            const pathSegments = pathname.split('/').filter(segment => segment !== '');
+            // Remove trailing slash if present for consistent matching
+            const cleanPathname = pathname.endsWith('/') ? pathname.slice(0, -1) : pathname;
+            
+            // Split path into segments and filter out empty strings
+            const pathSegments = cleanPathname.split('/').filter(segment => segment !== '');
+            
+            // Expected base path segments: ['api', 'admin', 'users'] (length 3)
+            // If we have more than 3 segments, the extra segment(s) form the user ID
+            // For simplicity, we'll assume the format is exactly /api/admin/users/{id}
+            // so we expect exactly 4 segments: ['api', 'admin', 'users', {id}]
             let userId = null;
             
-            // If we have more than the base path, the last segment is the user ID
-            // Base path is /api/admin/users (3 segments when split and filtered)
-            if (pathSegments.length > 3) {
+            if (pathSegments.length === 4 && 
+                pathSegments[0] === 'api' && 
+                pathSegments[1] === 'admin' && 
+                pathSegments[2] === 'users') {
                 // Format: /api/admin/users/{id}
-                userId = pathSegments[pathSegments.length - 1];
+                userId = pathSegments[3];
             } else {
                 // Try to get ID from query parameters as fallback
                 const searchParams = url.searchParams;
@@ -107,6 +116,14 @@ export const DELETE = async (req) => {
             }
 
             if (!userId) {
+                return NextResponse.json({
+                    success: false,
+                    message: "User ID is required"
+                }, { status: 400 });
+            }
+
+            // Validate userId is not empty
+            if (!userId.trim()) {
                 return NextResponse.json({
                     success: false,
                     message: "User ID is required"
