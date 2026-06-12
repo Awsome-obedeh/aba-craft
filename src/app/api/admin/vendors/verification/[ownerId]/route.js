@@ -43,6 +43,14 @@ export async function GET(req, context) {
 
     const verification = await VendorVerification.findOne(lookup).lean();
 
+    // Backward compatibility: older documents won't have these fields.
+    // Mongoose default for isConsent only applies on new docs, so normalise here.
+    if (verification) {
+      if (typeof verification.isConsent !== 'boolean') verification.isConsent = true;
+      if (verification.businessName == null) verification.businessName = '';
+    }
+
+
     if (!verification) {
       return NextResponse.json(
         { success: false, message: "Verification not found" },

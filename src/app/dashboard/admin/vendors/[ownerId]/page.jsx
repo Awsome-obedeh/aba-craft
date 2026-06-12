@@ -154,6 +154,19 @@ export default function VendorVerificationDetailsPage(props) {
                   <div className="mt-2 text-sm text-slate-700 bg-slate-50 rounded-xl p-3">{verification.abssin}</div>
                 </div>
 
+                <div>
+                  <label className="text-sm font-semibold text-slate-800">Business Name</label>
+                  <div className="mt-2 text-sm text-slate-700 bg-slate-50 rounded-xl p-3">{verification.businessName || '-'}</div>
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-slate-800">Consent</label>
+                  <div className="mt-2 text-sm text-slate-700 bg-slate-50 rounded-xl p-3">
+                    {verification.isConsent === false ? 'No' : 'Yes'}
+                  </div>
+                </div>
+
+
                 <div className="md:col-span-2">
                   <label className="text-sm font-semibold text-slate-800">Store/Business Address</label>
                   <div className="mt-2 text-sm text-slate-700 bg-slate-50 rounded-xl p-3">{verification.businessAddress}</div>

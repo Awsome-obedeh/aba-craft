@@ -43,6 +43,20 @@ const vendorVerificationSchema = new mongoose.Schema(
       trim: true,
     },
 
+    businessName: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    isConsent: {
+      type: Boolean,
+      required: true,
+      default: true,
+    },
+
+
+
     status: {
       type: String,
       enum: ["pending", "verified", "rejected"],
