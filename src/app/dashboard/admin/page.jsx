@@ -313,7 +313,8 @@ export default function AdminDashboardPage() {
                   <td className="p-4 text-slate-500 text-xs">{vendor.joinedDate}</td>
                   <td className="p-4 text-center">
                     <div className="flex items-center justify-center space-x-2">
-                      <button 
+                      <button
+                        onClick={() => router.push(`/dashboard/admin/vendors/${vendor.ownerId || vendor.id}`)}
                         className="p-1.5 hover:bg-slate-100 text-slate-400 hover:text-slate-700 rounded-lg transition-colors hover:scale-105"
                         title="View Details"
                       >

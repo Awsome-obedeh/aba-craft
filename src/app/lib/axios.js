@@ -35,9 +35,9 @@ api.interceptors.response.use(
             try {
                 // Hit your backend refresh endpoint. 
                 // The browser automatically attaches the httpOnly refresh cookie.
-                const res = await axios.post(
-                    `${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`, 
-                    {}, 
+                const res = await api.post(
+                    '/auth/refresh',
+                    {},
                     { withCredentials: true }
                 );
 
