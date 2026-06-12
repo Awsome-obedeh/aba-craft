@@ -2,6 +2,8 @@
 import connectDB from "@/app/lib/connect";
 import { verifyAuth } from "@/app/lib/verifyAuth";
 import Product from "@/models/Products";
+import VendorVerification from "@/models/VendorVerification";
+import User from "@/models/User";
 
 import { NextResponse } from "next/server";
 export const POST = async (req) => {
@@ -30,9 +32,32 @@ export const POST = async (req) => {
     }
 
     try {
-
         await connectDB();
+
+        // Vendor upload restriction: vendor must be verified before submitting products
+        if (auth.user.role === "vendor") {
+            const vendorId = auth.user.id;
+            const verification = await VendorVerification.findOne({ ownerId: vendorId });
+
+            if (!verification || verification.status !== "verified") {
+                return NextResponse.json(
+                    {
+                        success: false,
+                        message: "Vendor verification required before uploading products",
+                    },
+                    { status: 403 }
+                );
+            }
+
+            // (optional) If your app relies on this flag
+            await User.updateOne(
+                { _id: vendorId },
+                { $set: { onBoardingStatus: "completed" } }
+            );
+        }
+
         // Create slug
+
         const slug = productName
             .toLowerCase()
             .trim()
