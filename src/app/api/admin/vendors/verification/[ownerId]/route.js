@@ -7,8 +7,17 @@ import mongoose from "mongoose";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(req, { params }) {
+export async function GET(req, context) {
+  // Next.js App Router dynamic route params can be async (Promise-like)
+  // in some cases; unwrap before reading.
+  const params = await context?.params;
+
+  const ownerId = params?.ownerId ?? params?.['ownerId'];
+
+
   const auth = await verifyAuth(req, ["admin"]);
+
+
 
   if (!auth.isValid) {
     return NextResponse.json(
@@ -20,22 +29,17 @@ export async function GET(req, { params }) {
   try {
     await connectDB();
 
-    const { ownerId } = params;
+
 
     // Robust lookup:
     // - Prefer ObjectId casting when possible
     // - Fallback to raw string match
-    const lookup = {};
-
     const castedOwnerId = mongoose.Types.ObjectId.isValid(ownerId)
       ? new mongoose.Types.ObjectId(ownerId)
       : null;
 
-    if (castedOwnerId) {
-      lookup.ownerId = castedOwnerId;
-    } else {
-      lookup.ownerId = ownerId;
-    }
+    const lookup = castedOwnerId ? { ownerId: castedOwnerId } : { ownerId };
+
 
     const verification = await VendorVerification.findOne(lookup).lean();
 

@@ -21,6 +21,11 @@ export default function VendorVerificationDetailsPage(props) {
 
   const ownerId = params?.ownerId;
 
+  // Match backend validation: VendorVerification.ownerId is stored as an ObjectId.
+  // If the dynamic param isn't provided or is nested, this will prevent 404s.
+  // Note: backend route matches directly on the dynamic param.
+
+
   const fetchVerification = async () => {
     try {
       setLoading(true);
@@ -37,21 +42,52 @@ export default function VendorVerificationDetailsPage(props) {
     }
   };
 
-  useEffect(() => {
-    if (!accessToken && !user) {
-      router.push('/auth/sign-in');
-      return;
-    }
 
-    if (ownerId) fetchVerification();
-  }, [accessToken, user, ownerId]);
+  useEffect(() => {
+    let cancelled = false;
+
+    const run = async () => {
+      if (!accessToken && !user) {
+        router.push('/auth/sign-in');
+        return;
+      }
+
+      if (!ownerId) return;
+
+      setLoading(true);
+      try {
+        const res = await api.get(`/admin/vendors/verification/${ownerId}`);
+        if (cancelled) return;
+        setVerification(res.data.verification);
+        setAdminNotes(res.data.verification?.adminNotes || '');
+      } catch (error) {
+        console.error('Error fetching verification:', error);
+        if (cancelled) return;
+        if (error.response) {
+          toast.error(error.response.data.message || 'Failed to fetch verification');
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [accessToken, user, ownerId, router]);
+
+
+
 
   const handleDecision = async (action) => {
     if (!ownerId) return;
 
+    const url = `/admin/vendors/verification/${ownerId}/decision`;
+
     try {
       setSubmitting(true);
-      const res = await api.post(`/admin/vendors/verification/${ownerId}/decision`, {
+      const res = await api.post(url, {
         action,
         adminNotes,
       });
@@ -59,7 +95,13 @@ export default function VendorVerificationDetailsPage(props) {
       toast.success(res.data.message || 'Updated');
       await fetchVerification();
     } catch (error) {
-      console.error('Error updating verification:', error);
+      console.error('Error updating verification:', {
+        url,
+        ownerId,
+        status: error?.response?.status,
+        data: error?.response?.data,
+        message: error?.message,
+      });
       toast.error(error.response?.data?.message || 'Failed to update');
     } finally {
       setSubmitting(false);
