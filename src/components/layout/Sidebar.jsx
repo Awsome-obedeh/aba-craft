@@ -51,16 +51,8 @@ const sidebarLinks = {
       icon: FiShoppingBag,
     },
     
-    {
-      name: "Orders & Leads",
-      href: "/dashboard/vendor/orders",
-      icon: FiShoppingBag,
-    },
-    {
-      name: "Sales Automation",
-      href: "/dashboard/vendor/sales",
-      icon: FiGrid,
-    },
+    
+    
     {
       name: "Profile & Verification",
       href: "/dashboard/vendor/profile",
@@ -91,13 +83,24 @@ const sidebarLinks = {
       icon: FiGrid,
     },
     {
-      name: "Manage Users",
-      href: "/dashboard/admin/users",
+      name: "Manage Vendors",
+      href: "/dashboard/admin/vendors",
       icon: FiUser,
+    },
+    {
+      name: "Manage Business",
+      href: "/dashboard/admin/business",
+      icon: FiBox,
     },
     {
       name: "Approve Products",
       href: "/dashboard/admin/publish-products",
+      icon: FiShoppingBag,
+    },
+    
+    {
+      name: "Products",
+      href: "/dashboard/products",
       icon: FiShoppingBag,
     }
   ],

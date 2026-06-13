@@ -1,6 +1,7 @@
 
 import connectDB from "@/app/lib/connect";
 import { verifyAuth } from "@/app/lib/verifyAuth";
+import Business from "@/models/Business";
 import Product from "@/models/Products";
 
 import { NextResponse } from "next/server";
@@ -30,7 +31,10 @@ export const POST = async (req) => {
     }
 
     try {
+        const vendorId=auth.user.id;
 
+
+        console.log("VNEDORID", vendorId);
         await connectDB();
         // Create slug
         const slug = productName
@@ -59,12 +63,26 @@ export const POST = async (req) => {
             );
         }
 
+        const business=await Business.findOne({
+            ownerId:vendorId,
+            isActive:true,
+            bannedStatus:"none"
+        });
+
+        if(!business){
+            return NextResponse.json({
+                status:false,
+                message:"No business profile found. Please complete verification setup first.",
+
+
+            },{status:403})
+        }
 
 
         // Create Product
         const product = await Product.create({
-            createdBy: auth.user.id, // Associate product with the authenticated vendor/admin
-            businessId:businessId || '', // shops that own produt
+            createdBy: vendorId, 
+            businessId:business._id || '', 
             productName,
             description,
             price,

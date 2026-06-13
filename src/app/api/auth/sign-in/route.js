@@ -10,6 +10,8 @@ export const POST = async (req) => {
         await connectDB();
         const { email, password } = await req.json();
 
+        console.log("EMAIL", email, "PASSWORD:" ,password);
+
         if (!email || !password) {
             return NextResponse.json(
                 {
@@ -28,7 +30,7 @@ export const POST = async (req) => {
             return NextResponse.json(
                 {
                     success: false,
-                    message: "Invalid credentials"
+                    message: "Invalid credentials 1"
                 },
                 { status: 400 }
             )
@@ -50,7 +52,7 @@ export const POST = async (req) => {
             return NextResponse.json(
                 {
                     success: false,
-                    message: "Invalid credentials"
+                    message: "Invalid credentials 2"
                 },
                 { status: 400 }
             )
@@ -74,7 +76,9 @@ export const POST = async (req) => {
         const payload = {
             id: user._id,
             email: user.email,
-            role: user.role
+            role: user.role,
+            onBoardingStatus: user.onBoardingStatus || "inProgress",
+            verificationStatus: user.verificationStatus || "pending"
         }
 
         const accessToken = generateAccessToken(payload);

@@ -17,9 +17,9 @@ export const GET = async (req) => {
     }
 
     try {
-        connectDB();
+        await connectDB();
 
-        const [vendors, totalVendors, pendingVendors] = await Promise.all([
+        const [vendors, totalVendors, approvedVendors, pendingVendors, archivedVendors] = await Promise.all([
 
             User.aggregate([
                 {
@@ -51,8 +51,11 @@ export const GET = async (req) => {
                         email: 1,
                         profilePicture: 1,
                         onBoardingStatus: 1,
+                        verificationStatus:1,
                         createdAt: 1,
-                        totalProducts: 1
+                        totalProducts: 1,
+                        profilePicture:1,
+                        createdAt:1
                     }
                 },
 
@@ -69,7 +72,16 @@ export const GET = async (req) => {
 
             User.countDocuments({
                 role: "vendor",
-                onBoardingStatus: "in_progress"
+                verificationStatus: "completed"
+            }),
+            User.countDocuments({
+                role: "vendor",
+                verificationStatus: "pending"
+            }),
+
+            User.countDocuments({
+                role:"vendor",
+                isActive:false
             })
 
         ]);
@@ -85,7 +97,10 @@ export const GET = async (req) => {
             success: true,
             vendors,
             totalVendors,
-            pendingVendors
+            pendingVendors,
+            approvedVendors,
+            archivedVendors
+
         },
             { status: 200 });
     }

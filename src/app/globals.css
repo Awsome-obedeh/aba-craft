@@ -19,7 +19,8 @@
   --color-gold: #E5A93C;
   --color-cream: #FAF7F2;
   --color-dark: #121413;
-  
+  --button-bg: #C9A84C;
+
   /* Text and Borders */
   --color-brandText: #2A2F2D;
   --color-muted: #66706B;
@@ -61,4 +62,8 @@ body {
 .badge-banned{
   background: red ;
   color:white
+}
+
+.button-bg {
+  background-color: var(--button-bg);
 }

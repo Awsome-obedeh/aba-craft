@@ -13,20 +13,20 @@ const businessSchma = new mongoose.Schema({
         required: true,
     },
 
-    description: {
+    businessDescription: {
         type: String,
-        default: "",
+        default: null,
     },
 
     logo: {
         type: String,
-        default: "",
+        default: null,
     },
     address: {
         type: String,
-        default: "",
+        default: null,
     },
-    typeOfBusiness: {
+    businessType: {
         type: String,
         default: "",
     },
@@ -46,10 +46,33 @@ const businessSchma = new mongoose.Schema({
         type: String,
         enum: ["none", "banned"],
         default: "none",
-    }
+    },
+    businessDescription: String,
+
+    country: String,
+    state: String,
+    lga: String,
+    address: String,
+    postalCode: String,
+    landmark: String,
+
+   
+
+    
+
+    bankDetails: {
+        bankName: String,
+        accountNumber: String,
+        accountName: String,
+        bvn: String,
+        accountType: String,
+    },
+
+    supportingDocuments: [String],
+
 }, { timestamps: true }
 );
 
-const Business =mongoose.models.Business
-|| mongoose.model("Business", businessSchma);
+const Business = mongoose.models.Business
+    || mongoose.model("Business", businessSchma);
 export default Business;

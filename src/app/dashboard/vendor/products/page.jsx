@@ -57,7 +57,7 @@ export default function VendorMyProductsPage() {
             return;
         }
         fetchProducts();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+     
     }, [searchParams, accessToken, user]);
 
     const updateURL = (newChanges = {}) => {

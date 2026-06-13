@@ -124,7 +124,7 @@ export default function SignUpPage() {
             <Image
                 src="/sign-up-bg.svg"
                 alt="Signup Background"
-                className="hidden md:block w-full object-cover opacity-20 flex-1"
+                className="hidden md:block w-full object-cover opacity-80 flex-1"
                 width={400}
                 height={400}
             />
@@ -132,10 +132,8 @@ export default function SignUpPage() {
                 <form className="w-full max-w-md text-center" onSubmit={handleSubmit(onSubmit)}>
                     {/* Logo */}
                     <div className="flex justify-center mb-6">
-                        <div className="w-16 h-16 bg-black rounded-full flex items-center justify-center">
-                            <svg width="28" height="28" viewBox="0 0 24 24" fill="white">
-                                <path d="M12 2l3 7h7l-5.5 4.2L18 21l-6-4-6 4 1.5-7.8L2 9h7z" />
-                            </svg>
+                        <div className="w-16 h-16  rounded-full flex items-center justify-center">
+                            <Image src='/aba-crafts-logo.PNG' width={300} height={400} alt="logo" />
                         </div>
                     </div>
 
@@ -279,19 +277,14 @@ export default function SignUpPage() {
                     {/* Divider */}
                     <div className="flex items-center my-6">
                         <div className="flex-1 h-px bg-gray-300" />
-                        <span className="px-3 text-xs text-gray-500">Or log in with</span>
+                        <Link href="/auth/sign-in" className="px-3 text-2xl text-gray-500">
+                            Or log in
+                        </Link>
                         <div className="flex-1 h-px bg-gray-300" />
                     </div>
 
 
-                    <div className="flex justify-center gap-6">
 
-
-                        {/* Google */}
-                        <button className="w-10 h-10 rounded-full flex items-center justify-center bg-white border">
-                            <FaGoogle size={20} />
-                        </button>
-                    </div>
                 </form>
             </div >
         </div >

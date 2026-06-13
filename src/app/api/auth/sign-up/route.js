@@ -22,6 +22,7 @@ export const POST = async (req) => {
     const email = body.email?.trim().toLowerCase();
 
     const password = body.password?.trim();
+    const role= body.role?.trim().toLowerCase() || 'vendor';
 
     // Validation
     if (!email || !password) {
@@ -92,7 +93,8 @@ export const POST = async (req) => {
 
     await User.create({
         email,
-        password:hashedPassword
+        password:hashedPassword,
+        role
     })
 
     return NextResponse.json(

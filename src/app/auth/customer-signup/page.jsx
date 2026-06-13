@@ -79,17 +79,15 @@ export default function CustomerSignUpPage() {
             <Image
                 src="/sign-up-bg.svg"
                 alt="Signup Background"
-                className="hidden md:block w-full object-cover opacity-20 flex-1"
+                className="hidden md:block w-full object-cover opacity-80 flex-1"
                 width={400}
                 height={400}
             />
             <div className="flex items-center justify-center bg-white px-4 flex-1">
                 <form className="w-full max-w-md text-center" onSubmit={handleSubmit(onSubmit)}>
                     <div className="flex justify-center mb-6">
-                        <div className="w-16 h-16 bg-black rounded-full flex items-center justify-center">
-                            <svg width="28" height="28" viewBox="0 0 24 24" fill="white">
-                                <path d="M12 2l3 7h7l-5.5 4.2L18 21l-6-4-6 4 1.5-7.8L2 9h7z" />
-                            </svg>
+                        <div className="w-16 h-16  rounded-full flex items-center justify-center">
+                            <Image src='/aba-crafts-logo.PNG' width={300} height={400} alt="logo" />
                         </div>
                     </div>
 

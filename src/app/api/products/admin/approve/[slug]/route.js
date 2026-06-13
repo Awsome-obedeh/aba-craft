@@ -20,11 +20,11 @@ export const PUT = async (req, { params }) => {
 
     try {
         await connectDB();
-
+        const frontEndUrl=process.env.FRONT_END_URL;
         const { slug } = await params;
 
 
-        
+
 
 
 
@@ -32,8 +32,14 @@ export const PUT = async (req, { params }) => {
 
 
         const product = await Product.findOneAndUpdate(
-            { slug, isActive: true },
-            { status: "approved", published:true },
+            {
+                slug,
+                isActive: true
+            },
+            {
+                status: "approved",
+                published: true
+            },
             { returnDocument: "after" }
         ).lean();
 
@@ -47,30 +53,32 @@ export const PUT = async (req, { params }) => {
             );
         }
 
-      
 
-      
+
+
         // send notification to the vendor about the approval
         console.log("Product ownwer:", product.createdBy);
-       const vendorId=product.createdBy.toString();
+        const vendorId = product.createdBy.toString();
         // get vendor email
         const vendorEmail = await User.findById(vendorId).select("email").lean();
+        const productImage=product.productImages[0];
         await sendProductApprovalMail(
             vendorEmail.email,
             product.slug,
-            product.productImages[0],
-            "Your product has been approved!"
+            productImage,
+            "Your product has been approved!",
+            frontEndUrl
         );
 
-            return NextResponse.json(
-                {
-                    success: true,
-                    message: "Product approved successfully.",
-                    data: product
-                },
-                { status: 200 });
+        return NextResponse.json(
+            {
+                success: true,
+                message: "Product approved successfully.",
+                data: product
+            },
+            { status: 200 });
 
-      
+
 
     }
     catch (error) {

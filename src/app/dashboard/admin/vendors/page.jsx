@@ -24,8 +24,6 @@ export default function AdminDashboardPage() {
   const [selectedIds, setSelectedIds] = useState([]);
   const [totalVendors, setTotalVendors] = useState(0);
   const [pendingVendors, setPendingVendors] = useState(0);
-  const [approvedVendors, setApprovedVendors] = useState(0);
-  const [archivedVendors, setArchivedVendors] = useState(0);
   const [loading, setLoading] = useState(true);
 
   const { user, accessToken } = useAuthStore();
@@ -49,10 +47,6 @@ export default function AdminDashboardPage() {
       setVendors(res.data.vendors);
       setTotalVendors(res.data.totalVendors);
       setPendingVendors(res.data.pendingVendors);
-      setApprovedVendors(res.data.approvedVendors);
-      setArchivedVendors(res.data.archivedVendors);
-
-      console.log("RES", res)
     }
 
     catch (error) {
@@ -123,27 +117,14 @@ export default function AdminDashboardPage() {
             <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
               <MetricCard
                 title="Total Active vendors"
-                value={totalVendors || 0}
+                value={totalVendors || ''}
                 subtext="Updated just now"
                 trend="+18% from last month"
                 isTrendPositive={true}
               />
-           
-             
-
               <MetricCard
-                title="Approved Vendors"
-                value={approvedVendors || 0}
-                subtext="Vendors have completed verification"
-              />
-              <MetricCard
-                title="Archived Vendors"
-                value={archivedVendors}
-                subtext="Vendors disabled or deleted thier account"
-              />
-                 <MetricCard
                 title="Pending Verifications"
-                value={pendingVendors || 0}
+                value={pendingVendors || ''}
                 subtext="Needs your attention"
               />
 
@@ -192,7 +173,8 @@ export default function AdminDashboardPage() {
                     />
                   </th>
                   <th className="p-4">Vendor name</th>
-                  <th className="p-4">Verification status</th>
+                  <th className="p-4">Vendor EMail</th>
+                  <th className="p-4">OnBording Status</th>
                   <th className="p-4">Total product</th>
                   <th className="p-4">Joined Date</th>
                   <th className="p-4 text-center">Quick Action</th>
@@ -218,6 +200,12 @@ export default function AdminDashboardPage() {
                         <div className="flex items-center gap-3">
                           <img src={vendor.profilePicture || '/globe.svg'} alt="" className="w-7 h-7 rounded-full object-cover border border-slate-100" />
                           <span>{vendor.fullName}</span>
+                        </div>
+                      </td>
+                      <td className="p-4 font-medium text-slate-800">
+                        <div className="flex items-center gap-3">
+                          <img src={vendor.profilePicture || '/globe.svg'} alt="" className="w-7 h-7 rounded-full object-cover border border-slate-100" />
+                          <span>{vendor.email}</span>
                         </div>
                       </td>
                       <td className="p-4 ">

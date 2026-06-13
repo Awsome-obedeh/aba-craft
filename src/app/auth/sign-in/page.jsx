@@ -12,6 +12,7 @@ import { FaRegEyeSlash } from "react-icons/fa6";
 import { IoEyeSharp } from "react-icons/io5";
 import { useAuthStore } from "@/app/store/authStore";
 import { api } from "@/app/lib/axios";
+import Image from "next/image";
 
 
 export default function LoginPage() {
@@ -49,7 +50,7 @@ export default function LoginPage() {
             if (requestedRedirect && requestedRedirect.startsWith("/") && !requestedRedirect.startsWith("//")) {
                 next = requestedRedirect;
             } else if (user.role === "vendor") {
-                next = "/dashboard/vendor/upload-product";
+                next = "/dashboard/vendor/profile";
             } else if (user.role === "admin") {
                 next = "/dashboard";
             } else {
@@ -68,9 +69,7 @@ export default function LoginPage() {
                 return;
             }
 
-            // Generic axios error fallback (kept narrow on purpose — verify page
-            // hit a bug previously from `error.response.data.message` on a
-            // request error).
+            
             if (error.response) {
                 toast.error(error.response.data?.message || "Something went wrong");
             } else if (error.request) {
@@ -88,10 +87,8 @@ export default function LoginPage() {
             <form className="w-full max-w-md text-center" onSubmit={handleSubmit(onSubmit)}>
                 {/* Logo */}
                 <div className="flex justify-center mb-6">
-                    <div className="w-16 h-16 bg-black rounded-full flex items-center justify-center">
-                        <svg width="28" height="28" viewBox="0 0 24 24" fill="white">
-                            <path d="M12 2l3 7h7l-5.5 4.2L18 21l-6-4-6 4 1.5-7.8L2 9h7z" />
-                        </svg>
+                    <div className="w-16 h-16  rounded-full flex items-center justify-center">
+                        <Image src='/aba-crafts-logo.PNG' width={300} height={400} alt="logo"/>
                     </div>
                 </div>
 
@@ -155,7 +152,7 @@ export default function LoginPage() {
                     )}
                 </div>
 
-                <div className="text-left text-sm text-gray-600 space-y-1">
+                <div className="text-left text-sm text-gray-600 space-y-5 mt-5">
                     <Link href="sign-up" className="text-black flex gap-2 items-center hover:underline">
                         Sell on Aba Crafts
                         <LuSquareArrowOutUpRight size={20} />

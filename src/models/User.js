@@ -4,6 +4,7 @@ const userSchema = new mongoose.Schema({
     fullName: {
         type: String,
         trim: true,
+        default: null
 
     },
 
@@ -20,13 +21,15 @@ const userSchema = new mongoose.Schema({
 
     phoneNumber: {
         type: String,
+        default: null
        
 
     },
 
     sex: {
         type: String,
-        enum: ["male", "female", "other"],
+        enum: ["male", "female", "other", null],
+        default: null
         
     },
 
@@ -38,6 +41,7 @@ const userSchema = new mongoose.Schema({
 
     profilePicture: {
         type: String,
+        default: null
         
 
     },
@@ -53,10 +57,23 @@ const userSchema = new mongoose.Schema({
         default:"in_progress"
     },
 
+    verificationStatus: {
+        type: String,
+        enum: ["pending", "verified", "rejected"],
+        default: "pending",
+    },
+
     verificationMethod:{
         type:String,
         enum:['NIN', 'voters_card', 'bvn'],
-        required:false
+        required:false,
+        default:null
+    },
+
+    verificationNumber:{
+        type:String,
+        required:false,
+        default:null
     }
 
 }, {timestamps:true});
