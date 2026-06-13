@@ -87,11 +87,7 @@ const sidebarLinks = {
       href: "/dashboard/admin/vendors",
       icon: FiUser,
     },
-    {
-      name: "Manage Business",
-      href: "/dashboard/admin/business",
-      icon: FiBox,
-    },
+    
     {
       name: "Approve Products",
       href: "/dashboard/admin/publish-products",

@@ -1,7 +1,7 @@
 'use client';
 
 import { formatDate } from '@/utils/DateFormater';
-import React from 'react';
+import React, { useState } from 'react';
 import { SkeletonCard } from '../skeletons/SkeletonCard';
 import { api } from '@/app/lib/axios';
 import { toast } from 'react-toastify';
@@ -11,15 +11,26 @@ import { useRouter } from 'next/navigation';
 export default function VendorApprovalCard({
     loading,
     vendor, id,
-    onApprove,
-    onReject })
-    {
-        
-        const router=useRouter();
+
+    onReject }) {
+    const [isLoading, setIsLoading] = useState(false);
+
+    const router = useRouter();
     const ApproveVendorStatus = async () => {
-        const res = await api.patch(`/api/vendor/rofile/${id}`);
-        toast.success("Vendor Verified");
-        router.refresh();
+        try {
+            setIsLoading(true)
+            const res = await api.patch(`/vendor/profile/${id}`);
+            toast.success("Vendor Verified");
+            setIsLoading(false);
+            router.replace("/dashboard/admin");
+        }
+
+        catch (error) {
+            setIsLoading(false);
+            console.error("ERROR", error);
+            toast.error( "Something went wrong");
+        }
+
     }
 
 
@@ -43,17 +54,17 @@ export default function VendorApprovalCard({
                                 <div>
                                     {/* <p className='text-center text-lg font-bold w-[100%] bg-red-600'>Vendor Bio</p> */}
                                     <h3 className="text-xl  py-2 font-bold text-slate-900 tracking-tight leading-snug">
-                                        {vendor.fullName}
+                                        {vendor?.fullName || " "}
                                     </h3>
                                     <p className="text-xl  py-2 font-bold text-slate-900 tracking-tight leading-snug">
-                                        {vendor.phoneNumber}
+                                        {vendor?.phoneNumber || " "}
                                     </p>
                                     <p className="text-sm  py-2 font-medium text-slate-500 mt-0.5">
-                                        {vendor.email}
+                                        {vendor?.email || " "}
                                     </p>
                                     <p className=" text-slate-950 mt-3 flex items-center">
 
-                                        {vendor.role}
+                                        {vendor?.role || " "}
                                     </p>
                                 </div>
 
@@ -73,7 +84,7 @@ export default function VendorApprovalCard({
                                     <svg className={`w-3.5 h-3.5 ${vendor.verificationStatus === 'verified' ? 'badge-approved' : vendor.verificationStatus === 'pending' ? 'badge-review' : 'badge-banned'}`} fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
-                                    {vendor.verificationStatus} 
+                                    {vendor.verificationStatus}
                                 </div>
 
                                 {/* Timestamp Subtexts */}
@@ -89,14 +100,14 @@ export default function VendorApprovalCard({
                                 {/* Approve Control Block Button */}
                                 <button
                                     type="button"
-                                    onClick={()=>ApproveVendorStatus}
+                                    onClick={ApproveVendorStatus}
                                     className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-6 py-3 text-xs font-bold text-slate-950 bg-[#99ff81] hover:bg-[#82eb6b] border border-[#7ae363] rounded-xl shadow-sm hover:shadow transition-all duration-200 min-w-[110px]"
                                 >
                                     {/* Checkmark Badge Icon */}
                                     <svg className="w-4 h-4 text-emerald-950" fill="currentColor" viewBox="0 0 20 20">
                                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                                     </svg>
-                                    Approve
+                                    {isLoading ? "Approving....." : "Aprove"}
                                 </button>
 
                                 {/* Reject Control Block Button */}

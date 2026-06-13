@@ -34,11 +34,12 @@ export const PUT = async (req, { params }) => {
         const product = await Product.findOneAndUpdate(
             {
                 slug,
-                isActive: true
+                isActive: true,
             },
             {
                 status: "approved",
-                published: true
+               
+                isPublished:true
             },
             { returnDocument: "after" }
         ).lean();

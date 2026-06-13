@@ -36,7 +36,7 @@ export async function GET(req, { params }) {
 
         // admin can see all products, vendors can only see their own products, so we need to check the role andfilter accordingly
         if (auth.user.role === "admin") {
-            product = await Product.findOne({slug, isActive: true, ...visibility})
+            product = await Product.findOne({ slug, isActive: true, ...visibility })
                 .populate({
                     path: "category",
                     select: "categoryName slug"
@@ -62,7 +62,7 @@ export async function GET(req, { params }) {
             product = await Product.findOne({ slug, isActive: true, createdBy: auth.user.id })
                 .populate({
                     path: "category",
-                    select: "categoryName slug"
+                    select: "categoryName slug "
                 })
                 .lean();
 
@@ -76,6 +76,15 @@ export async function GET(req, { params }) {
                 );
             }
         }
+
+
+        product = await Product.findOne({ slug, isActive: true, ...visibility })
+            .populate({
+                path: "category",
+                select: "categoryName slug"
+            })
+            .lean();
+        console.log("product", product)
         // Production Safety Check: Ensure the images field is always returning an array matrix structure
         const safeImagesArray = Array.isArray(product.productImages) && product.productImages.length > 0
             ? product.productImages

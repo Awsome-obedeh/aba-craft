@@ -40,6 +40,7 @@ const [loading, setLoading]=useState(true);
 
         catch(error){
             setLoading(true)
+            console.error("ERROR", error.message);
             toast.error(error.response.data.message || "Error fetching Vendor information.")
         }
     }
@@ -56,7 +57,7 @@ console.log("BUSINESS INFO", business, "VENDOR INFO", vendor)
     <div className="flex justify-center flex-col gap-6 items-center"> 
       <p>Vendor single page</p>
       <VendorApprovalCard loading={loading} vendor={vendor} id={id}/>
-      <BusinessApprovalCard loading={loading} business={business}/>
+      {/* <BusinessApprovalCard loading={loading} business={business}/> */}
     </div>
     </DashboardLayout>
   )

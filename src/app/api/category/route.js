@@ -77,7 +77,7 @@ export const POST = async (req) => {
 
 export const GET = async (req) => {
 
-    const auth = await verifyAuth(req, ["vendor", "admin"]);
+    const auth = await verifyAuth(req, ["vendor", "admin", "customer"]);
 
     // If authentication or authorization fails, i
     if (!auth.isValid) {
