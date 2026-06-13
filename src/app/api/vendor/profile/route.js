@@ -115,27 +115,30 @@ export const PATCH = async (req) => {
 
     try {
 
-        const body = await req.json();
+        // const body = await req.json();
         await connectDB();
+        const{businessInfo, vendorInfo}=await req.json();
         const vendorId = auth.user.id;
+
+        console.log("BODY", businessInfo, vendorInfo)
 
         // console.log('Received Payload: ', body,
         //     "vendorId", vendorId
         // );
 
-        const bankingDetails = {
-            bankName: body.bankName || null,
-            accountNumber: body.accountNumber || null,
-            accountName: body.accountName || null,
-            bvn: body.bvn || null,
-            accountType: body.accountType || null
-        };
+        // const bankingDetails = {
+        //     bankName: body.businessInfo.bankName || null,
+        //     accountNumber: body.businessInfo.accountNumber || null,
+        //     accountName: body.businessInfo.accountName || null,
+        //     bvn: body.businessInfo.bvn || null,
+        //     accountType: body.businessInfo.accountType || null
+        // };
 
         const updatedVendor = await User.findByIdAndUpdate(
             vendorId,
             {
                 $set: {
-                    ...body,
+                    ...vendorInfo,
                     onBoardingStatus: "completed"
                 }
             },
@@ -143,19 +146,9 @@ export const PATCH = async (req) => {
 
         const business = await Business.create(
 
-            {
-                ownerId: vendorId,
-                businessName: body.businessName,
-                businessDescription: body.businessDescription,
-                businessType: body.businessType,
-                address: body.address,
-                country: body.country,
-                state: body.state,
-                lga: body.lga,
-                postalCode: body.postalCode,
-                landmark: body.landmark,
-                bankingDetails,
-            });
+              { ...businessInfo,
+               ownerId:updatedVendor._id}
+            );
 
         return NextResponse.json({
             success: true,
