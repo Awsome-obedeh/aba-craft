@@ -103,14 +103,18 @@ export default function AdminDashboardPage() {
 
   // Handle master select all checkbox
   const handleToggleSelectAll = () => {
-    if (selectedIds.length === sortedVendors.length) {
+    const ids = sortedVendors.map(v => v.ownerId || v.id);
+    if (selectedIds.length === ids.length) {
       setSelectedIds([]);
     } else {
-      setSelectedIds(sortedVendors.map(v => v.id));
+      setSelectedIds(ids);
     }
   };
 
 
+
+  // Bulk actions are implemented as API endpoints (when available).
+  // This prevents the admin UI from showing misleading placeholder toasts.
 
   return (
 
@@ -119,6 +123,7 @@ export default function AdminDashboardPage() {
 
         {/* Upper Context Header */}
         <div className="max-w-7xl mx-auto mb-8 flex justify-between items-center">
+
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-gradient-to-r from-indigo-500 to-emerald-500 rounded-xl flex items-center justify-center">
@@ -344,35 +349,26 @@ export default function AdminDashboardPage() {
               {selectedIds.length} {selectedIds.length === 1 ? 'Vendor' : 'Vendors'} selected
             </p>
             <div className="flex items-center gap-2">
-              <button 
-                onClick={() => {
-                  // Handle verify selected vendors
-                  toast.success(`${selectedIds.length} vendor(s) verified successfully`);
-                  setSelectedIds([]);
-                }}
-                className="px-4 py-2 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 rounded-xl transition-all transform hover:-translate-y-0.5"
+              <button
+                disabled
+                className="px-4 py-2 text-xs font-semibold text-slate-400 bg-slate-100 rounded-xl opacity-70 cursor-not-allowed"
+                title="Bulk actions are not implemented in the backend yet."
               >
-                ✓ Verify selected
+                ✓ Bulk verify (coming soon)
               </button>
-              <button 
-                onClick={() => {
-                  // Handle suspend selected vendors
-                  toast.success(`${selectedIds.length} vendor(s) suspended successfully`);
-                  setSelectedIds([]);
-                }}
-                className="px-4 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 rounded-xl transition-all transform hover:-translate-y-0.5"
+              <button
+                disabled
+                className="px-4 py-2 text-xs font-semibold text-slate-400 bg-slate-100 rounded-xl opacity-70 cursor-not-allowed"
+                title="Bulk actions are not implemented in the backend yet."
               >
-                ⊘ Suspend selected
+                ⊘ Bulk suspend (coming soon)
               </button>
-              <button 
-                onClick={() => {
-                  // Handle send notice to selected vendors
-                  toast.success(`Notice sent to ${selectedIds.length} vendor(s)`);
-                  setSelectedIds([]);
-                }}
-                className="px-4 py-2 text-xs font-semibold text-white bg-gradient-to-r from-indigo-500 to-emerald-500 hover:bg-gradient-to-br from-indigo-600 to-emerald-600 rounded-xl shadow-sm transition-all transform hover:-translate-y-0.5 flex items-center gap-1.5"
+              <button
+                disabled
+                className="px-4 py-2 text-xs font-semibold text-slate-400 bg-slate-100 rounded-xl opacity-70 cursor-not-allowed"
+                title="Bulk actions are not implemented in the backend yet."
               >
-                🚀 Send notice
+                🚀 Bulk notice (coming soon)
               </button>
             </div>
           </div>

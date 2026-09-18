@@ -10,6 +10,10 @@ import { toast } from 'react-toastify';
 export default function VendorVerificationDetailsPage(props) {
   const params = React.use(props?.params);
   const { user, accessToken } = useAuthStore();
+
+  // Prefer ownerId from route param; backend expects an ownerId that matches VendorVerification.ownerId
+  // (stored as an ObjectId). This keeps the UI consistent with server-side lookups.
+
   const router = useRouter();
 
   const role = user?.role;
@@ -145,7 +149,36 @@ export default function VendorVerificationDetailsPage(props) {
             <div className="p-6">
               <div className="grid md:grid-cols-2 gap-5">
                 <div>
-                  <label className="text-sm font-semibold text-slate-800">BVN</label>
+                  <div className="flex items-center justify-between gap-3">
+                    <label className="text-sm font-semibold text-slate-800">BVN</label>
+                    {verification?.bvn ? (
+                      <button
+                        type="button"
+                        disabled={submitting}
+                        onClick={async () => {
+                          try {
+                            setSubmitting(true);
+                            const res = await api.post('/admin/vendors/verification/verify-bvn', { ownerId });
+                            if (res.data?.success) {
+                              const message = res.data?.message || 'BVN verification completed';
+                              toast.success(message);
+                              await fetchVerification();
+                            } else {
+                              toast.error(res.data?.message || 'BVN verification failed');
+                            }
+                          } catch (error) {
+                            const msg = error?.response?.data?.message || error?.message || 'Error verifying BVN';
+                            toast.error(msg);
+                          } finally {
+                            setSubmitting(false);
+                          }
+                        }}
+                        className="px-3 py-2 text-xs font-semibold rounded-xl bg-black text-white hover:bg-gray-800 disabled:opacity-50"
+                      >
+                        {submitting ? 'Verifying...' : 'Verify BVN'}
+                      </button>
+                    ) : null}
+                  </div>
                   <div className="mt-2 text-sm text-slate-700 bg-slate-50 rounded-xl p-3">{verification.bvn}</div>
                 </div>
 

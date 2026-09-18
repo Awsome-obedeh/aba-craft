@@ -76,6 +76,26 @@ export async function GET(req, { params }) {
                 );
             }
         }
+
+        else {
+            product = await Product.findOne({ slug, isActive: true, ...visibility })
+                .populate({
+                    path: "category",
+                    select: "categoryName slug"
+                })
+                .lean();
+
+            if (!product) {
+                return NextResponse.json(
+                    {
+                        success: false,
+                        message: "Requested object resource could not be found."
+                    },
+                    { status: 404 }
+                );
+            }
+        }
+
         // Production Safety Check: Ensure the images field is always returning an array matrix structure
         const safeImagesArray = Array.isArray(product.productImages) && product.productImages.length > 0
             ? product.productImages

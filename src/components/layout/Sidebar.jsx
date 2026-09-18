@@ -96,7 +96,14 @@ const sidebarLinks = {
       icon: FiUser,
     },
     {
-      name: "Approve Products",
+      name: "Vendor Verifications",
+      // There is no concrete /dashboard/admin/vendors page; route to a valid details view.
+      // The admin table lives at /dashboard/admin.
+      href: "/dashboard/admin",
+      icon: FiShoppingBag,
+    },
+    {
+      name: "Pending Publications",
       href: "/dashboard/admin/publish-products",
       icon: FiShoppingBag,
     }

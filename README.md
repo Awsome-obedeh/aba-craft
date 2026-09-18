@@ -1,5 +1,27 @@
 # AbaCraft
 
+## Youverify (BVN verification)
+
+This app includes a **server-side** admin BVN verification flow using Youverify.
+
+### Required environment variables
+
+Add these to `.env.local`:
+
+```env
+# Youverify BVN verification (server-side only)
+YOUVERIFY_API_KEY=your-youverify-api-key
+YOUVERIFY_BASE_URL=https://api.youverify.co
+# Optional override if the Youverify BVN endpoint path changes
+YOUVERIFY_BVN_VERIFY_PATH=/know-your-customer-services-kyc/id-data-matching-eidv/nigeria/verify-bank-verification-number-bvn
+```
+
+### Where it’s used
+- **Admin vendor verification details page:** `src/app/dashboard/admin/vendors/[ownerId]/page.jsx`
+- **Server endpoint (never expose API keys to the browser):** `src/app/api/admin/vendors/verification/verify-bvn/route.js`
+
+
+
 A two-sided marketplace for handcrafted leather goods from Aba artisans. Customers browse the storefront, add items to a cart, and check out through a (currently mocked) payment gateway. Vendors manage their own catalog and incoming orders.
 
 The project name in `package.json` is `thriveabia-project`; the user-facing brand is **AbaCraft**.
