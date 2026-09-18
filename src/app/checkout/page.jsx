@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import Image from "next/image";
@@ -13,6 +13,13 @@ import { formatPrice } from "@/utils/priceFormater";
 import { SHIPPING_FEE_NGN } from "@/app/lib/orderPricing";
 import { api } from "@/app/lib/axios";
 
+const PAYSTACK_INLINE_URL = "https://js.paystack.co/v2/inline.js";
+const PUBLIC_KEY = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY;
+
+const redirectTo = (url) => {
+    window.location.href = url;
+};
+
 const lineFinalPrice = (item) => {
     if (item.discountPrice > 0) return item.price - item.discountPrice;
     if (item.discountPercentage > 0) return item.price - (item.price * item.discountPercentage) / 100;
@@ -22,10 +29,14 @@ const lineFinalPrice = (item) => {
 export default function CheckoutPage() {
     const router = useRouter();
     const items = useCartStore((s) => s.items);
+    const clear = useCartStore((s) => s.clear);
     const user = useAuthStore((s) => s.user);
-    // SSR-safe mounted flag — only true on the client.
     const [mounted] = useState(typeof window !== "undefined");
     const [submitting, setSubmitting] = useState(false);
+    const [paystackReady, setPaystackReady] = useState(false);
+    const [paystackLoadFailed, setPaystackLoadFailed] = useState(false);
+    const scriptRef = useRef(null);
+    const [loadAttempts, setLoadAttempts] = useState(0);
 
     const { register, handleSubmit, formState: { errors } } = useForm({
         defaultValues: {
@@ -33,19 +44,121 @@ export default function CheckoutPage() {
         },
     });
 
-    // Accounts are required to check out
     useEffect(() => {
         if (mounted && !user) {
             router.push("/auth/sign-in");
         }
     }, [mounted, user, router]);
 
+    useEffect(() => {
+        if (scriptRef.current) return;
+
+        const script = document.createElement("script");
+        script.src = PAYSTACK_INLINE_URL;
+        script.async = true;
+        script.onload = () => setPaystackReady(true);
+        script.onerror = () => {
+            console.error("Failed to load Paystack Inline script");
+            setPaystackLoadFailed(true);
+        };
+        document.body.appendChild(script);
+        scriptRef.current = script;
+
+        return () => {
+            if (script.parentNode) script.parentNode.removeChild(script);
+        };
+    }, [loadAttempts, mounted]);
+
+    const handleVerify = async (reference) => {
+        try {
+            const res = await api.post("/payments/verify", { reference });
+            return res.data;
+        } catch (error) {
+            console.error("Verify error:", error);
+            throw error?.response?.data?.message || "Payment verification failed";
+        }
+    };
+
+    const onSubmit = async (data) => {
+        if (!user) {
+            router.push("/auth/sign-in");
+            return;
+        }
+
+        try {
+            setSubmitting(true);
+
+            const orderRes = await api.post("/orders", {
+                items: items.map((i) => ({ productId: i.productId, quantity: i.quantity })),
+                shippingAddress: {
+                    fullName: data.fullName,
+                    phone: data.phone,
+                    addressLine: data.addressLine,
+                    city: data.city,
+                    state: data.state,
+                    notes: data.notes || "",
+                },
+                paymentMethod: "paystack",
+            });
+
+            if (!orderRes.data?.success) {
+                toast.error(orderRes.data?.message || "Could not create order");
+                return;
+            }
+
+            const orderId = orderRes.data.data._id;
+
+            const payRes = await api.post("/payments/init", { orderId });
+            if (!payRes.data?.success) {
+                toast.error(payRes.data?.message || "Could not start payment");
+                return;
+            }
+
+            const reference = payRes.data.reference;
+            const accessCode = payRes.data.accessCode;
+            const authorizationUrl = payRes.data.authorizationUrl;
+
+            if (paystackReady && window.PaystackPop) {
+                const popup = new window.PaystackPop();
+                popup.resumeTransaction({
+                    key: PUBLIC_KEY,
+                    access_code: accessCode,
+                    callback: async (response) => {
+                        try {
+                            const verifyResult = await handleVerify(response.reference || reference);
+
+                            if (verifyResult?.success) {
+                                toast.success("Payment successful! Order placed.");
+                                clear();
+                                router.push(`/checkout/success?order=${orderId}&reference=${reference}`);
+                            } else {
+                                toast.error(verifyResult?.message || "Payment verification failed");
+                            }
+                        } catch (error) {
+                            toast.error(typeof error === "string" ? error : "Payment verification failed");
+                        }
+                    },
+                    onClose: () => {
+                        toast.info("Payment cancelled. Your order has not been charged.");
+                    },
+                });
+            } else if (authorizationUrl) {
+                redirectTo(authorizationUrl);
+            } else {
+                toast.error("Could not start payment. Please refresh and try again.");
+            }
+        } catch (error) {
+            console.error("CHECKOUT ERROR:", error);
+            if (error.response) toast.error(error.response.data?.message || "Server error");
+            else if (error.request) toast.error("Network error");
+            else toast.error("Unexpected error");
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
     if (!mounted) {
-        return (
-            <DashboardLayout role="customer">
-                <div className="py-32 text-center text-sm text-gray-400 animate-pulse">Loading…</div>
-            </DashboardLayout>
-        );
+        return null;
     }
 
     if (!user) {
@@ -77,51 +190,6 @@ export default function CheckoutPage() {
     const subtotal = items.reduce((s, i) => s + lineFinalPrice(i) * i.quantity, 0);
     const shipping = SHIPPING_FEE_NGN;
     const total = subtotal + shipping;
-
-    const onSubmit = async (data) => {
-        try {
-            setSubmitting(true);
-
-            // 1. Create the order (validates stock + re-prices against DB).
-            //    Use `api` (not bare axios) so the Authorization header is
-            //    attached — /api/orders requires a bearer token.
-            const orderRes = await api.post("/orders", {
-                items: items.map((i) => ({ productId: i.productId, quantity: i.quantity })),
-                shippingAddress: {
-                    fullName: data.fullName,
-                    phone: data.phone,
-                    addressLine: data.addressLine,
-                    city: data.city,
-                    state: data.state,
-                    notes: data.notes || "",
-                },
-                paymentMethod: "mock",
-            });
-
-            if (!orderRes.data?.success) {
-                toast.error(orderRes.data?.message || "Could not create order");
-                return;
-            }
-            const orderId = orderRes.data.data._id;
-
-            // 2. Initialize payment (mock Paystack)
-            const payRes = await api.post("/payments/mock/init", { orderId });
-            if (!payRes.data?.success) {
-                toast.error(payRes.data?.message || "Could not start payment");
-                return;
-            }
-
-            // 3. Redirect to simulated gateway
-            router.push(payRes.data.authorizationUrl);
-        } catch (error) {
-            console.error("CHECKOUT ERROR:", error);
-            if (error.response) toast.error(error.response.data?.message || "Server error");
-            else if (error.request) toast.error("Network error");
-            else toast.error("Unexpected error");
-        } finally {
-            setSubmitting(false);
-        }
-    };
 
     return (
         <DashboardLayout role="customer" email={user.email}>
@@ -200,8 +268,34 @@ export default function CheckoutPage() {
                     <section className="border rounded-2xl p-5">
                         <h2 className="font-bold text-lg">Payment</h2>
                         <p className="text-sm text-gray-500 mt-1">
-                            For this demo, payment is simulated. Clicking <em>Pay</em> will succeed automatically.
+                            Secure payment powered by Paystack.
                         </p>
+                        {!paystackReady && !paystackLoadFailed && (
+                            <p className="text-xs text-amber-600 mt-2">
+                                Loading payment gateway...
+                            </p>
+                        )}
+                        {paystackLoadFailed && (
+                            <div className="mt-2 flex items-center gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        if (scriptRef.current) {
+                                            scriptRef.current.remove();
+                                        }
+                                        scriptRef.current = null;
+                                        setPaystackLoadFailed(false);
+                                        setLoadAttempts((a) => a + 1);
+                                    }}
+                                    className="text-xs bg-black text-white px-3 py-1 rounded-md hover:opacity-90"
+                                >
+                                    Retry
+                                </button>
+                                <span className="text-xs text-gray-500">
+                                    Falling back to redirect checkout if this fails.
+                                </span>
+                            </div>
+                        )}
                     </section>
                 </div>
 

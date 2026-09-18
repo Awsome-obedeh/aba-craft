@@ -89,7 +89,7 @@ This creates:
 |---|---|---|---|
 | Admin | `admin@abacraft.test` | `AdminPass1!` | admin |
 | Vendor | `vendor@abacraft.test` | `VendorPass1!` | vendor |
-| Customer | `ada@example.test` | `CustomerPass1!` | customer |
+| Customer | `ada@example.com` | `CustomerPass1!` | customer |
 | Customer | `tunde@example.test` | `CustomerPass1!` | customer |
 
 …plus a **Leather Goods** category and 3 products owned by the vendor, all pre-approved and published so the storefront has content immediately.
