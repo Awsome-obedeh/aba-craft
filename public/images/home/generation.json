@@ -1,0 +1,29 @@
+{
+  "tool": "Built-in image_gen",
+  "assets": [
+    {
+      "file": "hero.webp",
+      "prompt": "Premium editorial photograph of a chestnut leather duffel and cognac dress shoes on a wooden worktable, warm natural light, cream and taupe workshop background, no text or logos."
+    },
+    {
+      "file": "bag.webp",
+      "prompt": "Use case: product-mockup. Asset: premium handmade leather marketplace photography. A single structured chestnut brown handmade leather handbag with short handles, three-quarter front view on a warm taupe studio plinth. Square framing, photorealistic, natural soft side light, restrained warm brown cream palette, tactile leather grain. No text, no watermark, no logos."
+    },
+    {
+      "file": "shoes.webp",
+      "prompt": "Use case: product-mockup. Asset: premium handmade leather marketplace photography. A pair of handmade cognac brown leather Oxford men's dress shoes, three quarter angle, on warm ivory studio surface. Square framing, photorealistic, natural soft side light, restrained warm brown cream palette, tactile leather grain. No text, no watermark, no logos."
+    },
+    {
+      "file": "belt.webp",
+      "prompt": "Use case: product-mockup. Asset: premium handmade leather marketplace photography. A neatly coiled dark brown handmade leather belt with brushed brass buckle, on a warm beige studio surface. Square framing, photorealistic, natural soft side light, restrained warm brown cream palette, tactile leather grain. No text, no watermark, no logos."
+    },
+    {
+      "file": "wallet.webp",
+      "prompt": "Use case: product-mockup. Asset: premium handmade leather marketplace photography. A single brown handmade bifold leather wallet standing slightly open, visible fine stitching, warm taupe studio background. Square framing, photorealistic, natural soft side light, restrained warm brown cream palette, tactile leather grain. No text, no watermark, no logos."
+    },
+    {
+      "file": "artisan.webp",
+      "prompt": "Use case: photorealistic-natural. Asset: premium handmade leather marketplace photography. Close editorial photograph of a Nigerian leather artisan's dark hands cutting chestnut leather with traditional hand tools on a worn wooden workbench in Aba, richly textured authentic workshop, window light, shallow depth of field. Square framing, photorealistic, natural soft side light, restrained warm brown cream palette, tactile leather grain. No text, no watermark, no logos."
+    }
+  ]
+}
