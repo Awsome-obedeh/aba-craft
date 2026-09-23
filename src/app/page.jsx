@@ -19,7 +19,7 @@ export default function Home() {
 
 
   return (
-    <>
+    <div className="storefront">
       {/* TOPBAR */}
       <div className="bg-forest h-10 flex items-center justify-between px-[5%] text-[12.5px] text-[#A8C4B4] relative z-[200]">
         <div className="flex items-center gap-5">
@@ -464,12 +464,12 @@ export default function Home() {
             <div key={colIdx}>
               <h5 className="text-sm font-bold text-white uppercase tracking-wider mb-4">{title}</h5>
               <ul className="flex flex-col gap-3 text-sm text-white/50">
-                {title === "Products" && <>
+                {title === "Products" && <div>
                   <li><Link href="#" className="hover:text-white transition-colors">Footwear</Link></li>
                   <li><Link href="#" className="hover:text-white transition-colors">Bags & Leather</Link></li>
                   <li><Link href="#" className="hover:text-white transition-colors">Fashion</Link></li>
                   <li><Link href="#" className="hover:text-white transition-colors">Furniture</Link></li>
-                </>}
+                </div>}
                 {title === "Company" && <>
                   <li><Link href="#" className="hover:text-white transition-colors">Our Story</Link></li>
                   <li><Link href="#" className="hover:text-white transition-colors">How It Works</Link></li>
@@ -494,7 +494,7 @@ export default function Home() {
           </div>
         </div>
       </section >
-      </>
+      </div>
   
       );
 }

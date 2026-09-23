@@ -1,87 +1,41 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
-import {
-    FiBell,
-    FiChevronDown,
-    FiSearch,
-    FiShoppingCart,
-} from "react-icons/fi";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { Bell, ChevronDown, Search, ShoppingCart } from "lucide-react";
 import { useCartStore } from "@/app/store/cartStore";
 
 export default function TopNavbar({ email, role }) {
-    // SSR-safe: only count items on the client (cart store hydrates from localStorage)
-    const [mounted] = useState(typeof window !== "undefined");
-    const itemCount = useCartStore((s) => s.items.reduce((n, i) => n + i.quantity, 0));
+  const router = useRouter();
+  const [search, setSearch] = useState("");
+  const [mounted] = useState(typeof window !== "undefined");
+  const itemCount = useCartStore(state => state.items.reduce((count, item) => count + item.quantity, 0));
+  const profileHref = role === "vendor" ? "/dashboard/vendor/profile" : role === "admin" ? "/dashboard/admin" : "/account/orders";
+  const initial = email?.charAt(0)?.toUpperCase() || "A";
 
-    return (
-        <header className="sticky top-0 z-30 bg-white border-b border-gray-200 px-4 md:px-8 py-4">
-            <div className="flex items-center justify-between gap-4">
+  function submitSearch(event) {
+    event.preventDefault();
+    const destination = role === "vendor" ? "/dashboard/vendor/products" : "/dashboard/products";
+    router.push(search.trim() ? `${destination}?search=${encodeURIComponent(search.trim())}` : destination);
+  }
 
-                {/* Search */}
-                <div className="hidden md:flex items-center bg-[#F5F5F5] px-4 py-2 rounded-full w-[350px]">
-                    <FiSearch className="text-gray-400" />
-                    <input
-                        type="text"
-                        placeholder="Search"
-                        className="bg-transparent outline-none ml-2 w-full text-sm"
-                    />
-                </div>
-
-                {/* Right */}
-                <div className="flex items-center gap-4 ml-auto">
-
-                    {/* Cart */}
-                    <Link href="/cart" className="relative" aria-label="Cart">
-                        <FiShoppingCart size={22} />
-                        {mounted && itemCount > 0 && (
-                            <span className="absolute -top-2 -right-2 bg-black text-white text-[10px] h-4 min-w-4 px-1 rounded-full flex items-center justify-center">
-                                {itemCount}
-                            </span>
-                        )}
-                    </Link>
-
-                    {/* Notification */}
-                    <div className="relative">
-                        <FiBell size={22} />
-                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] h-4 w-4 rounded-full flex items-center justify-center">
-                            3
-                        </span>
-                    </div>
-
-                    {/* Language */}
-                    <div className="hidden md:flex items-center gap-2">
-                        <img
-                            src="https://flagcdn.com/w40/gb.png"
-                            alt="flag"
-                            className="w-6 h-4 object-cover"
-                        />
-                        <span className="text-sm">English</span>
-                        <FiChevronDown />
-                    </div>
-
-                    {/* Profile */}
-                    <div className="flex items-center gap-3">
-                        <img
-                            src="https://i.pravatar.cc/40"
-                            alt="user"
-                            className="w-10 h-10 rounded-full"
-                        />
-
-                        <div className="hidden md:block">
-                            <h4 className="text-sm font-semibold">
-                                {email}
-                            </h4>
-                            <p className="text-xs text-gray-500">
-                                {role}
-                            </p>
-                        </div>
-
-                        <FiChevronDown />
-                    </div>
-                </div>
-            </div>
-        </header>
-    );
+  return <header className="sticky top-0 z-30 flex h-[76px] items-center border-b border-brandBorder bg-white px-4 pl-16 sm:px-6 sm:pl-16 lg:px-8">
+    <div className="flex w-full items-center justify-between gap-5">
+      <form role="search" onSubmit={submitSearch} className="hidden h-10 w-full max-w-sm items-center gap-2 rounded-full border border-brandBorder bg-[#F7F8F6] px-4 text-muted sm:flex">
+        <Search size={17} aria-hidden="true" />
+        <input value={search} onChange={event => setSearch(event.target.value)} aria-label="Search products" placeholder="Search products" className="w-full bg-transparent text-sm text-forest outline-none" />
+      </form>
+      <div className="ml-auto flex items-center gap-3 sm:gap-5">
+        {role === "customer" && <Link href="/cart" aria-label={`Cart${mounted && itemCount ? `, ${itemCount} items` : ""}`} className="relative text-forest"><ShoppingCart size={19} />{mounted && itemCount > 0 && <span className="absolute -right-2 -top-2 rounded-full bg-gold px-1.5 text-[10px] font-bold text-forest">{itemCount}</span>}</Link>}
+        <span aria-label="Notifications" className="text-muted"><Bell size={19} /></span>
+        <span className="hidden items-center gap-1 border-r border-brandBorder pr-5 text-xs text-muted md:flex">🇬🇧 English <ChevronDown size={13} /></span>
+        <Link href={profileHref} className="flex items-center gap-2 text-forest" aria-label="Open profile">
+          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-forest text-sm font-semibold text-white">{initial}</span>
+          <span className="hidden min-w-0 text-left md:block"><span className="block max-w-40 truncate text-xs font-semibold">{email || "My account"}</span><span className="block text-[11px] capitalize text-muted">{role || "Account"}</span></span>
+          <ChevronDown size={14} className="hidden text-muted md:block" />
+        </Link>
+      </div>
+    </div>
+  </header>;
 }

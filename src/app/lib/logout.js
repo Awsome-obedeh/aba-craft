@@ -13,7 +13,7 @@ import { api } from "@/app/lib/axios";
  */
 export const logout = async (router) => {
     try {
-        await api.post("/auth/logout");
+        await api.post("/auth/logout", {}, { baseURL: "/api", skipAuthRefresh: true });
     } catch (error) {
         // Cookie may already be gone — clear local state regardless.
         console.error("Logout request failed:", error?.message);

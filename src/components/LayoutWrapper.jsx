@@ -7,7 +7,7 @@ export default function LayoutWrapper({ children }) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="flex">
+    <div className="dashboard-shell flex min-h-screen bg-cream">
       <Sidebar isOpen={isOpen} setIsOpen={setIsOpen} />
 
       <div className="flex-1 md:ml-60">

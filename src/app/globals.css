@@ -1,14 +1,15 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #FAF7F2;
+  --foreground: #2A2F2D;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-inter);
+  --font-serif: var(--font-playfair);
   --font-mono: var(--font-geist-mono);
 
   /* Custom Earthy/Artisan Colors */
@@ -27,25 +28,11 @@
   --color-brandBorder: #E6EAE7;
 
   /* Custom Elevation/Shadows */
-  --shadow-brand-lg: 0 10px 25px -5px rgba(30, 51, 41, 0.05), 0 8px 10px -6px rgba(30, 51, 41, 0.05);
+  --shadow-brand-lg: 0 16px 48px -12px rgba(30, 51, 41, 0.14), 0 4px 12px rgba(30, 51, 41, 0.04);
 
   /* Scale Animation Modifiers */
   --scale-102: 1.02;
 }
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-body {
-
-  
-  font-family: Arial, Helvetica, sans-serif;
-}
-
 
 .gift{
   background: red;
@@ -67,3 +54,45 @@ body {
 .button-bg {
   background-color: var(--button-bg);
 }
+
+/* Shared visual language, preserving the original brand palette. */
+@layer base {
+  body { background: var(--background); color: var(--foreground); font-family: var(--font-inter), Arial, sans-serif; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  h1, h2, h3 { letter-spacing: -0.035em; text-wrap: balance; }
+  button, input, select, textarea { font-family: inherit; }
+  button:enabled, select { cursor: pointer; }
+  :focus-visible { outline: 2px solid #C9A84C; outline-offset: 4px; }
+  input, textarea, select { accent-color: #1E3329; }
+  ::selection { background: #E5A93C; color: #1E3329; }
+}
+.signup-shell { background-color: #1E3329; }
+.signup-shell > .absolute:first-child { opacity: .45; }
+.signup-shell > section { border-radius: 24px; border: 1px solid rgba(255,255,255,.18); background: #FAF7F2; box-shadow: 0 32px 90px rgba(0,0,0,.25); }
+.signup-shell h1 { font-family: var(--font-playfair), Georgia, serif; letter-spacing: -.035em; line-height: 1.2; }
+.signup-shell input:not([type="checkbox"]):not([type="file"]), .signup-shell select, .signup-shell textarea { min-height: 44px; font-size: 14px; border-radius: 10px; }
+.signup-shell input:focus, .signup-shell select:focus, .signup-shell textarea:focus { outline: 2px solid rgba(201,168,76,.4); outline-offset: 2px; }
+.signup-shell section section { box-shadow: 0 4px 18px rgba(30,51,41,.025); }
+.signup-shell label { line-height: 1.6; }
+.signup-shell button[type="submit"] { min-height: 46px; border-radius: 10px; font-size: 14px; font-weight: 600; box-shadow: 0 4px 12px rgba(30,51,41,.12); }
+.dashboard-shell header { background: rgba(255,255,255,.94); backdrop-filter: blur(16px); border-color: #E6EAE7; }
+.dashboard-shell main { max-width: 1600px; width: 100%; margin-inline: auto; }
+.dashboard-shell main h1 { color: #1E3329; font-weight: 600; }
+.dashboard-shell main :is(.bg-white.rounded-xl, .bg-white.rounded-2xl, .bg-white.rounded-lg) { border-color: #E6EAE7; border-radius: 18px; box-shadow: 0 6px 28px rgba(30,51,41,.04); }
+.dashboard-shell table { font-size: 14px; }
+.dashboard-shell th { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+.dashboard-shell td, .dashboard-shell th { padding-block: 16px; }
+@media (max-width: 767px) {
+  .signup-shell { padding: 16px 12px; }
+  .signup-shell > section { margin-top: 12px; border-radius: 18px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}
+.storefront .font-serif { font-family: var(--font-playfair), Georgia, serif; font-weight: 600; }
+.storefront nav { height: 80px; background: rgba(255,255,255,.96); backdrop-filter: blur(16px); }
+.storefront .rounded-2xl { box-shadow: 0 8px 32px rgba(30,51,41,.045); }
+.storefront .group { transition: box-shadow .25s ease; }
+.storefront .group:hover { box-shadow: 0 16px 40px rgba(30,51,41,.09); }
+.storefront h2 { line-height: 1.2; }
+.storefront p { line-height: 1.75; }
+@media (min-width: 1024px) { .storefront section.py-20 { padding-block: 104px; } }

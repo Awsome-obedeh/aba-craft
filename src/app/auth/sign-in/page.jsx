@@ -32,12 +32,11 @@ export default function LoginPage() {
     const onSubmit = async (data) => {
         try {
             setLoading(true);
-            const res = await api.post('/auth/sign-in', { ...data });
+            const res = await api.post('/auth/sign-in', { ...data }, { baseURL: '/api', skipAuthRefresh: true });
 
             // Extract token and user data from backend response
             const { accessToken, user } = res.data;
 
-            console.log("ACCESS TOKEN:", accessToken, "USER:", user);
 
             // Save to memory (Zustand) -> Interceptor picks this up immediately
             useAuthStore.getState().setAuthData(accessToken, user);
@@ -50,7 +49,7 @@ export default function LoginPage() {
             if (requestedRedirect && requestedRedirect.startsWith("/") && !requestedRedirect.startsWith("//")) {
                 next = requestedRedirect;
             } else if (user.role === "vendor") {
-                next = "/dashboard/vendor/profile";
+                next = "/dashboard/vendor";
             } else if (user.role === "admin") {
                 next = "/dashboard";
             } else {
@@ -152,6 +151,10 @@ export default function LoginPage() {
                     )}
                 </div>
 
+                <div className="mt-2 text-right text-sm">
+                    <Link href="/auth/forgot-password" className="text-black underline">Forgot password?</Link>
+                </div>
+
                 <div className="text-left text-sm text-gray-600 space-y-5 mt-5">
                     <Link href="sign-up" className="text-black flex gap-2 items-center hover:underline">
                         Sell on Aba Crafts
@@ -167,22 +170,7 @@ export default function LoginPage() {
                     {loading ? "Logging in..." : "Continue"}
                 </button>
 
-                {/* Divider */}
-                <div className="flex items-center my-6">
-                    <div className="flex-1 h-px bg-gray-300" />
-                    <span className="px-3 text-xs text-gray-500">Or log in with</span>
-                    <div className="flex-1 h-px bg-gray-300" />
-                </div>
-
-
-                <div className="flex justify-center gap-6">
-
-
-                    {/* Google */}
-                    <button className="w-10 h-10 rounded-full flex items-center justify-center bg-white border">
-                        <FaGoogle size={20} />
-                    </button>
-                </div>
+               
             </form>
         </div>
     )

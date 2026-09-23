@@ -1,6 +1,48 @@
 import mongoose from "mongoose";
 
 const businessSchma = new mongoose.Schema({
+    sellerRole: { type: String, enum: ["wholesaler_producer", "retailer"] },
+    phoneNumber: String,
+    countryCode: String,
+    email: String,
+    bvnEncrypted: { type: String, select: false },
+    bvnLastFour: { type: String, select: false },
+    cacNumber: { type: String, trim: true },
+    documentDetails: {
+        type: new mongoose.Schema({
+            registeredName: { type: String, maxlength: 255 },
+            registrationDate: { type: String, maxlength: 255 },
+            registeredBusinessType: { type: String, maxlength: 255 },
+            individualName: { type: String, maxlength: 255 },
+        }, { _id: false }),
+        select: false,
+    },
+    ninEncrypted: { type: String, select: false },
+    abssinEncrypted: { type: String, select: false },
+    identityConsentAt: { type: Date, select: false },
+    identityChecks: {
+        cac: { type: String, enum: ["pending", "verified", "rejected"], default: "pending" },
+        abssin: { type: String, enum: ["pending", "verified", "rejected"], default: "pending" },
+        nin: { type: String, enum: ["pending", "verified", "rejected"], default: "pending" },
+    },
+    ninDocument: {
+        type: new mongoose.Schema({
+            publicId: { type: String, required: true },
+            mimeType: String,
+            size: Number,
+            uploadedAt: Date,
+        }, { _id: false }),
+        select: false,
+    },
+    cacDocument: {
+        type: new mongoose.Schema({
+            publicId: { type: String, required: true },
+            mimeType: String,
+            size: Number,
+            uploadedAt: Date,
+        }, { _id: false }),
+        select: false,
+    },
     businessName: {
         type: String,
         required: true,
@@ -52,6 +94,7 @@ const businessSchma = new mongoose.Schema({
     country: String,
     state: String,
     lga: String,
+    city: { type: String, trim: true, maxlength: 100 },
     address: String,
     postalCode: String,
     landmark: String,

@@ -1,5 +1,7 @@
 
 import { jwtVerify } from "jose"; 
+import connectDB from "./connect";
+import User from "@/models/User";
 
 /**
  * Verifies the JWT and checks user roles
@@ -19,6 +21,11 @@ export async function verifyAuth(request, allowedRoles = []) {
         
         const secret = new TextEncoder().encode(process.env.JWT_ACCESS_SECRET);
         const { payload } = await jwtVerify(token, secret);
+        await connectDB();
+        const currentUser = await User.findById(payload.id).select("sessionVersion");
+        if (!currentUser || (currentUser.sessionVersion || 0) !== (payload.sessionVersion || 0)) {
+            return { isValid: false, status: 401, message: "Session expired" };
+        }
 
         // Authorization Check (Role verification)
         if (allowedRoles.length > 0 && !allowedRoles.includes(payload.role)) {

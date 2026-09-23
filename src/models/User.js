@@ -1,6 +1,8 @@
 import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
+    acceptedTermsAt: Date,
+    signupProofHash: { type: String, select: false },
     fullName: {
         type: String,
         trim: true,
@@ -18,6 +20,10 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: [true, "Password is required"],
     },
+    passwordResetTokenHash: { type: String, select: false },
+    passwordResetExpiresAt: { type: Date, select: false },
+    passwordResetRequestedAt: { type: Date, select: false },
+    sessionVersion: { type: Number, default: 0 },
 
     phoneNumber: {
         type: String,

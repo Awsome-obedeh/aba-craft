@@ -1,58 +1,42 @@
-
 import nodemailer from "nodemailer";
 
-// Function to send OTP via email using Nodemailer
-export const sendMail = async (email, otp) => {
-  try {
-    // Create Nodemailer transporter
-    const transporter = nodemailer.createTransport({
-      service: process.env.EMAIL_HOST,
-      port: 465,
-      auth: {
-        user: process.env.EMAIL_ADDRESS,
-        pass: process.env.EMAIL_APP_PASSWORD,
-      },
-      tls: {
-        rejectUnauthorized: false,
-      },
-    });
+export async function sendPasswordResetMail(email, url) {
+  if (!process.env.EMAIL_ADDRESS || !process.env.EMAIL_APP_PASSWORD) throw new Error("Email delivery is not configured.");
+  const transport = nodemailer.createTransport({
+    ...(process.env.SMTP_HOST
+      ? { host: process.env.SMTP_HOST, port: Number(process.env.SMTP_PORT || 465), secure: process.env.SMTP_PORT !== "587" }
+      : { service: process.env.EMAIL_HOST }),
+    auth: { user: process.env.EMAIL_ADDRESS, pass: process.env.EMAIL_APP_PASSWORD },
+    connectionTimeout: 10000, greetingTimeout: 10000, socketTimeout: 15000,
+  });
+  await transport.sendMail({
+    from: process.env.EMAIL_ADDRESS, to: email, subject: "Reset your Aba Crafts password",
+    text: `Use this link to reset your password: ${url}\n\nIt expires in 30 minutes. If you did not request this, ignore this email.`,
+  });
+}
 
-    // Beautiful HTML template
-    const htmlTemplate = `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; line-height:1.2">
-                <h2>Welcome to Aba Crafts</h2>
-                <p>You're a step closer to creating your shop and start selling.</p>
-             
-                <p>Your Registration Code:</p>
-                <h3 style="background-color: #f0f0f0; padding: 15px; text-align: center;">
-                ${otp}
-                </h3>
-
-                <p>This code will expire in 15 minutes</p>
-                <span>You'd need to request a new one after expiration.</span>
-               
-            </div>
-
-            <p style="text-align:center; color:gray; font-size:10px; padding:10px 0">This is an automated email, no need to reply.</p>`
-
-
-    // Mail options
-    const mailOptions = {
-      from: process.env.EMAIL_ADDRESS,
-      to: email,
-      subject: process.env.VERIFICATION_EMAIL_SUBJECT,
-      html: htmlTemplate,
-    };
-
-    // Send the email
-    const info = await transporter.sendMail(mailOptions);
-    console.log(" Email sent:", info.response);
-
-  } catch (error) {
-    console.error(" Error sending email:", error);
+// Propagate delivery errors so the caller cannot report that an unsent OTP was sent.
+export async function sendMail(email, otp) {
+  if (!process.env.EMAIL_ADDRESS || !process.env.EMAIL_APP_PASSWORD) {
+    throw new Error("Email delivery is not configured.");
   }
+  const transport = nodemailer.createTransport({
+    ...(process.env.SMTP_HOST
+      ? { host: process.env.SMTP_HOST, port: Number(process.env.SMTP_PORT || 465), secure: process.env.SMTP_PORT !== "587" }
+      : { service: process.env.EMAIL_HOST }),
+    auth: { user: process.env.EMAIL_ADDRESS, pass: process.env.EMAIL_APP_PASSWORD },
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 15000,
+  });
+  await transport.sendMail({
+    from: process.env.EMAIL_ADDRESS,
+    to: email,
+    subject: process.env.VERIFICATION_EMAIL_SUBJECT || "Verify your Abacrafts email",
+    text: "Your Abacrafts verification code is " + otp + ". It expires in 15 minutes. If you did not request this, ignore this email.",
+  });
+}
 
-};
 export const sendProductApprovalMail = async (email, productSlug, productImage, subject, frontEndUrl) => {
   try {
     // Create Nodemailer transporter

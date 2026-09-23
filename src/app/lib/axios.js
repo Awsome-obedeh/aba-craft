@@ -29,14 +29,14 @@ api.interceptors.response.use(
         const originalRequest = error.config;
 
         // If backend returns 401 and we haven't tried retrying yet
-        if (error.response?.status === 401 && !originalRequest._retry) {
+        if (error.response?.status === 401 && !originalRequest._retry && !originalRequest.skipAuthRefresh) {
             originalRequest._retry = true;
 
             try {
                 // Hit your backend refresh endpoint. 
                 // The browser automatically attaches the httpOnly refresh cookie.
                 const res = await axios.post(
-                    `${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`, 
+                    '/api/auth/refresh',
                     {}, 
                     { withCredentials: true }
                 );

@@ -81,6 +81,7 @@ export default function EditProfilePage() {
         try {
             // Sends the completely updated structure to the backend
             await api.patch('/vendor/profile', formData);
+            router.replace('/dashboard/vendor/upload-product')
             toast.success('Changes saved successfully!');
         } catch (error) {
             console.error('Error submitting form: ', error);

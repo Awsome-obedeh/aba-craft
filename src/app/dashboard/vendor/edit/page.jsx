@@ -13,6 +13,7 @@ import { useAuthStore } from '@/app/store/authStore';
 import { useRouter } from 'next/navigation';
 
 export default function EditProfilePage() {
+    
     const { user, accessToken } = useAuthStore();
     const role = user?.role;
     const email = user?.email;
@@ -63,9 +64,9 @@ export default function EditProfilePage() {
                             </p>
                         </div>
                         <div className="flex items-center space-x-4">
-                            <span className="hidden md:inline text-xs text-gray-400">
+                            {/* <span className="hidden md:inline text-xs text-gray-400">
                                 Last Updated 14 May 2026
-                            </span>
+                            </span> */}
                             <button
                                 type="button"
                                 onClick={handleFormSubmit}

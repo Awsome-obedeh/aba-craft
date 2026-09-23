@@ -1,5 +1,5 @@
 
-import { Geist, Geist_Mono, Inter, Playfair_Display } from "next/font/google";
+import { Geist, Geist_Mono, Inter, Nunito_Sans, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -20,6 +20,11 @@ const inter = Inter({
   weight: ["300", "400", "500", "600", "700"],
   variable: "--font-inter" 
 });
+const nunitoSans=Nunito_Sans({
+  subsets: ["latin"],
+  weight: ["400", "600", "700"],
+  variable: "--font-nunito-sans"
+});
 
 const playfair = Playfair_Display({ 
   subsets: ["latin"], 
@@ -36,10 +41,10 @@ export default function RootLayout({ children }) {
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${inter.variable} ${nunitoSans.variable} ${playfair.variable} ${geistMono.variable} h-full antialiased text-black`}
 
     >
-      <body className="bg-[#F4F4F4] text-black">
+      <body className="bg-cream text-brandText">
 
 
 
@@ -51,12 +56,11 @@ export default function RootLayout({ children }) {
           autoClose={6000}
           theme="dark"
           toastStyle={{
-            background: "#111827", // dark gray
+            background: "#1E3329", // dark gray
             color: "#fff",
             border: "1px solid rgba(255,255,255,0.1)",
             borderRadius: "12px",
             boxShadow: "0 10px 25px rgba(0,0,0,0.4)",
-            textShadow: "0 1px 3px rgba(0,0,0,0.8)",
             backdropFilter: "blur(8px)",
             fontSize: "14px",
             fontWeight: "500",
@@ -66,7 +70,7 @@ export default function RootLayout({ children }) {
           }}
           bodyClassName="font-semibold  tracking-wide"
           progressStyle={{
-            background: "#3b82f6", // blue progress bar
+            background: "#C9A84C", // blue progress bar
             height: "3px"
           }}
 

@@ -5,16 +5,16 @@ import TopNavbar from "./TopNavbar";
 
 export default function DashboardLayout({ children, role,email }) {
   return (
-    <div className="flex min-h-screen bg-[#F4F4F4]">
+    <div className="dashboard-shell flex min-h-screen bg-cream">
       
       {/* Sidebar */}
       <Sidebar role={role} />
 
       {/* Main Section */}
-      <div className="flex-1 flex flex-col lg:ml-[250px]">
+      <div className="flex min-w-0 flex-1 flex-col lg:ml-[244px]">
         <TopNavbar email={email} role={role} />
 
-        <main className="p-4 md:p-6">
+        <main className="min-w-0 p-4 md:p-6 lg:p-8">
           {children}
         </main>
       </div>
