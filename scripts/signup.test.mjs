@@ -43,3 +43,13 @@ test("incomplete or invalid drafts cannot be serialized", () => {
 test("backend validation messages are readable", () => {
   assert.equal(signupError({ response: { data: { message: ["Email taken.", "Try another."] } } }), "Email taken. Try another.");
 });
+
+test("signup preserves multiple business types and rejects empty or invalid selections", () => {
+  const data = draft();
+  data.business.businessType = ["leather_manufacturer", "leather_retailer"];
+  assert.deepEqual(JSON.parse(buildSignupFormData(data).get("business")).businessType, data.business.businessType);
+  for (const value of [[], ["unknown"], ["leather_retailer", "leather_retailer"], null]) {
+    data.business.businessType = value;
+    assert.throws(() => buildSignupFormData(data), /business details/);
+  }
+});

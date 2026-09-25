@@ -1,6 +1,7 @@
 import { createCipheriv, createHmac, randomBytes } from "node:crypto";
 import { validateBusinessLocation } from "../business-location.js";
 import { validateSellerIdentity } from "../seller-identity.js";
+import { normalizeBusinessTypes, validBusinessTypes } from "../business-types.js";
 
 export class SignupError extends Error {
   constructor(message, status = 400) {
@@ -93,9 +94,9 @@ export async function parseSellerSignup(form) {
   if (account.acceptedTerms !== true) throw new SignupError("You must accept the terms and privacy policy.");
   const sellerRole = form.get("role");
   if (!["wholesaler_producer", "retailer"].includes(sellerRole)) throw new SignupError("Select a valid seller role.");
-  const businessType = business.businessType;
-  if (!["leather_manufacturer", "leather_supplier", "leather_artisan", "leather_retailer", "leather_wholesaler", "other"].includes(businessType)) {
-    throw new SignupError("Select a valid business type.");
+  const businessType = normalizeBusinessTypes(business.businessType);
+  if (!validBusinessTypes(businessType)) {
+    throw new SignupError("Select at least one valid business type without duplicates.");
   }
   const description = business.businessDescription ?? "";
   if (typeof description !== "string" || description.length > 6000 || description.trim().split(/\s+/).length > 300) {

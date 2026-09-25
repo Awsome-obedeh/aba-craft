@@ -1,6 +1,7 @@
 import axios from "axios";
 import { validateBusinessLocation } from "./business-location.js";
 import { validateSellerIdentity } from "./seller-identity.js";
+import { validBusinessTypes } from "./business-types.js";
 
 // Signup must not use the authenticated client's refresh/replay interceptor.
 const client = axios.create({
@@ -56,7 +57,7 @@ export function buildSignupFormData(data) {
   if (!["wholesaler_producer", "retailer"].includes(data.role)) {
     throw new Error("Please select your business role.");
   }
-  if (!data.business.businessName.trim() || !data.business.businessType ||
+  if (!data.business.businessName.trim() || !validBusinessTypes(data.business.businessType) ||
       !/^[\d\s-]{7,20}$/.test(data.business.phoneNumber.trim()) ||
       !emailPattern.test(data.business.email.trim())) {
     throw new Error("Please complete your business details.");

@@ -69,8 +69,8 @@ const businessSchma = new mongoose.Schema({
         default: null,
     },
     businessType: {
-        type: String,
-        default: "",
+        type: [String],
+        default: [],
     },
 
     verificationStatus: {

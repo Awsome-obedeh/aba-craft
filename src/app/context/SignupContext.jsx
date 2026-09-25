@@ -22,9 +22,9 @@ const initialSignupData = {
 
   business: {
     businessName: "",
-    businessType: "",
+    businessType: [],
     businessDescription: "",
-    state: "",
+    state: "Abia",
     lga: "",
     city: "",
     address: "",

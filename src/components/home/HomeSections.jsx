@@ -20,7 +20,7 @@ function Button({ children, href = shop, light = false, gold = false }) {
   return <Link className={`${s.button} ${light ? s.buttonLight : ''} ${gold ? s.buttonGold : ''}`} href={href}>{children}<ArrowUpRight size={16} /></Link>;
 }
 function TextLink({ children, href = shop }) { return <Link className={s.textLink} href={href}>{children}<ArrowUpRight size={15} /></Link>; }
-function Brand() { return <Link href="/" className={s.brand} aria-label="AbaCraft home"><span className={s.brandMark}><Scissors size={23} /></span><span>AbaCraft<span className={s.brandDot}>.</span></span></Link>; }
+function Brand() { return <Link href="/" className={s.brand} aria-label="AbaCraft home"><span className={s.brandMark}><Image src="/aba-crafts-logo.PNG" width={40} height={40} alt="logo picture"/></span><span>AbaCraft<span className={s.brandDot}>.</span></span></Link>; }
 
 export function HomeHeader() {
   const links = [['Home', '/'], ['Collections', '#collections'], ['How it works', '#how-it-works'], ['Our story', '#our-story']];

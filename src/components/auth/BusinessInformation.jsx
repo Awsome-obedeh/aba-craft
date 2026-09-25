@@ -9,6 +9,7 @@ import BusinessSelect from "./BusinessSelect";
 import BusinessTextarea from "./BusinessTextarea";
 import PhoneInput from "./PhoneInput";
 import { nigeriaStates, validateBusinessLocation } from "@/app/lib/business-location";
+import { validBusinessTypes } from "@/app/lib/business-types";
 
 const stateOptions = nigeriaStates.map((state) => ({ value: state, label: state }));
 
@@ -55,9 +56,9 @@ export default function BusinessInformation() {
         "Business name is required.";
     }
 
-    if (!form.businessType) {
+    if (!validBusinessTypes(form.businessType)) {
       errors.businessType =
-        "Please select a business type.";
+        "Please select at least one business type.";
     }
 
     if (!/^[\d\s-]{7,20}$/.test(form.phoneNumber.trim())) {
@@ -135,13 +136,13 @@ export default function BusinessInformation() {
             />
 
             <BusinessSelect
-              label="Business Type"
-              placeholder="Select business type"
+              label="Business Types"
+              multiple
               value={form.businessType}
-              onChange={(event) =>
+              onChange={(selectedTypes) =>
                 updateField(
                   "businessType",
-                  event.target.value
+                  selectedTypes
                 )
               }
               options={businessTypes}
@@ -228,6 +229,8 @@ export default function BusinessInformation() {
               options={stateOptions}
               onChange={(event) => updateBusiness({ state: event.target.value, lga: "", city: "" })}
               error={errors.state}
+              disable
+           
             />
             <BusinessInput
               label="LGA"

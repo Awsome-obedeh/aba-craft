@@ -3,6 +3,7 @@ import connectDB from "@/app/lib/connect";
 import { verifyAuth } from "@/app/lib/verifyAuth";
 import Business from "@/models/Business";
 import Product from "@/models/Products";
+import { validateProductInput } from "@/app/lib/product-input";
 
 import { NextResponse } from "next/server";
 export const POST = async (req) => {
@@ -23,11 +24,11 @@ export const POST = async (req) => {
     // console.log(auth)
 
 
-    const { productName, businessId, description, price, quantity, category, brand, isFeatured, productImages, discountPrice, discountPercentage, redirectWhatsapp } = await req.json();
-
-    // Basic validation
-    if (!productName || !description || !price || !quantity || !category || !brand || !productImages) {
-        return new Response(JSON.stringify({ error: "All fields are required" }), { status: 400 });
+    let fields;
+    try {
+        fields = validateProductInput(await req.json());
+    } catch (error) {
+        return NextResponse.json({ success: false, message: error.message }, { status: 400 });
     }
 
     try {
@@ -37,7 +38,7 @@ export const POST = async (req) => {
         console.log("VNEDORID", vendorId);
         await connectDB();
         // Create slug
-        const slug = productName
+        const slug = fields.productName
             .toLowerCase()
             .trim()
             .replace(/[^a-zA-Z0-9 ]/g, "")
@@ -81,31 +82,17 @@ export const POST = async (req) => {
 
         // Create Product
         const product = await Product.create({
+            ...fields,
             createdBy: vendorId, 
             businessId:business._id || '', 
-            productName,
-            description,
-            price,
-            quantity,
-            category,
-            brand,
             slug,
-            productImages,
-            discountPrice: discountPrice || 0,
-            discountPercentage: discountPercentage || 0,
-            featured: isFeatured || false,
-            redirectWhatsapp: redirectWhatsapp || false,
-
-            // Default workflow values
-            status: "under_review",
-            isPublished: false,
         });
 
         return NextResponse.json(
             {
                 success: true,
                 message:
-                    "Product submitted for admin review",
+                    fields.status === "draft" ? "Product saved as draft" : "Product submitted for admin review",
                 product,
             },
             {

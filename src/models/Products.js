@@ -22,7 +22,7 @@ const productSchema = new mongoose.Schema(
 
         description: {
             type: String,
-            required: [true, "Description is required"],
+            required: function () { return this.status !== "draft"; },
             trim: true,
             maxlength: 5000,
         },
@@ -40,7 +40,7 @@ const productSchema = new mongoose.Schema(
             validate: {
                 validator: function (value) {
                     // Discount price should be less than the original price
-                    return value < this.price;
+                    return !value || value < this.price;
                 },
                 message: "Discount price must be less than the original price"
             }
@@ -76,7 +76,7 @@ const productSchema = new mongoose.Schema(
 
         category: {
             type: mongoose.Schema.Types.ObjectId,
-            required: true,
+            required: function () { return this.status !== "draft"; },
             ref: "Category",
         },
 
@@ -86,6 +86,15 @@ const productSchema = new mongoose.Schema(
             trim: true,
             default: "",
         },
+        shortDescription: { type: String, maxlength: 150, default: "" },
+        productType: { type: String, maxlength: 100, default: "" },
+        sku: { type: String, maxlength: 100, default: "" },
+        hsn: { type: String, maxlength: 30, default: "" },
+        compareAtPrice: { type: Number, min: 0, default: 0 },
+        weight: { type: Number, min: 0, default: 0 },
+        dimensions: { type: String, maxlength: 100, default: "" },
+        stockAlert: { type: Number, min: 0, default: 0 },
+        notes: { type: String, maxlength: 1000, default: "", select: false },
 
         isActive:{
             type: Boolean,
@@ -115,6 +124,7 @@ const productSchema = new mongoose.Schema(
         status: {
             type: String,
             enum: [
+                "draft",
                 "under_review",
                 "approved",
                 "rejected",

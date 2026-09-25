@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createDecipheriv } from "node:crypto";
+import Business from "../src/models/Business.js";
 import { createSignupService } from "../src/app/lib/server/signup-service.js";
 import { parseSellerSignup, readBody, encryptBvn, hashSecret, errorResponse } from "../src/app/lib/server/signup-validation.js";
 
@@ -201,6 +202,23 @@ test("multipart parsing checks actual file signature and rejects privileged role
   await assert.rejects(parseSellerSignup(privileged));
   const malformed = form(); malformed.set("account", "null");
   await assert.rejects(parseSellerSignup(malformed));
+});
+
+test("signup parses multiple services and normalizes legacy single types", async () => {
+  assert.deepEqual((await parseSellerSignup(form())).business.businessType, ["leather_retailer"]);
+  const body = form();
+  const business = JSON.parse(body.get("business"));
+  business.businessType = ["leather_manufacturer", "leather_retailer"];
+  body.set("business", JSON.stringify(business));
+  const parsed = await parseSellerSignup(body);
+  assert.deepEqual(parsed.business.businessType, business.businessType);
+  const document = new Business({ ...parsed.business, ownerId: "507f1f77bcf86cd799439011" });
+  await document.validate();
+  assert.deepEqual(document.toObject().businessType, business.businessType);
+  for (const value of [[], ["unknown"], ["leather_retailer", "leather_retailer"], null, [123]]) {
+    body.set("business", JSON.stringify({ ...business, businessType: value }));
+    await assert.rejects(parseSellerSignup(body), /business type/);
+  }
 });
 
 test("body limits apply without Content-Length; malformed JSON returns 400", async () => {

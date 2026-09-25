@@ -47,6 +47,38 @@ const openapi = {
     { name: "Documentation", description: "Download this OpenAPI specification." },
   ],
   paths: {
+    "/products": {
+      get: {
+        tags: ["Products"], operationId: "listProducts", summary: "Get 10 dummy products for AI Automation", security: [],
+        description: "Public mock catalog; no authentication or database connection required. Prices are in NGN (naira, not kobo). Category is a display name. Image arrays are currently empty. The data source will later be replaced with database records while preserving this response shape.",
+        responses: {
+          200: response("Product catalog", {
+            type: "object", required: ["success", "data", "totalItems"],
+            properties: {
+              success: { type: "boolean", example: true },
+              totalItems: { type: "integer", example: 10 },
+              data: { type: "array", items: {
+                type: "object",
+                required: ["id", "productName", "slug", "description", "category", "brand", "price", "currency", "quantity", "inStock", "productImages"],
+                properties: {
+                  id: { type: "string", example: "product-001" },
+                  productName: { type: "string", example: "Leather Oxford Shoes" },
+                  slug: { type: "string", example: "leather-oxford-shoes" },
+                  description: { type: "string" },
+                  category: { type: "string", example: "Footwear" },
+                  brand: { type: "string", example: "Aba Leather" },
+                  price: { type: "number", minimum: 0, example: 35000 },
+                  currency: { type: "string", example: "NGN" },
+                  quantity: { type: "integer", minimum: 0, example: 20 },
+                  inStock: { type: "boolean", example: true },
+                  productImages: { type: "array", items: { type: "string" }, example: [] },
+                },
+              } },
+            },
+          }),
+        },
+      },
+    },
     "/auth/send-code": { post: sendCodeOperation("sendEmailCode", "Send an email verification code") },
     "/auth/resend": { post: sendCodeOperation("resendEmailCode", "Resend an email verification code") },
     "/auth/verify": {
@@ -191,7 +223,13 @@ const openapi = {
           city: { type: "string", minLength: 1, maxLength: 100, description: "City or town." },
           address: { type: "string", minLength: 1, maxLength: 6000, description: "Full business/workshop address. Required, at most 300 words." },
           landmark: { type: "string", maxLength: 255, description: "Optional nearest landmark." },
-          businessType: { type: "string", enum: ["leather_manufacturer", "leather_supplier", "leather_artisan", "leather_retailer", "leather_wholesaler", "other"] },
+          businessType: {
+            description: "Select one or more services. Legacy single-string values are also accepted and normalized to arrays.",
+            oneOf: [
+              { type: "array", minItems: 1, maxItems: 6, uniqueItems: true, items: { type: "string", enum: ["leather_manufacturer", "leather_supplier", "leather_artisan", "leather_retailer", "leather_wholesaler", "other"] } },
+              { type: "string", enum: ["leather_manufacturer", "leather_supplier", "leather_artisan", "leather_retailer", "leather_wholesaler", "other"] },
+            ],
+          },
           businessDescription: { type: "string", maxLength: 6000, description: "Optional, at most 300 words. Trimmed before storage." },
           phoneNumber: { type: "string", maxLength: 20, description: "7–15 digits after removing spaces and hyphens. Keep the country code in the separate field.", example: "08012345678" },
           countryCode: { type: "string", pattern: "^\\+\\d{1,4}$", example: "+234" },
