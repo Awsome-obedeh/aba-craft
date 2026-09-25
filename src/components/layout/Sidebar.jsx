@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import {
   FiGrid,
@@ -55,7 +55,7 @@ const sidebarLinks = {
     
     {
       name: "Profile & Verification",
-      href: "/dashboard/vendor/profile",
+      href: "/dashboard/profile",
       icon: FiUser,
 
       
@@ -104,14 +104,39 @@ const sidebarLinks = {
 
 export default function Sidebar({ role}) {
   const [open, setOpen] = useState(false);
+  const menuRef = useRef(null);
+  const panelRef = useRef(null);
   const router = useRouter();
 
-  const links = sidebarLinks[role];
+  useEffect(() => {
+    if (!open) return;
+    const panel = panelRef.current;
+    panel.querySelector('button')?.focus();
+    const handleKey = event => {
+      if (event.key === 'Escape') { setOpen(false); menuRef.current?.focus(); }
+      if (event.key !== 'Tab') return;
+      const elements = [...panel.querySelectorAll('a, button')].filter(element => !element.disabled);
+      const first = elements[0];
+      const last = elements[elements.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+    };
+    panel.addEventListener('keydown', handleKey);
+    return () => panel.removeEventListener('keydown', handleKey);
+  }, [open]);
+
+  const pathname = usePathname();
+  const links = [...(sidebarLinks[role] || [])];
+  if (role && role !== 'vendor') links.push({ name: 'My Profile', href: '/dashboard/profile', icon: FiUser });
 
   return (
     <>
       {/* Mobile Menu Button */}
       <button
+        ref={menuRef}
+        aria-expanded={open}
+        aria-controls="dashboard-navigation"
+        aria-label="Open navigation"
         onClick={() => setOpen(true)}
         className="lg:hidden fixed top-4 left-4 z-50 bg-black text-white p-2 rounded-md"
       >
@@ -127,22 +152,26 @@ export default function Sidebar({ role}) {
       )}
 
       <aside
+        ref={panelRef}
+        id="dashboard-navigation"
+        aria-label="Dashboard navigation"
         className={`fixed top-0 left-0 h-screen w-[250px] bg-black text-white z-50 transform transition-transform duration-300
-        ${open ? "translate-x-0" : "-translate-x-full"}
-        lg:translate-x-0`}
+        ${open ? "visible translate-x-0" : "invisible -translate-x-full"}
+        lg:visible lg:translate-x-0`}
       >
         <div className="flex items-center justify-between p-5 border-b border-gray-800">
           <h1 className="text-xl font-bold">Aba Crafts</h1>
 
           <button
-            onClick={() => setOpen(false)}
+            aria-label="Close navigation"
+            onClick={() => { setOpen(false); menuRef.current?.focus(); }}
             className="lg:hidden"
           >
             <FiX size={20} />
           </button>
         </div>
 
-        <div className="flex flex-col justify-between h-[90%]">
+        <div className="flex flex-col justify-between h-[calc(100%-72px)] overflow-y-auto">
           <div className="space-y-2 px-3 py-5">
             {links?.map((link, index) => {
               const Icon = link.icon;
@@ -151,7 +180,9 @@ export default function Sidebar({ role}) {
                 <Link
                   key={index}
                   href={link.href}
-                  className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white hover:text-black transition"
+                  onClick={() => setOpen(false)}
+                  aria-current={pathname === link.href ? 'page' : undefined}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white hover:text-black transition ${pathname === link.href ? 'bg-white/15 text-[#dfc57f]' : ''}`}
                 >
                   <Icon size={18} />
                   <span className="text-sm">{link.name}</span>
@@ -161,10 +192,10 @@ export default function Sidebar({ role}) {
           </div>
 
           <div className="px-3 pb-5 space-y-2">
-            <button className="flex items-center gap-3 px-4 py-3 w-full rounded-lg hover:bg-white hover:text-black transition">
+            <Link href="/dashboard/settings" onClick={() => setOpen(false)} aria-current={pathname === '/dashboard/settings' ? 'page' : undefined} className="flex items-center gap-3 px-4 py-3 w-full rounded-lg hover:bg-white hover:text-black transition">
               <FiSettings />
               Settings
-            </button>
+            </Link>
 
             <button
               type="button"

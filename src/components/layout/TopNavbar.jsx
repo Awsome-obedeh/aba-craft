@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useAuthStore } from '@/app/store/authStore';
+import { Avatar } from '@/components/account/AccountUI';
 import {
     FiBell,
     FiChevronDown,
@@ -11,16 +13,17 @@ import {
 import { useCartStore } from "@/app/store/cartStore";
 
 export default function TopNavbar({ email, role }) {
+    const user = useAuthStore(state => state.user);
     // SSR-safe: only count items on the client (cart store hydrates from localStorage)
     const [mounted] = useState(typeof window !== "undefined");
     const itemCount = useCartStore((s) => s.items.reduce((n, i) => n + i.quantity, 0));
 
     return (
-        <header className="sticky top-0 z-30 bg-white border-b border-gray-200 px-4 md:px-8 py-4">
+        <header className="sticky top-0 z-30 bg-white border-b border-gray-200 pr-4 pl-16 md:pr-8 lg:pl-8 py-4">
             <div className="flex items-center justify-between gap-4">
 
                 {/* Search */}
-                <div className="hidden md:flex items-center bg-[#F5F5F5] px-4 py-2 rounded-full w-[350px]">
+                <div className="hidden min-w-0 max-w-[350px] flex-1 md:flex items-center bg-[#F5F5F5] px-4 py-2 rounded-full">
                     <FiSearch className="text-gray-400" />
                     <input
                         type="text"
@@ -62,16 +65,12 @@ export default function TopNavbar({ email, role }) {
                     </div>
 
                     {/* Profile */}
-                    <div className="flex items-center gap-3">
-                        <img
-                            src="https://i.pravatar.cc/40"
-                            alt="user"
-                            className="w-10 h-10 rounded-full"
-                        />
+                    <Link href="/dashboard/profile" aria-label="My profile" className="flex items-center gap-3 rounded-xl focus-visible:outline-2 focus-visible:outline-clay">
+                        <Avatar user={user || { email }} size={40} />
 
                         <div className="hidden md:block">
-                            <h4 className="text-sm font-semibold">
-                                {email}
+                            <h4 className="max-w-40 truncate text-sm font-semibold">
+                                {user?.fullName || email}
                             </h4>
                             <p className="text-xs text-gray-500">
                                 {role}
@@ -79,7 +78,7 @@ export default function TopNavbar({ email, role }) {
                         </div>
 
                         <FiChevronDown />
-                    </div>
+                    </Link>
                 </div>
             </div>
         </header>

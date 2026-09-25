@@ -1,178 +1,55 @@
-import connectDB from "@/app/lib/connect";
-import { verifyAuth } from "@/app/lib/verifyAuth";
-import Business from "@/models/Business";
-import User from "@/models/User";
-import { NextResponse } from "next/server";
+import { verifyAuth } from '@/app/lib/verifyAuth';
+import Business from '@/models/Business';
+import User from '@/models/User';
+import { AccountError, objectBody, personalChanges, businessChanges, publicUser, publicBusiness } from '@/app/lib/accountValidation';
+import { accountResponse, accountFailure, ownedBusiness } from '@/app/lib/accountServer';
 
+export async function GET(req) {
+  const auth = await verifyAuth(req, ['vendor', 'admin']);
+  if (!auth.isValid) return accountResponse({ success: false, message: auth.message }, auth.status);
+  try {
+    const user = await User.findById(auth.user.id).lean();
+    const business = await ownedBusiness(auth.user.id);
+    const businessInfo = publicBusiness(business);
+    if (businessInfo) {
+      businessInfo.veificationStatus = businessInfo.verificationStatus; // Legacy response key.
+      if (new URL(req.url).searchParams.get('includeBank') === 'true') {
+        const bank = business.bankDetails ?? {};
+        businessInfo.bankDetails = { bankName: bank.bankName ?? '', accountName: bank.accountName ?? '', accountNumber: bank.accountNumber ?? '', accountType: bank.accountType ?? '' };
+      }
+    }
+    const vendorInfo = { ...publicUser(user), joinedDate: user.createdAt, lastUpdated: user.updatedAt };
+    return accountResponse({ status: true, formattedResponse: { vendorInfo, businessInfo } });
+  } catch (error) { return accountFailure(error); }
+}
 
-export const GET = async (req) => {
-    const auth = await verifyAuth(req, ["vendor", "admin"]);
-
-    // If authentication or authorization fails, i
-    if (!auth.isValid) {
-        return NextResponse.json({
-            success: false,
-            message: auth.message
-        },
-
-            { status: auth.status });
-    };
-
-    try {
-        let vendorId;
-        await connectDB();
-        const { searchParams } = new URL(req.url);
-        if(searchParams.get('vendorId')){
-            vendorId=searchParams.get('userId')
-            console.log("SEARC PARAM ID",searchParams.get('VendorId'));
+export async function PATCH(req) {
+  const auth = await verifyAuth(req, ['vendor']);
+  if (!auth.isValid) return accountResponse({ success: false, message: auth.message }, auth.status);
+  try {
+    const body = objectBody(await req.json());
+    const person = personalChanges(body.vendorInfo ?? {});
+    const changes = businessChanges(body.businessInfo ?? {});
+    const existing = await ownedBusiness(auth.user.id);
+    if (!existing && Object.keys(changes).length && !changes.businessName) throw new AccountError('Save your business details before adding bank details.', 400);
+    let business = existing;
+    if (Object.keys(changes).length) {
+      // Existing records are updated by their owner-scoped ID; never recreate on save.
+      if (existing) business = await Business.findOneAndUpdate({ _id: existing._id, ownerId: auth.user.id }, { $set: changes }, { new: true, runValidators: true }).lean();
+      else {
+        // A stable ID makes concurrent first saves converge on the same document.
+        try {
+          business = await Business.findOneAndUpdate({ _id: auth.user.id, ownerId: auth.user.id }, { $set: changes, $setOnInsert: { ownerId: auth.user.id } }, { upsert: true, new: true, runValidators: true }).lean();
+        } catch (error) {
+          if (error.code === 11000) throw new AccountError('Business details changed while saving. Reload and try again.', 409);
+          throw error;
         }
-        else{
-
-            vendorId = auth.user.id;
-        }
-
-        // const vendorProfile = await User.findOne({ _id: vendorId }).select('-password').lean();
-
-        const item = await Business.findOne({ ownerId: vendorId })
-            .select('businessName businessType businessDescription supportingDocuments verificationStatus country state lga address,bankDetails')
-            .populate('ownerId', 'fullName sex phoneNumber email role verificationStatus createdAt updatedAt')
-
-        const formattedResponse = {
-           vendorInfo: item?.ownerId?{
-                id: item.ownerId._id.toString(),
-                fullName: item.ownerId.fullName,
-                email: item.ownerId.email,
-                role: item.ownerId.role,
-                sex:item.ownerId.sex,
-                verificationStatus:item.ownerId.verificationStatus,
-                phoneNumber:item.ownerId.phoneNumber,
-                joinedDate: new Date(item.ownerId.createdAt).toLocaleDateString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                    year: 'numeric'
-                }),
-                lastUpdated:new Date(item.ownerId.updatedAt).toLocaleDateString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                    year: 'numeric'
-                }),
-            }: null,
-
-            businessInfo: item ? {
-                id: item._id.toString(),
-                businessName: item.businessName,
-                businessDescription: item.businessDescription,
-                businessType:item.businessType,
-                veificationStatus:item.verificationStatus,
-                country:item.country,
-                lga:item.lga,
-                address:item.address,
-                state:item.state,
-
-
-                logo: item.logo,
-                bankDetails: item.bankDetails || null
-                // totalProducts: item.totalProducts || 0
-            } : null
-        };
-    
-
-        return NextResponse.json({
-        status: true,
-        message: "Vendor profile details",
-        formattedResponse
-    })
-}
-
-    catch (error) {
-    console.error('Error updating vendor profile:', error);
-
-    return NextResponse.json(
-        {
-            success: false,
-            message: "Something went wrong",
-            error: error.message || null
-        },
-        { status: 500 }
-    );
-}
-    
-}
-
-
-export const PATCH = async (req) => {
-    const auth = await verifyAuth(req, ["vendor", "admin"]);
-
-    // If authentication or authorization fails, i
-    if (!auth.isValid) {
-        return NextResponse.json({
-            success: false,
-            message: auth.message
-        },
-
-            { status: auth.status });
+      }
     }
-
-    try {
-
-        // const body = await req.json();
-        await connectDB();
-        const{businessInfo, vendorInfo}=await req.json();
-        const vendorId = auth.user.id;
-
-        console.log("BODY", businessInfo, vendorInfo)
-
-        // console.log('Received Payload: ', body,
-        //     "vendorId", vendorId
-        // );
-
-        // const bankingDetails = {
-        //     bankName: body.businessInfo.bankName || null,
-        //     accountNumber: body.businessInfo.accountNumber || null,
-        //     accountName: body.businessInfo.accountName || null,
-        //     bvn: body.businessInfo.bvn || null,
-        //     accountType: body.businessInfo.accountType || null
-        // };
-
-        const updatedVendor = await User.findByIdAndUpdate(
-            vendorId,
-            {
-                $set: {
-                    ...vendorInfo,
-                    onBoardingStatus: "completed"
-                }
-            },
-            { returnDocument: "after" }).select("-password -verificationNumber").lean();
-
-        const business = await Business.create(
-
-              { ...businessInfo,
-               ownerId:updatedVendor._id}
-            );
-
-        return NextResponse.json({
-            success: true,
-            message: "Vendor profile updated successfully",
-            data: { updatedVendor, business }
-        },
-            {
-                status: 200
-            });
-
-
-    }
-
-    catch (error) {
-        console.error('Error updating vendor profile:', error);
-
-        return NextResponse.json(
-            {
-                success: false,
-                message: "Something went wrong",
-                error: error.message || null
-            },
-            { status: 500 }
-        );
-
-    }
+    if (business?.businessName) person.onBoardingStatus = 'completed';
+    const updatedVendor = Object.keys(person).length
+      ? await User.findByIdAndUpdate(auth.user.id, { $set: person }, { new: true, runValidators: true }).lean()
+      : await User.findById(auth.user.id).lean();
+    return accountResponse({ success: true, message: 'Vendor profile updated successfully', data: { updatedVendor: publicUser(updatedVendor), business: publicBusiness(business) } });
+  } catch (error) { return accountFailure(error); }
 }

@@ -4,7 +4,7 @@ import { useAuthStore } from '../store/authStore';
 
 
 export const api = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_URL,
+    baseURL: process.env.NEXT_PUBLIC_API_URL || '/api',
     withCredentials: true, // Crucial: sends httpOnly cookies to the backend
 });
 
@@ -29,14 +29,14 @@ api.interceptors.response.use(
         const originalRequest = error.config;
 
         // If backend returns 401 and we haven't tried retrying yet
-        if (error.response?.status === 401 && !originalRequest._retry) {
+        if (error.response?.status === 401 && originalRequest && originalRequest.url !== '/auth/refresh' && !originalRequest._retry) {
             originalRequest._retry = true;
 
             try {
                 // Hit your backend refresh endpoint. 
                 // The browser automatically attaches the httpOnly refresh cookie.
                 const res = await axios.post(
-                    `${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`, 
+                    `${process.env.NEXT_PUBLIC_API_URL || '/api'}/auth/refresh`,
                     {}, 
                     { withCredentials: true }
                 );
@@ -44,13 +44,14 @@ api.interceptors.response.use(
                 const { accessToken } = res.data;
 
                 // Save the brand new token back into app memory
-                useAuthStore.getState().setAuthData(accessToken, useAuthStore.getState().user);
+                useAuthStore.getState().setAuthData(accessToken, res.data.user);
 
                 // Update the failed request's header and replay it
                 originalRequest.headers.Authorization = `Bearer ${accessToken}`;
                 return api(originalRequest);
                 
             } catch (refreshError) {
+                if (refreshError.response?.status !== 401) return Promise.reject(refreshError);
                 // Refresh token is expired or invalid -> Log user out completely
                 useAuthStore.getState().clearAuth();
                 window.location.href = '/auth/sign-in';

@@ -27,7 +27,7 @@ export const GET = async (req,{params}) => {
        
 
         const item = await Business.findOne({ ownerId: id })
-            .select('businessName businessType businessDescription supportingDocuments verificationStatus country state lga address,bankDetails')
+            .select('businessName businessType businessDescription supportingDocuments verificationStatus country state lga address')
             .populate('ownerId', 'fullName sex phoneNumber email role verificationStatus createdAt updatedAt')
 
         const formattedResponse = {
@@ -64,7 +64,7 @@ export const GET = async (req,{params}) => {
 
 
                 logo: item.logo,
-                bankDetails: item.bankDetails || null
+                // Bank details are private to the owner settings.
                 // totalProducts: item.totalProducts || 0
             } : null
         };
@@ -94,7 +94,7 @@ export const GET = async (req,{params}) => {
 
 
 export const PATCH = async (req, {params}) => {
-    const auth = await verifyAuth(req, ["vendor", "admin"]);
+    const auth = await verifyAuth(req, ["admin"]);
 
     // If authentication or authorization fails, i
     if (!auth.isValid) {

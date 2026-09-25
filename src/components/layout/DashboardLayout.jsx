@@ -11,7 +11,7 @@ export default function DashboardLayout({ children, role,email }) {
       <Sidebar role={role} />
 
       {/* Main Section */}
-      <div className="flex-1 flex flex-col lg:ml-[250px]">
+      <div className="min-w-0 flex-1 flex flex-col lg:ml-[250px]">
         <TopNavbar email={email} role={role} />
 
         <main className="p-4 md:p-6">

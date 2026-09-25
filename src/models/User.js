@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
+    sessionVersion: { type: Number, default: 0 },
     fullName: {
         type: String,
         trim: true,

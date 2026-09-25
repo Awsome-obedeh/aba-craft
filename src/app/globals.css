@@ -67,3 +67,8 @@ body {
 .button-bg {
   background-color: var(--button-bg);
 }
+
+.account-surface { font-family: var(--font-geist-sans), Arial, sans-serif; }
+.account-surface :is(input, select, textarea, button, a):focus-visible { outline: 2px solid #C4572A; outline-offset: 3px; }
+.account-surface input[readonly] { background: #FAF7F2; color: #66706B; }
+.account-surface input:disabled, .account-surface textarea:disabled { opacity: .65; }

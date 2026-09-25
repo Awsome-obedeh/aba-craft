@@ -1,45 +1,24 @@
+import { jwtVerify } from 'jose';
+import connectDB from '@/app/lib/connect';
+import User from '@/models/User';
+import { sameSession } from './accountValidation';
 
-import { jwtVerify } from "jose"; 
-
-/**
- * Verifies the JWT and checks user roles
- * @param {Request} request - The incoming Next.js request object
- * @param {Array<string>} allowedRoles - Optional array of roles permitted to access the route
- */
 export async function verifyAuth(request, allowedRoles = []) {
-    try {
-       
-        const authHeader = request.headers.get("authorization");
-        if (!authHeader || !authHeader.startsWith("Bearer ")) {
-            return { isValid: false, status: 401, message: "Authentication token missing or invalid format." };
-        }
-
-        const token = authHeader.split(" ")[1];
-
-        
-        const secret = new TextEncoder().encode(process.env.JWT_ACCESS_SECRET);
-        const { payload } = await jwtVerify(token, secret);
-
-        // Authorization Check (Role verification)
-        if (allowedRoles.length > 0 && !allowedRoles.includes(payload.role)) {
-            return { 
-                isValid: false, 
-                status: 403, 
-                message: `Forbidden: You do not have the required permissions (${allowedRoles.join(", ")}).` 
-            };
-        }
-
-        // Return the decoded payload (contains userId, role, etc.)
-        return { isValid: true, user: payload };
-
-    } catch (error) {
-        console.error("JWT Verification Security Error:", error.message);
-        
-        // Differentiate between expired tokens and bad signatures so the Axios Interceptor knows when to refresh
-        if (error.name === "JWTExpired") {
-            return { isValid: false, status: 401, message: "Token expired" };
-        }
-        
-        return { isValid: false, status: 401, message: "Invalid signature or malformed token." };
-    }
+  const header = request.headers.get('authorization');
+  if (!header?.startsWith('Bearer ')) return { isValid: false, status: 401, message: 'Please sign in.' };
+  let payload;
+  try {
+    ({ payload } = await jwtVerify(header.slice(7), new TextEncoder().encode(process.env.JWT_ACCESS_SECRET)));
+  } catch {
+    return { isValid: false, status: 401, message: 'Your session has expired. Please sign in again.' };
+  }
+  try {
+    await connectDB();
+    const user = await User.findById(payload.id).select('role email sessionVersion').lean();
+    if (!sameSession(user, payload)) return { isValid: false, status: 401, message: 'Your session has expired. Please sign in again.' };
+    if (allowedRoles.length && !allowedRoles.includes(user.role)) return { isValid: false, status: 403, message: 'You do not have access to this action.' };
+    return { isValid: true, user: { ...payload, id: String(user._id), role: user.role, email: user.email } };
+  } catch {
+    return { isValid: false, status: 503, message: 'Account service is unavailable. Please try again.' };
+  }
 }
