@@ -4,11 +4,6 @@ import mongoose from "mongoose";
 
 const MONGODB_URI = process.env.MONGODB_URI;
 
-if (!MONGODB_URI) {
-    throw new Error(
-        "Please define the MONGODB_URI environment variable"
-    );
-}
 
 // Global cache
 let cached = global.mongoose;
@@ -21,6 +16,7 @@ if (!cached) {
 }
 
 async function connectDB() {
+    if (!MONGODB_URI) throw new Error('Please define the MONGODB_URI environment variable');
     // If connection already exists
     if (cached.conn) {
         return cached.conn;
@@ -30,6 +26,7 @@ async function connectDB() {
     if (!cached.promise) {
         const options = {
             bufferCommands: false,
+            serverSelectionTimeoutMS: 5000,
         };
 
         cached.promise = mongoose
