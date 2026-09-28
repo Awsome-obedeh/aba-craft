@@ -1,8 +1,10 @@
-﻿"use client";
+"use client";
 
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Image from "next/image";
 import AddProductModal from "./AddProductModal";
+import ViewProductModal from "./ViewProductModal";
+import EditProductModal from "./EditProductModal";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Boxes, Package, Plus, Search, SlidersHorizontal, X, ArrowUpRight, RefreshCw } from "lucide-react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
@@ -40,9 +42,10 @@ function Catalog() {
   const [sort, setSort] = useState("newest");
   const [showFilters, setShowFilters] = useState(false);
   const [selected, setSelected] = useState(null);
+  const [editingProduct, setEditingProduct] = useState(null);
   const [adding, setAdding] = useState(false);
   const [notice, setNotice] = useState("");
-  const dialog = useRef(null);
+
   const urlSearch = params.get("search") || "";
 
   useEffect(() => {
@@ -83,7 +86,7 @@ function Catalog() {
     setSearch(""); setCategory(""); setStock(""); setStatus(""); setSort("newest");
     if (urlSearch) router.replace(window.location.pathname);
   }
-  function openProduct(product) { setSelected(product); dialog.current.showModal(); }
+  function openProduct(product) { setSelected(product); }
 
   return <DashboardLayout role={user?.role} email={user?.email}>
     <div className="mx-auto max-w-[1440px] text-[#292b27]">
@@ -122,14 +125,20 @@ function Catalog() {
               <p className="mt-3 line-clamp-2 min-h-8 text-xs leading-4 text-stone-600">{product.description || "No description added."}</p>
               <div className="mt-3 flex items-center justify-between gap-2 text-[11px]"><span className="text-stone-500">{stockCount(product).toLocaleString()} units available</span><span className="rounded bg-stone-100 px-2 py-1 text-stone-600">{statusLabel(product)}</span></div>
             </div>
-            <footer className="flex items-center justify-between border-t border-stone-100 px-3.5 py-3"><div><p className="text-[10px] text-stone-400">Unit price</p><p className="text-sm font-semibold text-[#a48222]">{money.format(salePrice(product))}<span className="font-normal text-[10px]"> / unit</span>{salePrice(product) < Number(product.price) && <del className="ml-2 text-[10px] font-normal text-stone-400">{money.format(product.price)}</del>}</p></div><button type="button" onClick={() => openProduct(product)} aria-label={`View details for ${product.productName}`} className="rounded-md p-2 text-stone-500 hover:bg-stone-100"><ArrowUpRight size={17} /></button></footer>
+            <footer className="flex items-center justify-between border-t border-stone-100 px-3.5 py-3"><div><p className="text-[10px] text-stone-400">Unit price</p><p className="text-sm font-semibold text-[#a48222]">{money.format(salePrice(product))}<span className="font-normal text-[10px]"> / unit</span>{salePrice(product) < Number(product.price) && <del className="ml-2 text-[10px] font-normal text-stone-400">{money.format(product.price)}</del>}</p></div><button type="button" onClick={() => openProduct(product)} aria-label={`View details for ${product.productName}`} className="inline-flex items-center gap-1 rounded-md p-2 text-xs text-stone-500 hover:bg-stone-100">View product<ArrowUpRight size={15} /></button></footer>
           </article>)}</div>}
       </section>
     </div>
     {adding && <AddProductModal onClose={() => setAdding(false)} onCreated={(message) => { setAdding(false); setNotice(message); setRetry(value => value + 1); }} />}
-    <dialog ref={dialog} aria-labelledby="product-detail-title" className="m-auto max-h-[90vh] w-[calc(100%_-_2rem)] max-w-lg overflow-y-auto rounded-2xl p-0 shadow-xl backdrop:bg-black/40">
-      {selected && <><div className="flex items-center justify-between gap-4 p-4"><h2 id="product-detail-title" className="text-lg font-semibold">{selected.productName}</h2><button autoFocus onClick={() => dialog.current.close()} aria-label="Close product details" className="rounded p-2 hover:bg-stone-100"><X size={20} /></button></div><ProductImage key={selected._id} product={selected} /><div className="space-y-4 p-5"><p className="text-xl font-semibold text-[#a48222]">{money.format(salePrice(selected))}</p><p className="whitespace-pre-wrap text-sm text-stone-600">{selected.description || "No description added."}</p><dl className="grid grid-cols-2 gap-4 text-sm">{[["Category", categoryName(selected)], ["Brand", selected.brand || "Not specified"], ["Stock", `${stockCount(selected)} units`], ["Status", statusLabel(selected)]].map(([label, value]) => <div key={label}><dt className="text-xs text-stone-400">{label}</dt><dd className="mt-1">{value}</dd></div>)}</dl>{selected.rejectionReason && <p className="rounded-lg bg-red-50 p-3 text-sm text-red-700">Review feedback: {selected.rejectionReason}</p>}</div></>}
-    </dialog>
+    {selected && <ViewProductModal key={selected._id} slug={selected.slug} onClose={() => setSelected(null)}
+      onEdit={product => { setSelected(null); setEditingProduct(product); }}
+      onUpdated={updated => setProducts(previous => previous.map(product => product._id === updated._id ? updated : product))}
+      onDeleted={id => { setProducts(previous => previous.filter(product => product._id !== id)); setSelected(null); setNotice("Product deleted successfully."); }}
+    />}
+    {editingProduct && <EditProductModal key={editingProduct._id} product={editingProduct}
+      onClose={() => { setSelected(editingProduct); setEditingProduct(null); }}
+      onSaved={(updated, message) => { setProducts(previous => previous.map(product => product._id === updated._id ? updated : product)); setEditingProduct(null); setSelected(updated); setNotice(message || "Product updated successfully."); }}
+    />}
   </DashboardLayout>;
 }
 

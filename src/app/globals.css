@@ -86,7 +86,11 @@
   .signup-shell > section { margin-top: 12px; border-radius: 18px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+  *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+  /* Toastify uses the progress animation as its auto-close timer. */
+  *:not(.Toastify__progress-bar--animated), *::before, *::after { animation-duration: .01ms !important; }
+  /* Hide the moving bar while letting its configured timer finish. */
+  .Toastify__progress-bar--animated { opacity: 0; }
 }
 .storefront .font-serif { font-family: var(--font-playfair), Georgia, serif; font-weight: 600; }
 .storefront nav { height: 80px; background: rgba(255,255,255,.96); backdrop-filter: blur(16px); }

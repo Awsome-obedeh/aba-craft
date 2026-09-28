@@ -22,7 +22,7 @@ export default function AddProductModal({ onClose, onCreated }) {
   const [form, setForm] = useState(initial);
   const [availability, setAvailability] = useState("in_stock");
   const [files, setFiles] = useState([]);
-  const [categories, setCategories] = useState([]);
+  const [ categories, setCategories] = useState([]);
   const [categoryLoading, setCategoryLoading] = useState(true);
   const [categoryError, setCategoryError] = useState("");
   const [categoryRetry, setCategoryRetry] = useState(0);
@@ -152,10 +152,12 @@ export default function AddProductModal({ onClose, onCreated }) {
             {field("productName", "Product Name", { required: true, minLength: 3, maxLength: 200, placeholder: "e.g. Leather Crossbody Bag", autoFocus: true })}
             <label className="text-[11px] font-medium text-stone-700">Category <span className="text-red-500">*</span><select required {...validationProps("category")} value={form.category} onChange={event => update("category", event.target.value)} className={inputClass("category")} disabled={categoryLoading}><option value="">{categoryLoading ? "Loading categories..." : "Select category"}</option>{categories.map(item => <option key={item._id} value={item._id}>{item.categoryName}</option>)}</select>{fieldError("category")}{categoryError && <span className="mt-1 block text-red-600">{categoryError} <button type="button" onClick={() => setCategoryRetry(value => value + 1)} className="underline">Retry</button></span>}</label>
             <label className="text-[11px] font-medium text-stone-700">Product Type<select {...validationProps("productType")} value={form.productType} onChange={event => update("productType", event.target.value)} className={inputClass("productType")}><option value="">Select product type</option>{["Ready-made", "Made to order", "Raw material", "Other"].map(type => <option key={type}>{type}</option>)}</select>{fieldError("productType")}</label>
-            {field("sku", "SKU / Item Code", { maxLength: 100, placeholder: "e.g. AC-LCB-001" })}
-            {field("hsn", "HSN (Optional)", { maxLength: 30, placeholder: "e.g. 4202.21" })}
+            {field("sku", "Item Code", { maxLength: 100, placeholder: "e.g. AC-LCB-001" })}
+            {/* {field("hsn", "HSN (Optional)", { maxLength: 30, placeholder: "e.g. 4202.21" })} */}
             {field("brand", "Brand (Optional)", { maxLength: 200, placeholder: "Your brand name" })}
-          </div><label className="mt-3 block text-[11px] font-medium">Short Description<textarea {...validationProps("shortDescription")} value={form.shortDescription} onChange={event => update("shortDescription", event.target.value)} maxLength={150} rows={2} className={`${inputClass("shortDescription")} resize-y`} placeholder="A short summary about this product..." />{fieldError("shortDescription")}<span className="block text-right text-[10px] font-normal text-stone-400">{form.shortDescription.length}/150</span></label></section>
+          </div>
+          {/* <label className="mt-3 block text-[11px] font-medium">Short Description<textarea {...validationProps("shortDescription")} value={form.shortDescription} onChange={event => update("shortDescription", event.target.value)} maxLength={150} rows={2} className={`${inputClass("shortDescription")} resize-y`} placeholder="A short summary about this product..." />{fieldError("shortDescription")}<span className="block text-right text-[10px] font-normal text-stone-400">{form.shortDescription.length}/150</span></label> */}
+          </section>
 
           <section className="rounded-lg bg-[#f7f7f6] p-3"><label className="text-[11px] font-medium">Detailed Description <span className="text-red-500">*</span><textarea required {...validationProps("description")} value={form.description} onChange={event => update("description", event.target.value)} maxLength={5000} rows={3} className={`${inputClass("description")} resize-y`} placeholder="Describe your product in detail. Include features, materials, style, and what makes it unique." />{fieldError("description")}<span className="block text-right text-[10px] font-normal text-stone-400">{form.description.length}/5000</span></label>
             <fieldset className="mt-4"><legend className="text-xs font-semibold">Product Status</legend><p className="mt-1 text-[11px] text-stone-500">Set the initial availability status for this product.</p><div className="mt-2 grid grid-cols-3 gap-2">{[["in_stock", "In Stock", "Available for sale"], ["out_of_stock", "Out of Stock", "Not available"], ["draft", "Draft", "Save as draft"]].map(([value, title, hint]) => <label key={value} className={`cursor-pointer rounded-lg border bg-white p-2 ${availability === value ? "border-[#b59127]" : "border-stone-200"}`}><span className="flex items-center gap-1.5 text-[11px] font-medium"><input type="radio" name="availability" value={value} checked={availability === value} onChange={() => setAvailability(value)} className="accent-[#b59127]" />{title}</span><span className="mt-1 block text-[10px] text-stone-400">{hint}</span></label>)}</div></fieldset>
@@ -170,7 +172,7 @@ export default function AddProductModal({ onClose, onCreated }) {
           <section><h3 className="mb-3 text-xs font-semibold">Inventory &amp; Pricing</h3><div className="grid gap-3 sm:grid-cols-3">
             {field("quantity", "Quantity", { type: "number", min: 0, step: 1, placeholder: availability === "out_of_stock" ? "0 — out of stock" : "0", disabled: availability === "out_of_stock" })}
             {field("price", "Price (NGN)", { type: "number", min: 0.01, step: "0.01", placeholder: "0.00", required: true })}
-            {field("compareAtPrice", "Compare-at Price (NGN)", { type: "number", min: 0, step: "0.01", placeholder: "0.00" })}
+            {field("compareAtPrice", "DiscountPrice (NGN)", { type: "number", min: 0, step: "0.01", placeholder: "0.00" })}
             {field("weight", "Weight (kg)", { type: "number", min: 0, step: "0.001", placeholder: "0.00 kg" })}
             {field("dimensions", "Dimensions (L × W × H)", { maxLength: 100, placeholder: "0 × 0 × 0 cm" })}
             {field("stockAlert", "Stock Alert", { type: "number", min: 0, step: 1, placeholder: "0" })}

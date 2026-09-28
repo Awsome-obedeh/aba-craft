@@ -10,8 +10,8 @@ import { logout } from "@/app/lib/logout";
 const linksByRole = {
   vendor: [
     { label: "Dashboard Overview", href: "/dashboard/vendor", icon: LayoutDashboard },
-    { label: "Upload Product", href: "/dashboard/vendor/upload-product", icon: PackagePlus },
-    { label: "My Inventory", href: "/dashboard/vendor/inventory", icon: Boxes },
+    // { label: "Upload Product", href: "/dashboard/vendor/upload-product", icon: PackagePlus },
+    // { label: "My Inventory", href: "/dashboard/vendor/inventory", icon: Boxes },
     { label: "My Products", href: "/dashboard/vendor/products", icon: ShoppingBag },
     { label: "Orders & Sales", href: "/dashboard/vendor/orders", icon: ClipboardList },
     { label: "Profile & Verification", href: "/dashboard/vendor/profile", icon: UserRound },

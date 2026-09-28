@@ -40,6 +40,7 @@ const openapi = {
   },
   servers: [{ url: "/api", description: "Current application's API (same origin)" }],
   tags: [
+    { name: "Products", description: "Live public product catalog for AI Automation." },
     { name: "Email verification", description: "Send and verify email codes before completing registration." },
     { name: "Registration", description: "Complete seller registration and the existing customer registration flow." },
     { name: "Authentication", description: "Sign in, refresh access tokens and sign out." },
@@ -49,8 +50,8 @@ const openapi = {
   paths: {
     "/products": {
       get: {
-        tags: ["Products"], operationId: "listProducts", summary: "Get 10 dummy products for AI Automation", security: [],
-        description: "Public mock catalog; no authentication or database connection required. Prices are in NGN (naira, not kobo). Category is a display name. Image arrays are currently empty. The data source will later be replaced with database records while preserving this response shape.",
+        tags: ["Products"], operationId: "listProducts", summary: "Get the live product catalog for AI Automation", security: [],
+        description: "Public database-backed catalog of active, approved, published products with a product slug. Returns all matching products, including out-of-stock items, newest first. Prices are base prices in NGN (naira, not kobo). Category is a display name and id is the MongoDB product ID. productLink is an absolute URL on the API request's origin pointing to /dashboard/products/{slug}; the product page requires sign-in. No authentication is required for this endpoint. Responses are not cached.",
         responses: {
           200: response("Product catalog", {
             type: "object", required: ["success", "data", "totalItems"],
@@ -59,9 +60,10 @@ const openapi = {
               totalItems: { type: "integer", example: 10 },
               data: { type: "array", items: {
                 type: "object",
-                required: ["id", "productName", "slug", "description", "category", "brand", "price", "currency", "quantity", "inStock", "productImages"],
+                required: ["id", "productName", "slug", "description", "category", "brand", "price", "currency", "quantity", "inStock", "productImages", "productLink"],
                 properties: {
-                  id: { type: "string", example: "product-001" },
+                  id: { type: "string", example: "507f1f77bcf86cd799439011" },
+                  productLink: { type: "string", format: "uri", example: "https://example.com/dashboard/products/leather-oxford-shoes", description: "Absolute link to this product's detail page. Requires sign-in to view." },
                   productName: { type: "string", example: "Leather Oxford Shoes" },
                   slug: { type: "string", example: "leather-oxford-shoes" },
                   description: { type: "string" },
@@ -76,6 +78,7 @@ const openapi = {
               } },
             },
           }),
+          ...errors(500),
         },
       },
     },
