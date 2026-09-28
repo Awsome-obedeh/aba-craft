@@ -15,6 +15,38 @@ const linksByRole = {
     { label: "My Products", href: "/dashboard/vendor/products", icon: ShoppingBag },
     { label: "Orders & Sales", href: "/dashboard/vendor/orders", icon: ClipboardList },
     { label: "Profile & Verification", href: "/dashboard/vendor/profile", icon: UserRound },
+    {
+      name: "Dashboard Overview",
+      href: "/dashboard",
+      icon: FiGrid,
+    },
+    {
+      name: "Upload Product",
+      href: "/dashboard/vendor/upload-product",
+      icon: FiUpload,
+    },
+    {
+      name: "My Inventory",
+      href: "/dashboard/vendor/inventory",
+      icon: FiBox,
+    },
+
+     {
+      name: "My Products",
+      href: "/dashboard/vendor/products",
+      icon: FiShoppingBag,
+    },
+    
+    
+    
+    {
+      name: "Profile & Verification",
+      href: "/dashboard/profile",
+      icon: FiUser,
+
+      
+    },
+   
   ],
   admin: [
     { label: "Dashboard", href: "/dashboard/admin", icon: LayoutDashboard },

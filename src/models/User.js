@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 const userSchema = new mongoose.Schema({
     acceptedTermsAt: Date,
     signupProofHash: { type: String, select: false },
+    sessionVersion: { type: Number, default: 0 },
     fullName: {
         type: String,
         trim: true,

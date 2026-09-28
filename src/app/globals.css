@@ -100,3 +100,7 @@
 .storefront h2 { line-height: 1.2; }
 .storefront p { line-height: 1.75; }
 @media (min-width: 1024px) { .storefront section.py-20 { padding-block: 104px; } }
+.account-surface { font-family: var(--font-geist-sans), Arial, sans-serif; }
+.account-surface :is(input, select, textarea, button, a):focus-visible { outline: 2px solid #C4572A; outline-offset: 3px; }
+.account-surface input[readonly] { background: #FAF7F2; color: #66706B; }
+.account-surface input:disabled, .account-surface textarea:disabled { opacity: .65; }
