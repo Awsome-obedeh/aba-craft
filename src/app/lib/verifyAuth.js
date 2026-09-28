@@ -1,11 +1,9 @@
 import { jwtVerify } from 'jose';
 import connectDB from '@/app/lib/connect';
 import User from '@/models/User';
-import { sameSession } from './accountValidation';
 
-import { jwtVerify } from "jose"; 
-import connectDB from "./connect";
-import User from "@/models/User";
+
+
 
 /**
  * Verifies the JWT and checks user roles
