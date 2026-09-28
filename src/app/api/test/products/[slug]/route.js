@@ -3,6 +3,7 @@ import connectDB from "@/app/lib/connect";
 import { verifyAuth } from "@/app/lib/verifyAuth";
 import Product from "@/models/Products";
 import Category from "@/models/Category";
+import { validateProductUpdate } from "@/app/lib/product-update";
 import { NextResponse } from "next/server";
 
 
@@ -60,6 +61,7 @@ export async function GET(req, { params }) {
 
 
             product = await Product.findOne({ slug, isActive: true, createdBy: auth.user.id })
+                .select("+notes")
                 .populate({
                     path: "category",
                     select: "categoryName slug "
@@ -78,21 +80,22 @@ export async function GET(req, { params }) {
         }
 
 
-        product = await Product.findOne({ slug, isActive: true, ...visibility })
+        if (auth.user.role === "customer") product = await Product.findOne({ slug, isActive: true, ...visibility })
             .populate({
                 path: "category",
                 select: "categoryName slug"
             })
             .lean();
-        console.log("product", product)
+        if (!product) return NextResponse.json({ success: false, message: "Product not found." }, { status: 404 });
         // Production Safety Check: Ensure the images field is always returning an array matrix structure
         const safeImagesArray = Array.isArray(product.productImages) && product.productImages.length > 0
             ? product.productImages
-            : ["/placeholders/frame-default.svg"]; // Dynamic fallback item structural string array data
+            : [];
 
         const formattedProduct = {
             ...product,
             productImages: safeImagesArray,
+            categoryId: product.category?._id || "",
             category: product.category?.categoryName || "Unassigned"
         };
 
@@ -124,23 +127,42 @@ export const PUT = async (req, { params }) => {
         await connectDB();
 
         const { slug } = await params;
-        const body = await req.json();
+        let body;
+        try {
+            body = await req.json();
+            if (!body || typeof body !== "object" || Array.isArray(body)) throw new Error();
+        } catch {
+            return NextResponse.json({ success: false, message: "Invalid product update." }, { status: 400 });
+        }
 
-        console.log("Received update request for product slug:", slug, "with body:", body);
+        const filter = { slug, isActive: true, ...(auth.user.role === "vendor" ? { createdBy: auth.user.id } : {}) };
+        const existing = await Product.findOne(filter).select("+notes").lean();
+        if (!existing) return NextResponse.json({ success: false, message: "Product not found." }, { status: 404 });
 
 
 
         // find category ID based on category name provided in the update request
-        if (body.category) {
+        if (typeof body.category === "string" && body.category && !/^[a-f\d]{24}$/i.test(body.category)) {
             const categoryDoc = await Category.findOne({ categoryName: body.category });
             if (categoryDoc) {
-                body.category = categoryDoc._id; // Replace category name with its ID for the product update
+                body.category = String(categoryDoc._id);
             }
         }
 
+        let fields;
+        try {
+            fields = validateProductUpdate(existing, body);
+            if (fields.category && !await Category.exists({ _id: fields.category })) throw new Error("Select a valid category.");
+        } catch (error) {
+            return NextResponse.json({ success: false, message: error.message }, { status: 400 });
+        }
+        const clearCategory = fields.category === undefined;
+        if (clearCategory) delete fields.category;
+        // The shared validator checks the complete merged product, including
+        // draft-only exceptions that Mongoose query validators cannot infer.
         const product = await Product.findOneAndUpdate(
-            { slug },
-            body,
+            filter,
+            { $set: fields, ...(clearCategory ? { $unset: { category: 1 } } : {}) },
             { returnDocument: "after" })
             .lean();
 
@@ -155,12 +177,11 @@ export const PUT = async (req, { params }) => {
         }
 
 
-        console.log("Updated product details:", product);
 
         return NextResponse.json(
             {
                 success: true,
-                message: "Product updated successfully.",
+                message: fields.status === "under_review" ? "Product updated and submitted for admin approval." : fields.status === "draft" ? "Product saved as draft." : "Product updated successfully.",
                 data: product
             },
             { status: 200 });
@@ -194,7 +215,7 @@ export const DELETE = async (req, { params }) => {
         const { slug } = await params;
 
         const deletedProduct = await Product.findOneAndUpdate(
-            { slug: slug },
+            { slug, isActive: true, ...(auth.user.role === "vendor" ? { createdBy: auth.user.id } : {}) },
             { isActive: false },
             { returnDocument: "after" }
 

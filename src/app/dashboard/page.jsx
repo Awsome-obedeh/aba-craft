@@ -16,7 +16,7 @@ export default function DashboardIndexPage() {
         // Send each role to its most useful starting page
         switch (user.role) {
             case "vendor":
-                router.replace("/dashboard/vendor/upload-product");
+                router.replace("/dashboard/vendor");
                 break;
             case "customer":
                 router.replace("/dashboard/products");

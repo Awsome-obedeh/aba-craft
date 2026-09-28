@@ -83,6 +83,10 @@ export default function CustomerSignUpPage() {
                 width={400}
                 height={400}
             />
+
+            <div>
+                
+            </div>
             <div className="flex items-center justify-center bg-white px-4 flex-1">
                 <form className="w-full max-w-md text-center" onSubmit={handleSubmit(onSubmit)}>
                     <div className="flex justify-center mb-6">

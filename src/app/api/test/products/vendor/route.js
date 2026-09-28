@@ -2,6 +2,7 @@
 import connectDB from "@/app/lib/connect";
 import { verifyAuth } from "@/app/lib/verifyAuth";
 import Product from "@/models/Products";
+import Category from "@/models/Category";
 
 import { NextResponse } from "next/server";
 
@@ -24,7 +25,7 @@ export const GET = async (req) => {
             createdBy: auth.user.id,
             isActive: true
          })
-            .populate("category", "categoryName slug ,").sort({ createdAt: -1 })
+            .populate({ path: "category", select: "categoryName slug", model: Category }).sort({ createdAt: -1 })
             .lean();
         return NextResponse.json({
             success: true,

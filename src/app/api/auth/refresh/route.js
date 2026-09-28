@@ -1,21 +1,64 @@
-import { generateAccessToken, verifyRefreshToken } from '@/app/lib/jwt';
-import { cookies } from 'next/headers';
-import connectDB from '@/app/lib/connect';
-import User from '@/models/User';
-import { publicUser, sameSession } from '@/app/lib/accountValidation';
-import { accountResponse } from '@/app/lib/accountServer';
+import { generateAccessToken, verifyRefreshToken } from "@/app/lib/jwt";
+import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
+import connectDB from "@/app/lib/connect";
+import User from "@/models/User";
+
+
 
 export async function POST() {
-  const token = (await cookies()).get('refreshToken')?.value;
-  let decoded;
-  try { decoded = verifyRefreshToken(token); }
-  catch { return accountResponse({ message: 'Please sign in again.' }, 401); }
-  try {
-    await connectDB();
-    const record = await User.findById(decoded.id).lean();
-    if (!sameSession(record, decoded)) return accountResponse({ message: 'Please sign in again.' }, 401);
-    const user = publicUser(record);
-    const accessToken = generateAccessToken({ id: user.id, role: user.role, email: user.email, sessionVersion: record.sessionVersion ?? 0 });
-    return accountResponse({ accessToken, user });
-  } catch { return accountResponse({ message: 'Account service is unavailable. Please try again.' }, 503); }
+
+    try {
+
+        const cookieStore = await cookies();
+
+        const refreshToken = cookieStore.get("refreshToken")?.value;
+
+        if (!refreshToken) {
+
+            return NextResponse.json(
+                { message: "Unauthorized" },
+               
+                {
+                    status: 401
+                }
+            );
+
+        }
+
+        const decoded = verifyRefreshToken(refreshToken);
+        await connectDB();
+        const currentUser = await User.findById(decoded.id);
+        if (!currentUser || (currentUser.sessionVersion || 0) !== (decoded.sessionVersion || 0)) {
+            return NextResponse.json({ message: "Session expired" }, { status: 401 });
+        }
+
+        const user={
+            id: decoded.id,
+            role: decoded.role,
+            email: decoded.email,
+            sessionVersion: currentUser.sessionVersion || 0
+        }
+
+        const accessToken = generateAccessToken({
+            id: decoded.id,
+            role: decoded.role,
+            email: decoded.email,
+            sessionVersion: currentUser.sessionVersion || 0
+
+        });
+
+        return NextResponse.json({ accessToken, user });
+
+    } catch {
+
+        return NextResponse.json(
+            { message: "Invalid refresh" },
+            {
+                status: 401
+            }
+        );
+
+    }
+
 }

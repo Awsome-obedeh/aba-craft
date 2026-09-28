@@ -1,121 +1,18 @@
-import User from "@/models/User";
+import { signupService } from "@/app/lib/server/signup";
+import { parseSellerSignup, readBody, errorResponse, MAX_DOCUMENT_SIZE } from "@/app/lib/server/signup-validation";
 
+export const runtime = "nodejs";
 
-import { NextResponse } from "next/server";
-
-import connectDB from "@/app/lib/connect";
-
-import bcrypt from "bcryptjs";
-
-import { sendMail } from "@/app/lib/send-mail";
-
-import { generateInvitationCode } from "@/app/lib/generateInviteCode";
-import Invitation from "@/models/Invitation";
-
-
-export const POST = async (req) => {
+export async function POST(request) {
   try {
-    await connectDB();
-
-    const body = await req.json();
-
-    const email = body.email?.trim().toLowerCase();
-
-    const password = body.password?.trim();
-    const role= body.role?.trim().toLowerCase() || 'vendor';
-
-    // Validation
-    if (!email || !password) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Email and password are required",
-        },
-        { status: 400 }
-      );
+    if (request.headers.get("content-type")?.includes("application/json")) {
+      const body = await readBody(request, 4096);
+      return Response.json(await signupService.registerCustomer(body), { status: 201 });
     }
-
-    // Strong password validation
-    const passwordRegex =
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
-
-    if (!passwordRegex.test(password)) {
-      return NextResponse.json(
-        {
-          success: false,
-          message:
-            "Password must contain uppercase, lowercase, number and special character",
-        },
-        { status: 400 }
-      );
-    }
-
-    // Check existing user
-    const existingUser = await User.findOne({ email });
-
-    if (existingUser) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Account already exists",
-        },
-        { status: 400 }
-      );
-    }
-
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 12);
-
-    // Generate verification code
-    const invitationCode = generateInvitationCode();
-
-    // Expiration
-    const expiresAt = new Date(
-      Date.now() + 15 * 60 * 1000
-    );
-
-    // Remove old pending invitations
-    await Invitation.deleteMany({
-      email,
-      isUsed: true,
-    });
-
-    await Invitation.create({
-      email,
-      invitationCode,
-      purpose: "email_verification",
-      isUsed: false,
-      expiresAt,
-    });
-
-    // Send mail
-    await sendMail(email, invitationCode);
-
-    await User.create({
-        email,
-        password:hashedPassword,
-        role
-    })
-
-    return NextResponse.json(
-      {
-        success: true,
-        message:
-          "Verification code sent successfully",
-        email
-      },
-      { status: 200 }
-    );
+    const form = await readBody(request, 2 * MAX_DOCUMENT_SIZE + 64 * 1024, "form");
+    const data = await parseSellerSignup(form);
+    return Response.json(await signupService.registerSeller(data), { status: 201 });
   } catch (error) {
-    console.error("REGISTER ERROR:", error);
-
-    return NextResponse.json(
-      {
-        success: false,
-        message: "Internal server error",
-        error:error.message
-      },
-      { status: 500 }
-    );
+    return errorResponse(error);
   }
-};
+}
