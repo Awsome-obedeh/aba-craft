@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test": "node --test scripts/*.test.mjs tests/*.test.mjs",
     "test:openapi": "node --test scripts/openapi.test.mjs",
     "seed": "node scripts/seed.mjs",
     "test:account": "node --test --test-isolation=none tests/account.test.mjs",
