@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import DashboardLayout from "@/components/layout/DashboardLayout";
+import EscrowCard from "@/components/EscrowCard";
 import { useAuthStore } from "@/app/store/authStore";
 import { api } from "@/app/lib/axios";
 import { formatPrice } from "@/utils/priceFormater";
@@ -28,13 +29,39 @@ export default function MyOrdersPage() {
     const [loading, setLoading] = useState(true);
     const [retrying, setRetrying] = useState(null);
 
+    // Escrow state is per vendor slice, not per order, so it is keyed by the
+    // parent order id. Only paid orders have escrow worth fetching.
+    const [escrow, setEscrow] = useState({});
+    const [busyItem, setBusyItem] = useState(null);
+
+    const loadEscrow = async (orderList) => {
+        const paid = orderList.filter((o) => o.paymentStatus === "paid");
+        if (paid.length === 0) return;
+
+        const results = await Promise.allSettled(
+            paid.map((o) => api.get(`/orders/${o._id}/escrow`))
+        );
+
+        const next = {};
+        results.forEach((r, i) => {
+            if (r.status === "fulfilled" && r.value?.data?.success) {
+                next[paid[i]._id] = r.value.data.items || [];
+            }
+        });
+        setEscrow((prev) => ({ ...prev, ...next }));
+    };
+
     useEffect(() => {
         let cancelled = false;
         const load = async () => {
             try {
                 const res = await api.get("/orders");
                 if (cancelled) return;
-                setOrders(res.data.data || []);
+                const list = res.data.data || [];
+                setOrders(list);
+                // Escrow is a follow-up read; a failure here must not blank the
+                // order list the customer came for.
+                loadEscrow(list).catch((e) => console.error("escrow load", e));
             } catch (err) {
                 if (cancelled) return;
                 console.error(err);
@@ -108,6 +135,30 @@ export default function MyOrdersPage() {
                                     </li>
                                 ))}
                             </ul>
+
+                            {/* Escrow state. One block per vendor, because a
+                                single order can involve several vendors whose
+                                payments are held and released independently. */}
+                            {escrow[o._id]?.length > 0 && (
+                                <section className="mt-4 pt-3 border-t space-y-4">
+                                    <p className="text-xs font-semibold uppercase tracking-widest text-gray-400">
+                                        Payment protection
+                                    </p>
+                                    {escrow[o._id].map((item) => (
+                                        <EscrowCard
+                                            key={item.vendorOrderId}
+                                            orderId={o._id}
+                                            item={item}
+                                            role="customer"
+                                            busyId={busyItem}
+                                            onAction={(id, isBusy) =>
+                                                setBusyItem(isBusy ? id : null)
+                                            }
+                                            onChanged={() => loadEscrow(orders)}
+                                        />
+                                    ))}
+                                </section>
+                            )}
                             <footer className="mt-4 pt-3 border-t flex flex-wrap items-center justify-between gap-3 text-sm">
                                 <div>
                                     <p className="text-xs text-gray-500">Total</p>

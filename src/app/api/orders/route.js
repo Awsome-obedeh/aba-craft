@@ -10,6 +10,7 @@ import { verifyAuth } from "@/app/lib/verifyAuth";
 import Order from "@/models/Order";
 import Product from "@/models/Products";
 import { computeFinalUnitPrice, computeTotals } from "@/app/lib/orderPricing";
+import { createVendorOrdersForOrder } from "@/app/lib/vendorSplit";
 import { NextResponse } from "next/server";
 
 const isValidObjectId = (id) => /^[a-f\d]{24}$/i.test(String(id));
@@ -87,7 +88,22 @@ export const POST = async (req) => {
             paymentStatus: "pending",
         });
 
-        return NextResponse.json({ success: true, data: order }, { status: 201 });
+        // Split the order into one escrow slice per vendor. The customer pays
+        // once, but settlement is tracked per vendor. These start as
+        // escrowStatus "none" and are flipped to "held" by the charge.success
+        // webhook, not here — an unpaid order must not hold money.
+        const vendorOrders = await createVendorOrdersForOrder(order, lineItems);
+
+        return NextResponse.json(
+            {
+                success: true,
+                data: {
+                    ...order.toObject(),
+                    vendorOrders: vendorOrders.map((v) => v.toObject()),
+                },
+            },
+            { status: 201 }
+        );
     } catch (error) {
         console.error("ORDER CREATE ERROR:", error);
         return NextResponse.json({ success: false, message: "Server error creating order" }, { status: 500 });

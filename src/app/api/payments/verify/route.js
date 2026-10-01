@@ -41,16 +41,24 @@ export const POST = async (req) => {
         }
 
         const txData = psData?.data || {};
-        const isSuccess = txData.status === "success" && txData.revenue_status === "settled";
+        // `status === "success"` is Paystack's canonical success signal for a
+        // charge. The previous check also required revenue_status === "settled",
+        // which relates to revenue splitting, not to whether funds were captured,
+        // and produced false negatives.
+        const isSuccess = txData.status === "success";
 
         const order = await Order.findOne({ paymentRef: reference });
 
         if (isSuccess) {
-            if (order) {
-                order.paymentStatus = "paid";
-                order.status = "paid";
-                order.paidAt = new Date();
-                await order.save();
+            if (order && order.paymentStatus !== "paid") {
+                // This route is a convenience for the customer's browser after a
+                // redirect. It is NOT the source of truth — the charge.success
+                // webhook is. We only mark the order paid here when the webhook
+                // has not arrived yet; the webhook's own idempotency key makes
+                // the later arrival a no-op, and the escrow hold is created by
+                // whichever runs first.
+                const { holdEscrowForOrder } = await import("@/app/lib/escrowHold");
+                await holdEscrowForOrder(order, reference, { createdBy: "system:verify-fallback" });
             }
 
             return NextResponse.json({

@@ -14,6 +14,7 @@ import {
   FiUser,
   FiMenu,
   FiX,
+  FiCreditCard,
 } from "react-icons/fi";
 import { logout } from "@/app/lib/logout";
 
@@ -55,6 +56,16 @@ const sidebarLinks = {
       name: "Orders & Leads",
       href: "/dashboard/vendor/orders",
       icon: FiShoppingBag,
+    },
+    {
+      name: "Payouts",
+      href: "/dashboard/vendor/settlements",
+      icon: FiCreditCard,
+    },
+    {
+      name: "Payout Account",
+      href: "/dashboard/vendor/payout-account",
+      icon: FiCreditCard,
     },
     {
       name: "Sales Automation",
@@ -106,6 +117,11 @@ const sidebarLinks = {
       name: "Pending Publications",
       href: "/dashboard/admin/publish-products",
       icon: FiShoppingBag,
+    },
+    {
+      name: "Escrow & Payouts",
+      href: "/dashboard/admin/settlements",
+      icon: FiCreditCard,
     }
   ],
 };

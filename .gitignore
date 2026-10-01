@@ -43,5 +43,6 @@ next-env.d.ts
 # local AI prompt logs
 /prompts.md
 
+README.md
 
 
