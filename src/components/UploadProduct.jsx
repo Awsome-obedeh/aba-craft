@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 
 const UploadProduct = () => {
   return (
@@ -45,7 +46,7 @@ const UploadProduct = () => {
                             <p class="text-[9px] text-gray-400 mt-0.5 tracking-tight">Vendor</p>
                         </div>
                         <div class="w-8 h-8 rounded-full overflow-hidden border border-white">
-                            <img src="https://i.pravatar.cc/150?u=sandra" class="w-full h-full object-cover" />
+                            <Image src="https://i.pravatar.cc/150?u=sandra" alt="Vendor profile" width={32} height={32} className="w-full h-full object-cover" />
                         </div>
                     </div>
                 </div>
@@ -110,14 +111,14 @@ const UploadProduct = () => {
                         <p class="text-[10px] font-bold text-gray-400 mb-4 tracking-tight">IMAGE PREVIEW <span class="font-normal">(Max 6 images)</span></p>
                         <div class="grid grid-cols-6 gap-4">
                             <div class="relative aspect-square rounded-lg purple-border bg-white p-1">
-                                <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=150" class="w-full h-full object-cover rounded-md" />
+                                <Image src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=150" alt="Red sneaker product preview" width={150} height={150} className="w-full h-full object-cover rounded-md" />
                             </div>
                             <div class="aspect-square rounded-lg border border-gray-200 bg-white"></div>
                             <div class="aspect-square rounded-lg border border-gray-200 bg-white p-1">
-                                <img src="https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=150" class="w-full h-full object-cover rounded-md" />
+                                <Image src="https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=150" alt="Leather bag product preview" width={150} height={150} className="w-full h-full object-cover rounded-md" />
                             </div>
                             <div class="aspect-square rounded-lg border border-gray-200 bg-white p-1">
-                                <img src="https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=150" class="w-full h-full object-cover rounded-md" />
+                                <Image src="https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=150" alt="Leather footwear product preview" width={150} height={150} className="w-full h-full object-cover rounded-md" />
                             </div>
                             <div class="aspect-square rounded-lg border border-gray-200 bg-white"></div>
                             <div class="aspect-square rounded-lg border border-gray-200 bg-white"></div>

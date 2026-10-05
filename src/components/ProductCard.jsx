@@ -1,4 +1,5 @@
 "use client"
+import Image from 'next/image';
 import { formatPrice } from "@/utils/priceFormater";
 import EditProductModal from "./EditProductModal";
 import { useState, useTransition } from "react";
@@ -46,8 +47,11 @@ export default function ProductCard({ product, role, setProducts }) {
   return (
     <div className="border rounded-xl p-4">
 
-      <img
+      <Image
         src={product.productImages[0]}
+        alt={product.productName}
+        width={640}
+        height={352}
         className="w-full h-44 object-cover rounded"
       />
 

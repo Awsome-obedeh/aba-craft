@@ -11,11 +11,36 @@ export default function VerifyAccount() {
   const router = useRouter();
   const { signupData, setVerificationToken } = useSignup();
   const [otp, setOtp] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [sent, setSent] = useState(false);
   const [timeLeft, setTimeLeft] = useState(0);
   const pending = useRef(false);
+  const initialRequest = useRef(null);
+  const email = signupData.account.email;
+
+  useEffect(() => {
+    if (!email) return;
+    let active = true;
+    // Reuse the request when Strict Mode replays the effect in development.
+    if (initialRequest.current?.email !== email) {
+      pending.current = true;
+      initialRequest.current = { email, promise: sendSignupCode(email) };
+    }
+    initialRequest.current.promise.then(() => {
+      if (!active) return;
+      setSent(true);
+      setOtp("");
+      setTimeLeft(60);
+    }).catch((error) => {
+      if (active) setError(signupError(error));
+    }).finally(() => {
+      if (!active) return;
+      pending.current = false;
+      setLoading(false);
+    });
+    return () => { active = false; };
+  }, [email]);
 
   useEffect(() => {
     if (!timeLeft) return;
@@ -57,12 +82,12 @@ export default function VerifyAccount() {
       </div>
       <div className="w-[52%] pl-3">
         <h2 className="text-lg font-semibold">Verify Your Account</h2>
-        <p className="mt-2 text-sm">Request a code, then enter the six digits sent to {signupData.account.email}.</p>
+        <p className="mt-2 text-sm">{sent ? "Enter the six-digit code sent to " : loading ? "Sending a verification code to " : "We could not send a code to "}{email}.</p>
         <button type="button" disabled={loading} onClick={() => router.push("/auth/sign-up")} className="my-2 text-sm underline">Change email address</button>
         <fieldset disabled={loading} className="mt-4">
           <OtpInput value={otp} onChange={setOtp} />
           <button type="button" disabled={timeLeft > 0 || loading} onClick={() => handleRequest(false)} className="mt-4 text-sm underline disabled:opacity-50">
-            {sent ? "Resend code" : "Send code"}
+            {loading && !sent ? "Sending code..." : sent ? "Resend code" : "Try sending again"}
           </button>
           {timeLeft > 0 && <p className="mt-2 text-xs" role="status">You can request another code in {timeLeft}s.</p>}
           <button type="button" disabled={!/^\d{6}$/.test(otp) || loading} onClick={() => handleRequest(true)} className="mt-5 w-full rounded bg-[#c39a22] py-3 text-sm text-white disabled:opacity-50">

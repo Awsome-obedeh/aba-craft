@@ -1,4 +1,5 @@
 "use client";
+import Image from 'next/image';
 
 export default function Navbar({ setIsOpen }) {
   return (
@@ -29,9 +30,11 @@ export default function Navbar({ setIsOpen }) {
         </div>
 
         <div className="flex items-center gap-2 cursor-pointer">
-          <img
+          <Image
             src="https://i.pravatar.cc/30"
             alt="user"
+            width={32}
+            height={32}
             className="w-8 h-8 rounded-full"
           />
           <div className="hidden md:block">

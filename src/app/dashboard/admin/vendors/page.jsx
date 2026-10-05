@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { MetricCard } from '@/components/MetricCard';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useAuthStore } from '@/app/store/authStore';
@@ -27,6 +29,7 @@ export default function AdminDashboardPage() {
   const [loading, setLoading] = useState(true);
 
   const { user, accessToken } = useAuthStore();
+  const router = useRouter();
 
 
   useEffect(() => {
@@ -35,33 +38,39 @@ export default function AdminDashboardPage() {
     }
 
 
-  }, [user, accessToken]);
+  }, [user, accessToken, router]);
 
   const role = user?.role;
   const email = user?.email;
-  const getDashboardData = async () => {
-
-    try {
-      setLoading(false)
-      const res = await api.get('/admin/vendors');
-      setVendors(res.data.vendors);
-      setTotalVendors(res.data.totalVendors);
-      setPendingVendors(res.data.pendingVendors);
-    }
-
-    catch (error) {
-      console.error('Error fetching vendors:', error);
-      // Optionally, set an error state here to display an error message in the UI
-      if (error.response) {
-        toast.error(error.response.data.message || 'Failed to fetch vendors');
-      }
-    }
-
-  }
-
-
   useEffect(() => {
-    getDashboardData();
+    let isActive = true;
+
+    const loadDashboardData = async () => {
+      try {
+        const res = await api.get('/admin/vendors');
+        if (isActive) {
+          setVendors(res.data.vendors);
+          setTotalVendors(res.data.totalVendors);
+          setPendingVendors(res.data.pendingVendors);
+        }
+      } catch (error) {
+        if (isActive) {
+          console.error('Error fetching vendors:', error);
+          if (error.response) {
+            toast.error(error.response.data.message || 'Failed to fetch vendors');
+          }
+        }
+      } finally {
+        if (isActive) {
+          setLoading(false);
+        }
+      }
+    };
+
+    void loadDashboardData();
+    return () => {
+      isActive = false;
+    };
   }, []);
   console.log("Vendors data:", vendors);
 
@@ -106,7 +115,7 @@ export default function AdminDashboardPage() {
               <p className="text-sm font-semibold text-slate-800">{email|| ''}</p>
               <p className="text-xs text-slate-400">{role}</p>
             </div>
-            <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100" className="w-9 h-9 rounded-full object-cover" alt="" />
+            <Image src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100" width={36} height={36} className="w-9 h-9 rounded-full object-cover" alt="Admin profile" />
           </div>
         </div>
 
@@ -198,13 +207,13 @@ export default function AdminDashboardPage() {
                       </td>
                       <td className="p-4 font-medium text-slate-800">
                         <div className="flex items-center gap-3">
-                          <img src={vendor.profilePicture || '/globe.svg'} alt="" className="w-7 h-7 rounded-full object-cover border border-slate-100" />
+                          <Image src={vendor.profilePicture || '/globe.svg'} width={28} height={28} alt={`${vendor.fullName} profile`} className="w-7 h-7 rounded-full object-cover border border-slate-100" />
                           <span>{vendor.fullName}</span>
                         </div>
                       </td>
                       <td className="p-4 font-medium text-slate-800">
                         <div className="flex items-center gap-3">
-                          <img src={vendor.profilePicture || '/globe.svg'} alt="" className="w-7 h-7 rounded-full object-cover border border-slate-100" />
+                          <Image src={vendor.profilePicture || '/globe.svg'} width={28} height={28} alt={`${vendor.fullName} profile`} className="w-7 h-7 rounded-full object-cover border border-slate-100" />
                           <span>{vendor.email}</span>
                         </div>
                       </td>

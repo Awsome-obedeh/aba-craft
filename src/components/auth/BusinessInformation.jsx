@@ -202,7 +202,7 @@ export default function BusinessInformation() {
 
             {/* Email */}
             <BusinessInput
-              label="Email Address"
+              label="Business Email Address"
               type="email"
               placeholder="Enter email address"
               value={form.email}
@@ -249,7 +249,7 @@ export default function BusinessInformation() {
           </div>
           <div className="mt-4">
             <BusinessTextarea
-              label="Business/Workshop Address"
+              label="Business Address"
               placeholder="Enter your full business/workshop address"
               value={form.address}
               onChange={(event) => updateField("address", event.target.value)}

@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { FaGoogle } from "react-icons/fa";
 import axios from "axios";
 import { useState } from "react";
@@ -42,11 +42,11 @@ export default function CustomerSignUpPage() {
     const {
         register,
         handleSubmit,
+        control,
         formState: { errors },
-        watch,
     } = useForm();
 
-    const password = watch("password", "");
+    const password = useWatch({ control, name: "password", defaultValue: "" });
     const checks = passwordChecks(password);
     const score = Object.values(checks).filter(Boolean).length;
     const { text: strengthText, color: strengthColor } = strengthMeta(score);

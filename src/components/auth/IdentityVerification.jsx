@@ -222,7 +222,7 @@ export default function IdentityVerification() {
               <BusinessInput label="Individual name on NIN document" value={signupData.verification.individualName}
                 placeholder="Full name as printed on the NIN slip" onChange={(event) => updateVerification({ individualName: event.target.value })} />
             </div>
-            <IdentityNumberInput label="NIN" digits={11} value={nin}
+            <IdentityNumberInput label="NIN" digits={16} value={nin}
               onChange={(nin) => updateVerification({ nin })} error={errors.nin} />
           </DocumentUploadCard>
         </div>

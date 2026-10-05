@@ -13,29 +13,25 @@ export default function SignUpPage() {
     const [isVerifying, setIsVerifying] = useState(false);
     const [isResending, setIsResending] = useState(false);
     
-    const [email, setEmail] = useState('')
- 
-const router=useRouter()
+    const router = useRouter();
     const {
         register,
         handleSubmit,
         formState: { errors },
-        watch,
-        reset
+        reset,
+        setValue,
+        getValues,
 
     } = useForm();
 
     useEffect(() => {
-        if (typeof window !== "undefined") {
-            const userEmail =
-                localStorage.getItem("email");
+        const userEmail = localStorage.getItem("email");
 
-            if (userEmail) {
-                setEmail(userEmail);
-            }
+        if (userEmail) {
+            setValue("email", userEmail);
         }
 
-    }, [])
+    }, [setValue]);
 
     // console.log("USER EMAIL", email)
 
@@ -47,7 +43,6 @@ const router=useRouter()
                 // api
             const payload = {
                 ...data,
-                email
             }
             const res = await axios.post('/api/auth/verify', payload);
 
@@ -87,7 +82,7 @@ const router=useRouter()
         try {
             
             setIsResending(true)
-            const res = await axios.post('/api/auth/resend', {email});
+            const res = await axios.post('/api/auth/resend', { email: getValues("email") });
             if (res.data) {
                 setIsResending(false)
                 toast.success(res.data.message)
@@ -149,7 +144,6 @@ const router=useRouter()
                             type="email"
                             className="w-full mt-1 border border-black rounded-md p-3 outline-none focus:ring focus:ring-black"
                             placeholder="Enter email "
-                            value={email || " "}
                             {...register("email", {
                                 required: "Email is required",
                                 pattern: {

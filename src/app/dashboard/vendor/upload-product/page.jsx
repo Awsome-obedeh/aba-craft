@@ -3,7 +3,7 @@ import DashboardLayout from "@/components/layout/DashboardLayout";
 import AISidePanel from "@/components/upload/AISidePanel";
 import { GiCloudUpload } from "react-icons/gi";
 import { FiCamera, FiUploadCloud, } from "react-icons/fi";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { toast } from "react-toastify";
@@ -24,15 +24,15 @@ export default function UploadProductPage() {
     const {
         register,
         handleSubmit,
+        control,
         formState: { errors },
         reset,
-        watch
     } = useForm({
         defaultValues: {
             isFeatured: false
         }
     });
-    const isFeaturedActive = watch("isFeatured");
+    const isFeaturedActive = useWatch({ control, name: "isFeatured" });
     // cloudinary upload
     const handleImageChange = (e) => {
         const files = Array.from(e.target.files);
@@ -520,9 +520,12 @@ export default function UploadProductPage() {
                                     key={index}
                                     className="relative border rounded-lg overflow-hidden"
                                 >
-                                    <img
+                                    <Image
                                         src={image}
-                                        alt="preview"
+                                        alt={`Selected product image ${index + 1}`}
+                                        width={500}
+                                        height={500}
+                                        unoptimized
                                         className="w-full h-50 object-cover object-center"
                                     />
 

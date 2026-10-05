@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 
 export default function BusinessApprovalCard({ 
   product = {
@@ -23,9 +24,11 @@ export default function BusinessApprovalCard({
       <div className="flex flex-1 items-start gap-5">
         {/* Product Thumbnail Box */}
         <div className="w-32 h-32 flex-shrink-0 bg-[#e2e2e2] rounded-xl overflow-hidden border border-slate-200/60 shadow-inner relative group">
-          <img 
+          <Image
             src={product.image} 
             alt={product.name}
+            width={128}
+            height={128}
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
         </div>
