@@ -10,77 +10,48 @@ import { api } from '@/app/lib/axios';
 
 export default function EditProductModal({ isOpen, onClose, product, onSave, loading }) {
     // Form field states
-    const [productName, setProductName] = useState('');
-    const [brand, setBrand] = useState('');
-    const [price, setPrice] = useState('');
-    const [discountPrice, setDiscountPrice] = useState('');
-    const [category, setCategory] = useState('');
+    const [productName, setProductName] = useState(product?.productName || '');
+    const [brand, setBrand] = useState(product?.brand || '');
+    const [price, setPrice] = useState(product?.price || '');
+    const [discountPrice, setDiscountPrice] = useState(product?.discountPrice || 0);
+    const [category, setCategory] = useState(product?.category || '');
     const [categories, setCategories] = useState([]);
-    const [discountPercentage, setDiscountPercentage] = useState('');
-    const [productImages, setProductImages] = useState([]);
-    const [instock, setInstock] = useState(0);
-    const [description, setDescription] = useState('');
+    const [discountPercentage, setDiscountPercentage] = useState(product?.discountPercentage || 0);
+    const [productImages, setProductImages] = useState(product?.productImages || []);
+    const [instock, setInstock] = useState(product?.quantity ?? 0);
+    const [description, setDescription] = useState(product?.description || '');
 
 
   
 
-    const fetchCategories = async () => {
-        try {
-
-            const res = await api.get('/category');
-            if (res.data.success) {
-                setCategories(res.data.categories);
-            }
-        }
-
-        catch (error) {
-            console.error("Error fetching categories:", error);
-            if (error.response) {
-                toast.error(
-                    error.response.data.message ||
-                    "Something went wrong"
-                );
-            }
-
-            // Network error
-            else if (error.request) {
-                toast.error(
-                    "Network error. Check your internet connection."
-                );
-            }
-
-            // Unexpected error
-            else {
-                toast.error(
-                    "Unexpected error occurred"
-                );
-            }
-        }
-
-
-
-
-
-
-    }
-
-    // Pre-populate the form inputs whenever a new product is selected/loaded
     useEffect(() => {
-        if (product) {
-            setProductName(product.productName || '');
-            setBrand(product.brand || '');
-            setPrice(product.price || '');
-            setDiscountPrice(product.discountPrice || 0);
-            setProductImages(product.productImages || []);
-            setInstock(product.quantity);
-            setCategory(product.category || '');
-            setDiscountPercentage(product.discountPercentage || 0);
-            setDescription(product.description || '');
+        let isActive = true;
 
-        }
+        const loadCategories = async () => {
+            try {
+                const res = await api.get('/category');
+                if (isActive && res.data.success) {
+                    setCategories(res.data.categories);
+                }
+            } catch (error) {
+                if (!isActive) return;
 
-        fetchCategories();
-    }, [product]);
+                console.error("Error fetching categories:", error);
+                if (error.response) {
+                    toast.error(error.response.data.message || "Something went wrong");
+                } else if (error.request) {
+                    toast.error("Network error. Check your internet connection.");
+                } else {
+                    toast.error("Unexpected error occurred");
+                }
+            }
+        };
+
+        void loadCategories();
+        return () => {
+            isActive = false;
+        };
+    }, []);
 
     console.log("Categories in Edit Modal:", categories, "Default category:", category);
       console.log("EDIT PRODUCT MODAL DATA:", product);

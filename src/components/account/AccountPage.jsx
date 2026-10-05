@@ -12,7 +12,7 @@ import { Avatar, Notice, Details, AccountSkeleton, primaryButton, secondaryButto
 import AccountSettings from './AccountSettings';
 import VerificationTable from '@/components/Verification';
 
-export default function AccountPage({ settings = false }) {
+export default function AccountPage({ settings = true }) {
   const user = useAuthStore(state => state.user);
   const updateUser = useAuthStore(state => state.updateUser);
   const router = useRouter();

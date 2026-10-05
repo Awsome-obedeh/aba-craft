@@ -46,7 +46,10 @@ export function normalizeScan(value, purpose) {
 
   const result = Object.fromEntries(
     fields[purpose].map((key) => {
-      const rawValue = value[key];
+      // Some providers return the form field name instead of the schema name.
+      const rawValue = purpose === "cac" && key === "registrationNumber"
+        ? (value.registrationNumber || value.cacNumber)
+        : value[key];
 
       /*
        * null / undefined means the model
@@ -142,6 +145,7 @@ export function normalizeScan(value, purpose) {
   if (purpose === "cac") {
     result.registrationNumber =
       result.registrationNumber
+        .replace(/\s+/g, " ")
         .trim()
         .toUpperCase();
 
@@ -461,11 +465,10 @@ export async function scanDocument(
 
                         Extract:
 
-                        - nin: the exact 11-digit National Identification Number.
+                        - nin: the exact 11-digit National Identification Number,  sometimes at the bottom right, beside the expire date of the NIN document and under 'Document No'.
                         - individualName: combine the person's printed given names and surname.
 
-                        Do not use tracking IDs or document numbers as the NIN.
-
+                        Do not use tracking IDs, document numbers, or any other unrelated numbers and the 16 number at the bottom of the NIN document, grouped into numbers of 4. Only extract the 11-digit NIN.
                         Return null for anything that cannot be clearly determined.
                       `,
                 },
@@ -592,18 +595,18 @@ export async function scanDocument(
    *
    * instead of a JSON string.
    */
-  const normalized =
-    normalizeScan(
-      parsed,
-      purpose
-    );
+  // const normalized =
+  //   normalizeScan(
+  //     parsed,
+  //     purpose
+  //   );
 
 
-  console.log(
-    "Normalized scan result:",
-    normalized
-  );
+  // console.log(
+  //   "Normalized scan result:",
+  //   normalized
+  // );
 
 
-  return normalized;
+  return parsed;
 }

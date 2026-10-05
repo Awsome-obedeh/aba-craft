@@ -27,7 +27,7 @@ export default function EditProfilePage() {
 
 
 
-    }, [accessToken, user]);
+    }, [accessToken, user, router]);
     const [formData, setFormData] = useState({
 
 

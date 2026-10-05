@@ -1,13 +1,16 @@
 import React from 'react';
+import Image from 'next/image';
 import { FormSection } from '../ui/FormSection';
 
 export const ProfileSection = () => (
   <FormSection title="Profile Picture" subtitle="This image will be displayed on your vendor profile">
     <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-6 pt-2">
       <div className="relative w-24 h-24 rounded-full overflow-hidden border border-gray-200 bg-gray-100 flex-shrink-0">
-        <img 
+        <Image
           src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=200&auto=format&fit=crop" 
           alt="Profile Avatar" 
+          width={96}
+          height={96}
           className="w-full h-full object-cover"
         />
         <div className="absolute bottom-1 right-1 bg-white p-1 rounded-full shadow-md border border-gray-200">
