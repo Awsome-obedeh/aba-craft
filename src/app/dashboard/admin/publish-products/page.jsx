@@ -30,7 +30,7 @@ export default function AdminPendingProducts() {
     }
 
 
-  }, [user, accessToken]);
+  }, [user, accessToken, router]);
 
   const role = user?.role;
   const email = user?.email;

@@ -173,47 +173,30 @@ export default function UploadProductPage() {
         }
     }
 
-    const fetchCategories = async () => {
-        try {
-
-            const res = await api.get('/category');
-            if (res.data.success) {
-                setCategories(res.data.categories);
-            }
-        }
-
-        catch (error) {
-
-            console.error("Error fetching categories:", error);
-            // Axios server error
-            if (error.response) {
-                toast.error(
-                    error.response.data.message ||
-                    "Something went wrong"
-                );
-            }
-
-            // Network error
-            else if (error.request) {
-                toast.error(
-                    "Network error. Check your internet connection."
-                );
-            }
-
-            // Unexpected error
-            else {
-                toast.error(
-                    "Unexpected error occurred"
-                );
-            }
-        }
-
-
-
-
-    }
     useEffect(() => {
-        fetchCategories();
+        let isActive = true;
+
+        const fetchCategories = async () => {
+            try {
+                const res = await api.get('/category');
+                if (isActive && res.data.success) {
+                    setCategories(res.data.categories);
+                }
+            } catch (error) {
+                if (!isActive) return;
+                console.error("Error fetching categories:", error);
+                if (error.response) {
+                    toast.error(error.response.data.message || "Something went wrong");
+                } else if (error.request) {
+                    toast.error("Network error. Check your internet connection.");
+                } else {
+                    toast.error("Unexpected error occurred");
+                }
+            }
+        };
+
+        void fetchCategories();
+        return () => { isActive = false; };
     }, []);
 
     //  console.log("Categories:", categories);

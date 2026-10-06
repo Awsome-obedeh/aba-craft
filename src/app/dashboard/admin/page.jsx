@@ -44,34 +44,31 @@ export default function AdminDashboardPage() {
 
   const role = user?.role;
   const email = user?.email;
-  const getDashboardData = async () => {
-
-    try {
-      const res = await api.get('/admin/vendors');
-      setVendors(res.data.vendors);
-      setTotalVendors(res.data.totalVendors);
-      setPendingVendors(res.data.pendingVendors);
-      setApprovedVendors(res.data.approvedVendors);
-      setArchivedVendors(res.data.archivedVendors);
-
-      console.log("RES", res)
-    }
-
-    catch (error) {
-      console.error('Error fetching vendors:', error);
-      // Optionally, set an error state here to display an error message in the UI
-      if (error.response) {
-        toast.error(error.response.data.message || 'Failed to fetch vendors');
-      }
-    } finally {
-      setLoading(false);
-    }
-
-  }
-
-
   useEffect(() => {
-    getDashboardData();
+    let isActive = true;
+
+    const getDashboardData = async () => {
+      try {
+        const res = await api.get('/admin/vendors');
+        if (!isActive) return;
+        setVendors(res.data.vendors);
+        setTotalVendors(res.data.totalVendors);
+        setPendingVendors(res.data.pendingVendors);
+        setApprovedVendors(res.data.approvedVendors);
+        setArchivedVendors(res.data.archivedVendors);
+      } catch (error) {
+        if (!isActive) return;
+        console.error('Error fetching vendors:', error);
+        if (error.response) {
+          toast.error(error.response.data.message || 'Failed to fetch vendors');
+        }
+      } finally {
+        if (isActive) setLoading(false);
+      }
+    };
+
+    void getDashboardData();
+    return () => { isActive = false; };
   }, []);
   console.log("Vendors data:", vendors);
 
