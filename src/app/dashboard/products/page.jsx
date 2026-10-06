@@ -37,7 +37,7 @@ export default function ProductsPage() {
     const fetchProducts = async () => {
         setLoading(true);
         try {
-            const res = await api.get(`/products?${searchParams.toString()}`);
+            const res = await api.get(`/products?${searchParams.toString()}`, { baseURL: "/api/test" });
             setProducts(res.data.data);
             setPagination(res.data.pagination);
         } catch (err) {

@@ -4,6 +4,9 @@
 import React, { useEffect, useState, use, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/app/lib/axios';
+import ContactVendorButton from "@/components/messaging/ContactVendorButton";
+import ProductAccountActions from "@/components/buyer/ProductAccountActions";
+import ProductReviews from "@/components/buyer/ProductReviews";
 import EditProductModal from '@/components/EditProductModal';
 import { formatPrice } from '@/utils/priceFormater';
 import Link from 'next/link';
@@ -40,7 +43,7 @@ export default function ProductDetailsPage({ params }) {
     const { user, accessToken } = useAuthStore();
     const fetchProductDetails = async () => {
         try {
-            const res = await api.get(`/products/${slug}`);
+            const res = await api.get(`/products/${slug}`, { baseURL: "/api/test" });
             const data = res.data.data;
             setProduct(data);
             // Initialize the main image display context utilizing the first image productImages array
@@ -82,7 +85,7 @@ export default function ProductDetailsPage({ params }) {
         fetchProductDetails();
     }, [slug,router, accessToken, user]);
 
-    console.log("Loaded product details:", product);
+
 
     // Zero-Dependency Magnification Math Processing Engine (Pan-On-Hover)
     const handleMouseMove = (e) => {
@@ -107,7 +110,7 @@ export default function ProductDetailsPage({ params }) {
     const handleEdit = async (fields) => {
         try {
             setLoading(true);
-            const res = await api.put(`/products/${product.slug}`, fields);
+            const res = await api.put(`/products/${product.slug}`, fields, { baseURL: "/api/test" });
             if (res.data.success) {
                 setLoading(false);
                 setProduct(res.data.data);
@@ -144,7 +147,7 @@ export default function ProductDetailsPage({ params }) {
 
     const handleDelete = async () => {
         try {
-            const res = await api.delete(`/products/${product.slug}`);
+            const res = await api.delete(`/products/${product.slug}`, { baseURL: "/api/test" });
             if (res.data.success) {
                 toast.success("Product deleted successfully!");
 
@@ -170,7 +173,7 @@ export default function ProductDetailsPage({ params }) {
     // Remove approved product from local view state
     try{
         setIsProductUpdated(true)
-        const res = await api.put(`/products/admin/approve/${product.slug}`);
+        const res = await api.put(`/products/admin/approve/${product.slug}`, {}, { baseURL: "/api/test" });
         if(res.data.success){
             setIsProductUpdated(false);
        
@@ -379,6 +382,9 @@ export default function ProductDetailsPage({ params }) {
                         <div className="mt-12 space-y-3 grid md:grid-cols-2 items-baseline gap-4">
                             {user?.role === "customer" ? (
                                 <>
+                                    <ContactVendorButton productId={product._id} />
+                                    <ProductAccountActions product={product} />
+                                    <ProductReviews productId={product._id} />
                                     {/* Customer purchase actions */}
                                     <div className="flex items-center gap-3">
                                         <span className="text-xs uppercase tracking-widest text-neutral-500">Quantity</span>
