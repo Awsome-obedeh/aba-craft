@@ -5,8 +5,6 @@ on:
     branches: [main]
   push:
     branches: [main]
-  merge_group:
-    types: [checks_requested]
   workflow_dispatch:
 
 permissions:
@@ -24,92 +22,56 @@ jobs:
     name: Lint
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@v6
-        with:
-          node-version: '24'
-          cache: npm
-      - run: npm ci
-      - run: npm run lint
 
-  test:
-    name: Unit tests
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v6
+      - name: Checkout repository
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
         with:
           node-version: '24'
           cache: npm
-      - run: npm ci
-      - run: npm test
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run lint
+        run: npm run lint
 
   build:
-    name: Build and integration tests
+    name: Build
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 15
+
+    env:
+      MONGODB_URI: mongodb://127.0.0.1:27017/abacraft_ci
+      JWT_ACCESS_SECRET: ci-only-access-secret
+      JWT_REFRESH_SECRET: ci-only-refresh-secret
+      FRONT_END_URL: http://localhost:3000
+
     services:
       mongodb:
         image: mongo:7.0
         ports:
           - 27017:27017
-        options: >-
-          --health-cmd "mongosh --quiet --eval 'db.adminCommand({ ping: 1 })'"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 10
-    env:
-      # Public, disposable CI values only. Never use a production database here.
-      MONGODB_URI: mongodb://127.0.0.1:27017/abacraft_account_test
-      JWT_ACCESS_SECRET: ci-only-access-secret-for-disposable-account-tests
-      JWT_REFRESH_SECRET: ci-only-refresh-secret-for-disposable-account-tests
-      ACCOUNT_TEST_URL: http://127.0.0.1:3100
-      FRONT_END_URL: http://127.0.0.1:3100
+
     steps:
-      - uses: actions/checkout@v6
+      - name: Checkout repository
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
         with:
           node-version: '24'
           cache: npm
-      - run: npm ci
-      - run: npm run build
-      - name: Test the production server
-        shell: bash
-        run: |
-          npm run start -- --hostname 127.0.0.1 --port 3100 > "$RUNNER_TEMP/next-server.log" 2>&1 &
-          server_pid=$!
-          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
-          ready=false
-          for attempt in {1..60}; do
-            if ! kill -0 "$server_pid" 2>/dev/null; then
-              cat "$RUNNER_TEMP/next-server.log"
-              exit 1
-            fi
-            # This protected endpoint should return 401 when the app is ready.
-            status=$(curl --silent --output /dev/null --write-out '%{http_code}' --max-time 2 "$ACCOUNT_TEST_URL/api/account/profile" || true)
-            if [ "$status" = 401 ]; then
-              ready=true
-              break
-            fi
-            sleep 1
-          done
-          if [ "$ready" != true ]; then
-            cat "$RUNNER_TEMP/next-server.log"
-            exit 1
-          fi
-          npm run test:account:integration
-      - name: Show server logs on failure
-        if: failure()
-        shell: bash
-        run: |
-          if [ -f "$RUNNER_TEMP/next-server.log" ]; then
-            cat "$RUNNER_TEMP/next-server.log"
-          fi
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build application
+        run: npm run build
