@@ -20,6 +20,8 @@ export default function UploadProductPage() {
     const [previewImages, setPreviewImages] = useState([]);
     const [featured, setFeatured] = useState(false);
     const [categories, setCategories] = useState([]);
+    const [categoriesLoading, setCategoriesLoading] = useState(true);
+    const [categoriesError, setCategoriesError] = useState("");
 
     const {
         register,
@@ -29,7 +31,8 @@ export default function UploadProductPage() {
         reset,
     } = useForm({
         defaultValues: {
-            isFeatured: false
+            isFeatured: false,
+            category: ""
         }
     });
     const isFeaturedActive = useWatch({ control, name: "isFeatured" });
@@ -179,12 +182,14 @@ export default function UploadProductPage() {
         const fetchCategories = async () => {
             try {
                 const res = await api.get('/category');
-                if (isActive && res.data.success) {
-                    setCategories(res.data.categories);
+                if (!res.data.success || !Array.isArray(res.data.categories)) {
+                    throw new Error("Unable to load categories.");
                 }
+                if (isActive) setCategories(res.data.categories);
             } catch (error) {
                 if (!isActive) return;
                 console.error("Error fetching categories:", error);
+                setCategoriesError("Unable to load categories. Please refresh the page to try again.");
                 if (error.response) {
                     toast.error(error.response.data.message || "Something went wrong");
                 } else if (error.request) {
@@ -192,6 +197,8 @@ export default function UploadProductPage() {
                 } else {
                     toast.error("Unexpected error occurred");
                 }
+            } finally {
+                if (isActive) setCategoriesLoading(false);
             }
         };
 
@@ -330,16 +337,21 @@ export default function UploadProductPage() {
 
 
                             <div>
-                                <label className="text-sm font-medium">
+                                <label htmlFor="product-category" className="text-sm font-medium">
                                     Category <span className="text-red-600 text-2xl font-bold">*</span>
                                 </label>
 
-                                <select className="w-full mt-2 border rounded-lg p-4 outline-none"
+                                <select id="product-category" disabled={categoriesLoading || Boolean(categoriesError) || categories.length === 0}
+                                    aria-busy={categoriesLoading}
+                                    className="w-full mt-2 border rounded-lg p-4 outline-none disabled:bg-gray-100"
                                     {...register("category", {
                                         required: "Category is required"
                                     })}
                                 >
-                                    {categories?.map((category) => (
+                                    <option value="" disabled>
+                                        {categoriesLoading ? "Loading categories..." : categoriesError ? "Categories unavailable" : categories.length === 0 ? "No categories available" : "Select a category"}
+                                    </option>
+                                    {categories.map((category) => (
                                         <option key={category._id} value={category._id} className="capitalize">
                                             {category.categoryName}
                                         </option>
@@ -348,6 +360,8 @@ export default function UploadProductPage() {
 
                                 </select>
 
+                                {categoriesError && <p role="alert" className="text-red-500 text-sm mt-1">{categoriesError}</p>}
+                                {!categoriesLoading && !categoriesError && categories.length === 0 && <p className="text-gray-500 text-sm mt-1">No categories are available yet. Contact an administrator.</p>}
                                 {errors.category && (
                                     <p className="text-red-500 text-sm mt-1">
                                         {errors.category.message}

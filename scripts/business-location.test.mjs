@@ -9,7 +9,7 @@ const draft = () => ({
   account: { email: "seller@example.com", password: "ExamplePass123!", confirmPassword: "ExamplePass123!", acceptedTerms: true },
   role: "retailer", verificationToken: "a".repeat(64),
   business: {
-    businessName: "Example Shop", businessType: "leather_retailer", businessDescription: "",
+    businessName: "Example Shop", businessType: "leather_accessories", businessDescription: "",
     email: "shop@example.com", phoneNumber: "08012345678", countryCode: "+234",
     state: "Abia", lga: " Aba North ", city: " Aba ", address: " 12 Example Road, Aba ", landmark: " Near the market ",
   },

@@ -49,7 +49,7 @@ export default function VendorDashboardPage() {
           <div className="flex flex-wrap items-center gap-2"><h1 className="font-serif text-2xl font-semibold text-forest sm:text-3xl">Welcome back, {vendor?.name || user.email?.split("@")[0] || "Vendor"}</h1><span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">Seller</span></div>
           <p className="mt-1 text-sm text-muted">{vendor?.businessName || "Your vendor dashboard"} · Here is your store at a glance.</p>
         </div>
-        <div className="flex gap-2"><Link href="/dashboard/vendor/products" className="rounded-lg border border-brandBorder bg-white px-4 py-2.5 text-xs font-semibold text-forest hover:bg-cream">View store</Link><Link href="/dashboard/vendor/upload-product" className="button-bg inline-flex items-center gap-1.5 rounded-lg px-4 py-2.5 text-xs font-semibold text-dark hover:opacity-90"><Plus size={15} /> Add product</Link></div>
+        {/* <div className="flex gap-2"><Link href="/dashboard/vendor/products" className="rounded-lg border border-brandBorder bg-white px-4 py-2.5 text-xs font-semibold text-forest hover:bg-cream">View store</Link><Link href="/dashboard/vendor/upload-product" className="button-bg inline-flex items-center gap-1.5 rounded-lg px-4 py-2.5 text-xs font-semibold text-dark hover:opacity-90"><Plus size={15} /> Add product</Link></div> */}
       </div>
 
       {error && <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">{error}</div>}

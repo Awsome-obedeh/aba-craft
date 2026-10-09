@@ -9,36 +9,12 @@ import BusinessSelect from "./BusinessSelect";
 import BusinessTextarea from "./BusinessTextarea";
 import PhoneInput from "./PhoneInput";
 import { nigeriaStates, validateBusinessLocation } from "@/app/lib/business-location";
-import { validBusinessTypes } from "@/app/lib/business-types";
+import { businessTypeOptions, validBusinessTypes } from "@/app/lib/business-types";
+import { abiaLocalGovernments, abiaCities } from "@/app/lib/abia-locations";
 
 const stateOptions = nigeriaStates.map((state) => ({ value: state, label: state }));
-
-const businessTypes = [
-  {
-    value: "leather_manufacturer",
-    label: "Leather Manufacturer",
-  },
-  {
-    value: "leather_supplier",
-    label: "Leather Supplier",
-  },
-  {
-    value: "leather_artisan",
-    label: "Leather Artisan",
-  },
-  {
-    value: "leather_retailer",
-    label: "Leather Retailer",
-  },
-  {
-    value: "leather_wholesaler",
-    label: "Leather Wholesaler",
-  },
-  {
-    value: "other",
-    label: "Other",
-  },
-];
+const lgaOptions = abiaLocalGovernments.map((value) => ({ value, label: value }));
+const cityOptions = abiaCities.map((value) => ({ value, label: value }));
 
 export default function BusinessInformation() {
   const router = useRouter();
@@ -145,7 +121,7 @@ export default function BusinessInformation() {
                   selectedTypes
                 )
               }
-              options={businessTypes}
+              options={businessTypeOptions}
               error={errors.businessType}
             />
           </div>
@@ -232,16 +208,18 @@ export default function BusinessInformation() {
               disable
            
             />
-            <BusinessInput
+            <BusinessSelect
               label="LGA"
-              placeholder="Enter LGA"
+              placeholder="Select local government"
+              options={lgaOptions}
               value={form.lga}
               onChange={(event) => updateField("lga", event.target.value)}
               error={errors.lga}
             />
-            <BusinessInput
+            <BusinessSelect
               label="City/Town"
-              placeholder="Enter city/town"
+              placeholder="Select city/town"
+              options={cityOptions}
               value={form.city}
               onChange={(event) => updateField("city", event.target.value)}
               error={errors.city}

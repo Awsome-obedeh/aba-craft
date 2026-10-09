@@ -81,7 +81,7 @@ function fixture() {
 const registration = (verificationToken) => ({
   cacNumber: "RC1234567", abssin: "0123456789", nin: "01234567890", verificationConsent: true,
   email: "seller@example.com", password: "Secret123!", verificationToken, bvn: "01234567890", sellerRole: "retailer",
-  business: { state: "Abia", lga: "Aba North", city: "Aba", address: "12 Example Road, Aba", landmark: "", businessName: "Leather shop", businessType: "leather_retailer", email: "shop@example.com", countryCode: "+234", phoneNumber: "08012345678" },
+  business: { state: "Abia", lga: "Aba North", city: "Aba", address: "12 Example Road, Aba", landmark: "", businessName: "Leather shop", businessType: "leather_accessories", email: "shop@example.com", countryCode: "+234", phoneNumber: "08012345678" },
   document: { bytes: Buffer.from("%PDF-1.7\n"), mimeType: "application/pdf", size: 9 },
 });
 
@@ -205,17 +205,17 @@ test("multipart parsing checks actual file signature and rejects privileged role
 });
 
 test("signup parses multiple services and normalizes legacy single types", async () => {
-  assert.deepEqual((await parseSellerSignup(form())).business.businessType, ["leather_retailer"]);
+  assert.deepEqual((await parseSellerSignup(form())).business.businessType, ["leather_accessories"]);
   const body = form();
   const business = JSON.parse(body.get("business"));
-  business.businessType = ["leather_manufacturer", "leather_retailer"];
+  business.businessType = ["leather_manufacturing", "leather_accessories"];
   body.set("business", JSON.stringify(business));
   const parsed = await parseSellerSignup(body);
   assert.deepEqual(parsed.business.businessType, business.businessType);
   const document = new Business({ ...parsed.business, ownerId: "507f1f77bcf86cd799439011" });
   await document.validate();
   assert.deepEqual(document.toObject().businessType, business.businessType);
-  for (const value of [[], ["unknown"], ["leather_retailer", "leather_retailer"], null, [123]]) {
+  for (const value of [[], ["unknown"], ["leather_accessories", "leather_accessories"], null, [123]]) {
     body.set("business", JSON.stringify({ ...business, businessType: value }));
     await assert.rejects(parseSellerSignup(body), /business type/);
   }

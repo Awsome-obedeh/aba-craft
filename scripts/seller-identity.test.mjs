@@ -13,7 +13,7 @@ const file = () => new File(["%PDF-1.7\n"], "identity.pdf", { type: "application
 const draft = () => ({
   account: { email: "seller@example.com", password: "ExamplePass123!", confirmPassword: "ExamplePass123!", acceptedTerms: true },
   role: "retailer", verificationToken: "a".repeat(64),
-  business: { businessName: "Example Shop", businessType: "leather_retailer", email: "shop@example.com", phoneNumber: "08012345678", countryCode: "+234", state: "Abia", lga: "Aba North", city: "Aba", address: "12 Example Road", landmark: "" },
+  business: { businessName: "Example Shop", businessType: "leather_accessories", email: "shop@example.com", phoneNumber: "08012345678", countryCode: "+234", state: "Abia", lga: "Aba North", city: "Aba", address: "12 Example Road", landmark: "" },
   verification: { bvn: "01234567890", cacNumber: "RC1234567", cacDocument: file(), abssin: "0123456789", nin: "01234567890", ninDocument: null, verificationConsent: true },
 });
 

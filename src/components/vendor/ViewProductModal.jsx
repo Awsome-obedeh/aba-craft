@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import ProductUpdateResult from "./ProductUpdateResult";
 import { CheckCircle2, Circle, LoaderCircle, Package, Pencil, Trash2, X } from "lucide-react";
 import { api } from "@/app/lib/axios";
 
@@ -34,6 +35,7 @@ export default function ViewProductModal({ slug, onClose, onUpdated, onDeleted, 
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [activeImage, setActiveImage] = useState(0);
   const [notice, setNotice] = useState("");
+  const [result, setResult] = useState(null);
 
   useEffect(() => {
     const element = dialog.current;
@@ -95,7 +97,11 @@ export default function ViewProductModal({ slug, onClose, onUpdated, onDeleted, 
       const details = { ...product, ...updated, notes: form.notes, categoryId, category: category?.categoryName || "Unassigned" };
       setProduct(details); setEditing(false); setNotice("Product updated successfully.");
       onUpdated({ ...details, category });
-    } catch (err) { setError(err.response?.data?.message || err.message || "Unable to update product."); }
+      setResult({ success: true, message: response.data.message });
+    } catch (err) {
+      const message = err.response?.data?.message || err.message || "Unable to update product.";
+      setError(message); setResult({ success: false, message });
+    }
     finally { busyRef.current = false; setBusy(""); }
   }
   async function remove() {
@@ -122,7 +128,7 @@ export default function ViewProductModal({ slug, onClose, onUpdated, onDeleted, 
   const checklist = [["Product Information", informationComplete], ["Media Gallery", images.length > 0], ["Inventory & Pricing", pricingComplete], ["Review & Publish", product?.status === "approved" && product?.isPublished]];
   const salePrice = product?.discountPrice > 0 ? product.discountPrice : Number(product?.price || 0) * (1 - Number(product?.discountPercentage || 0) / 100);
 
-  return <dialog ref={dialog} aria-labelledby="view-product-title" onCancel={e => { e.preventDefault(); if (!busyRef.current) onClose(); }} className="m-auto max-h-[92dvh] w-[calc(100%_-_2rem)] max-w-[940px] overflow-hidden rounded-xl bg-[#f5f5f5] p-0 text-stone-800 shadow-2xl backdrop:bg-black/50">
+  return <><dialog ref={dialog} aria-labelledby="view-product-title" onCancel={e => { e.preventDefault(); if (!busyRef.current) onClose(); }} className="m-auto max-h-[92dvh] w-[calc(100%_-_2rem)] max-w-[940px] overflow-hidden rounded-xl bg-[#f5f5f5] p-0 text-stone-800 shadow-2xl backdrop:bg-black/50">
     <form onSubmit={save} className="flex max-h-[92dvh] flex-col">
       <header className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-stone-200 bg-white px-5 py-4">
         <div><h2 id="view-product-title" className="text-base font-semibold">{editing ? "Edit Product" : "Product Details"}</h2><p className="mt-1 text-xs text-stone-500">{product ? `View all information on ${product.productName}` : "View product information"}</p></div>
@@ -150,5 +156,7 @@ export default function ViewProductModal({ slug, onClose, onUpdated, onDeleted, 
       </div>
       {editing && <footer className="flex shrink-0 justify-end gap-2 border-t bg-white px-5 py-4"><button type="button" disabled={!!busy} onClick={() => { setEditing(false); setError(""); }} className="rounded border px-4 py-2 text-xs">Cancel</button><button type="submit" disabled={!!busy || categoryLoading || !!categoryError} className="rounded bg-[#b59127] px-4 py-2 text-xs text-white disabled:opacity-50">{busy === "save" ? "Saving..." : "Save changes"}</button></footer>}
     </form>
-  </dialog>;
+  </dialog>
+  {result && <ProductUpdateResult success={result.success} message={result.message} onDismiss={() => setResult(null)} />}
+  </>;
 }
