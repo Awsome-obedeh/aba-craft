@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 import { MoreVertical, Search, Bell, Globe } from 'lucide-react';
 
 const Inventory = () => {
@@ -93,7 +94,7 @@ const Inventory = () => {
                 <p className="text-xs text-gray-500">Vendor</p>
               </div>
               <div className="h-10 w-10 rounded-full bg-purple-300 border-2 border-white overflow-hidden">
-                <img src="https://i.pravatar.cc/150?u=sandra" alt="Profile" />
+                <Image src="https://i.pravatar.cc/150?u=sandra" alt="Profile" width={40} height={40} />
               </div>
             </div>
           </div>
@@ -139,7 +140,7 @@ const Inventory = () => {
               </div>
               
               <div className="aspect-square bg-gray-100">
-                <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+                <Image src={product.image} alt={product.name} width={500} height={500} className="w-full h-full object-cover" />
               </div>
 
               <div className="p-5">

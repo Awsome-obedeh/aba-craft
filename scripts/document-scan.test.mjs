@@ -40,3 +40,16 @@ test("handles missing configuration, provider failures and invalid JSON without 
   await assert.rejects(scanDocument(image(), "cac", { apiKey: "secret", fetcher: async () => new Response("secret", { status: 402 }) }), /insufficient API credits/);
   await assert.rejects(scanDocument(image(), "nin", { apiKey: "secret", fetcher: async () => Response.json({ choices: [{ message: { content: "bad JSON" } }] }) }), /unreadable/);
 });
+
+
+test("CAC scan preserves registration numbers returned under either field name", async () => {
+  for (const details of [
+    { registrationNumber: "bn\n9063418" },
+    { cacNumber: "BN 9063418" },
+    { registrationNumber: "", cacNumber: "RC-0123456" },
+  ]) {
+    const result = await scanDocument(image(), "cac", options({ registeredName: "Sample Business", ...details }));
+    assert.equal(result.registrationNumber, details.cacNumber || "BN 9063418");
+  }
+  assert.equal(normalizeScan({ registrationNumber: "RC 0123456", cacNumber: "BN 9999999" }, "cac").registrationNumber, "RC 0123456");
+});

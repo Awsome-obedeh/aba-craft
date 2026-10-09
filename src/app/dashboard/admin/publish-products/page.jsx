@@ -2,6 +2,7 @@
 import { api } from '@/app/lib/axios';
 import { formatPrice } from '@/utils/priceFormater';
 import React, { useEffect, useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { toast } from 'react-toastify';
 import { useAuthStore } from '@/app/store/authStore';
@@ -29,37 +30,40 @@ export default function AdminPendingProducts() {
     }
 
 
-  }, [user, accessToken]);
+  }, [user, accessToken, router]);
 
   const role = user?.role;
   const email = user?.email;
-  const [products, setProducts] = useState();
-  const [loading, setLoading] = useState(false);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
 
 
   // get product
-  const getVendorPendingProducts = async () => {
-    const res = await api.get('/products/admin/pending');
-
-    try {
-      setLoading(true);
-
-      if (res.status) {
-        setLoading(true)
-        setProducts(res.data.products);
-
-      }
-    }
-
-    catch (error) {
-      setLoading(false);
-      toast.error("error fetching vendor's products");
-    }
-  };
-
   useEffect(() => {
-    getVendorPendingProducts();
+    let isActive = true;
+
+    const loadPendingProducts = async () => {
+      try {
+        const res = await api.get('/products/admin/pending');
+        if (isActive) {
+          setProducts(res.data.products);
+        }
+      } catch {
+        if (isActive) {
+          toast.error("error fetching vendor's products");
+        }
+      } finally {
+        if (isActive) {
+          setLoading(false);
+        }
+      }
+    };
+
+    void loadPendingProducts();
+    return () => {
+      isActive = false;
+    };
   }, []);
 
   //  Group products by vendor dynamically
@@ -126,9 +130,11 @@ export default function AdminPendingProducts() {
                     >
                       {/* Product Image preview */}
                       <Link href={`/dashboard/products/${product.slug}`} className="relative aspect-video w-full bg-slate-100 overflow-hidden">
-                        <img
+                        <Image
                           src={product.productImages[0]}
                           alt={product.productName}
+                          width={640}
+                          height={360}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         />
                         <div className="absolute top-2 right-2 bg-amber-500/90 text-white text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-md backdrop-blur-sm">

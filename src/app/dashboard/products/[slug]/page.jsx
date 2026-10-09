@@ -2,6 +2,7 @@
 'use client';
 
 import React, { useEffect, useState, use, useTransition } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { api } from '@/app/lib/axios';
 import ContactVendorButton from "@/components/messaging/ContactVendorButton";
@@ -41,48 +42,44 @@ export default function ProductDetailsPage({ params }) {
     const [activeImage, setActiveImage] = useState('');
     const [zoomStyle, setZoomStyle] = useState({ display: 'none', backgroundPosition: '0% 0%' });
     const { user, accessToken } = useAuthStore();
-    const fetchProductDetails = async () => {
-        try {
-            const res = await api.get(`/products/${slug}`, { baseURL: "/api/test" });
-            const data = res.data.data;
-            setProduct(data);
-            // Initialize the main image display context utilizing the first image productImages array
-            if (data.productImages && data.productImages.length > 0) {
-                setActiveImage(data.productImages[0]);
-            }
-        } catch (error) {
-            if (error.response) {
-                toast.error(
-                    error.response.data.message ||
-                    "Something went wrong"
-                );
-            }
-
-            // Network error
-            else if (error.request) {
-                toast.error(
-                    "Network error. Check your internet connection."
-                );
-            }
-
-            // Unexpected error
-            else {
-                toast.error(
-                    "Unexpected error occurred"
-                );
-            }
-        } finally {
-            setLoading(false);
-        }
-    };
-
     useEffect(() => {
+        let isActive = true;
 
         if (!accessToken && !user) {
             router.push('/auth/sign-in');
         }
 
-        fetchProductDetails();
+        const loadProductDetails = async () => {
+            try {
+                const res = await api.get(`/products/${slug}`);
+                const data = res.data.data;
+                if (isActive) {
+                    setProduct(data);
+                    if (data.productImages?.length > 0) {
+                        setActiveImage(data.productImages[0]);
+                    }
+                }
+            } catch (error) {
+                if (isActive) {
+                    if (error.response) {
+                        toast.error(error.response.data.message || "Something went wrong");
+                    } else if (error.request) {
+                        toast.error("Network error. Check your internet connection.");
+                    } else {
+                        toast.error("Unexpected error occurred");
+                    }
+                }
+            } finally {
+                if (isActive) {
+                    setLoading(false);
+                }
+            }
+        };
+
+        void loadProductDetails();
+        return () => {
+            isActive = false;
+        };
     }, [slug,router, accessToken, user]);
 
 
@@ -237,7 +234,7 @@ export default function ProductDetailsPage({ params }) {
                             onMouseLeave={handleMouseLeave}
                         >
 
-                            <img src={activeImage} alt={product.name} className="max-h-[85%] max-w-[85%]
+                            <Image src={activeImage} alt={product.productName} width={700} height={700} className="max-h-[85%] max-w-[85%]
                             object-contain transition-opacity duration-200 group-hover:opacity-0" />
 
 
@@ -261,7 +258,7 @@ export default function ProductDetailsPage({ params }) {
                                             }`}
                                     >
 
-                                        <img src={imgUrl} alt={`Thumbnail allocation view reference ${idx + 1}`} className="max-h-full max-w-full object-contain opacity-70 group-hover:opacity-100 transition-opacity" />
+                                        <Image src={imgUrl} alt={`${product.productName} thumbnail ${idx + 1}`} width={160} height={160} className="max-h-full max-w-full object-contain opacity-70 group-hover:opacity-100 transition-opacity" />
                                     </button>
                                 ))}
                             </div>
@@ -473,7 +470,7 @@ export default function ProductDetailsPage({ params }) {
                     </div>
                 </main>
 
-                <EditProductModal
+                {isEditModalOpen && product && <EditProductModal
                     isOpen={isEditModalOpen}
                     onClose={() => setIsEditModalOpen(false)}
                     product={product}
@@ -482,7 +479,7 @@ export default function ProductDetailsPage({ params }) {
                     // take role to decide admin having more update features than regular users in the future, such as modifying product status, featured flag, and publish visibility
 
                     role={role}
-                />
+                />}
                 <DeleteConfirmationModal
                     isOpen={isDeleteModalOpen}
                     onClose={() => setIsDeleteModalOpen(false)}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import axios from "axios";
 import { toast } from "react-toastify";
 
@@ -237,9 +238,12 @@ export default function UploadPage() {
                             key={index}
                             className="relative border rounded-lg overflow-hidden"
                         >
-                            <img
+                            <Image
                                 src={image}
-                                alt="preview"
+                                alt={`Selected product image ${index + 1}`}
+                                width={500}
+                                height={500}
+                                unoptimized
                                 className="w-full h-40 object-cover"
                             />
 

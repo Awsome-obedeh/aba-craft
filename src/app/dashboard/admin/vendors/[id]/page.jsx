@@ -8,9 +8,11 @@ import VendorApprovalCard from '@/components/vendor/VendorApprovalCard'
 
 import React, { use, useEffect, useState } from 'react'
 import { toast } from 'react-toastify';
+import { useRouter } from 'next/navigation';
 
 export default function SingleVendorPage({params}) {
 // server way to use useParams
+ const router = useRouter();
  const { user, accessToken } = useAuthStore();
 
  const [vendor, setVendor]=useState({})
@@ -24,30 +26,39 @@ const [loading, setLoading]=useState(true);
     }
 
 
-  }, [user, accessToken]);
+  }, [user, accessToken, router]);
 
   const role = user?.role;
   const email = user?.email;
     const {id}= use(params)
 
-    const getVendorInfo=async ()=>{
-        try{
-            setLoading(false)
-            const res=await api.get(`/vendor/profile/${id}`);
+    useEffect(() => {
+      let isActive = true;
+
+      const loadVendorInfo = async () => {
+        try {
+          const res = await api.get(`/vendor/profile/${id}`);
+          if (isActive) {
             setVendor(res.data.formattedResponse.vendorInfo);
             setBusiness(res.data.formattedResponse.businessInfo);
-        }
-
-        catch(error){
-            setLoading(true)
+          }
+        } catch (error) {
+          if (isActive) {
             console.error("ERROR", error.message);
-            toast.error(error.response.data.message || "Error fetching Vendor information.")
+            toast.error(error.response?.data?.message || "Error fetching Vendor information.");
+          }
+        } finally {
+          if (isActive) {
+            setLoading(false);
+          }
         }
-    }
+      };
 
-    useEffect(()=>{
-        getVendorInfo();
-    },[])
+      void loadVendorInfo();
+      return () => {
+        isActive = false;
+      };
+    }, [id]);
 console.log("BUSINESS INFO", business, "VENDOR INFO", vendor)
  
   return (

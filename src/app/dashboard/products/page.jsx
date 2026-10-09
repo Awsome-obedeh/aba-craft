@@ -34,28 +34,35 @@ export default function ProductsPage() {
     const [hasPercentageDiscount, setHasPercentageDiscount] = useState(searchParams.get('hasPercentageDiscount') === 'true');
     const { user, accessToken } = useAuthStore();
 
-    const fetchProducts = async () => {
-        setLoading(true);
-        try {
-            const res = await api.get(`/products?${searchParams.toString()}`, { baseURL: "/api/test" });
-            setProducts(res.data.data);
-            setPagination(res.data.pagination);
-        } catch (err) {
-            console.error("Failed parsing catalog payload", err);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-
     useEffect(() => {
+        let isActive = true;
 
         if (!accessToken && !user) {
             router.push('/auth/sign-in');
         }
 
+        const loadProducts = async () => {
+            try {
+                const res = await api.get(`/products?${searchParams.toString()}`);
+                if (isActive) {
+                    setProducts(res.data.data);
+                    setPagination(res.data.pagination);
+                }
+            } catch (err) {
+                if (isActive) {
+                    console.error("Failed parsing catalog payload", err);
+                }
+            } finally {
+                if (isActive) {
+                    setLoading(false);
+                }
+            }
+        };
 
-        fetchProducts();
+        void loadProducts();
+        return () => {
+            isActive = false;
+        };
     }, [searchParams, router, accessToken, user]);
 
 
