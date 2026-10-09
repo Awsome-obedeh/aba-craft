@@ -12,7 +12,9 @@
     "test:openapi": "node --test scripts/openapi.test.mjs",
     "seed": "node scripts/seed.mjs",
     "test:account": "node --test --test-isolation=none tests/account.test.mjs",
-    "test:account:integration": "node tests/account.integration.mjs"
+    "test:account:integration": "node tests/account.integration.mjs",
+    "test:messaging": "node --test --test-isolation=none tests/messaging.test.mjs",
+    "test:messaging:integration": "node tests/messaging.integration.mjs"
   },
   "dependencies": {
     "axios": "^1.16.1",

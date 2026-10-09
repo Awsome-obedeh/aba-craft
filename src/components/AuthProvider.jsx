@@ -10,10 +10,13 @@ export default function AuthProvider({ children }) {
   const setAuthData = useAuthStore(value => value.setAuthData);
   useEffect(() => {
     let cancelled = false;
-    api.post('/auth/refresh').then(res => {
+    api.post('/auth/refresh', {}, { baseURL: '/api', skipAuthRefresh: true }).then(res => {
       if (!cancelled) { setAuthData(res.data.accessToken, res.data.user); setState('ready'); }
     }).catch(error => {
-      if (!cancelled) setState(error.response?.status === 401 ? 'ready' : 'error');
+      if (!cancelled) {
+        if (error.response?.status === 401) useAuthStore.getState().clearAuth();
+        setState(error.response?.status === 401 ? 'ready' : 'error');
+      }
     });
     return () => { cancelled = true; };
   }, [attempt, setAuthData]);

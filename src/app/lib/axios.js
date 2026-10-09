@@ -29,7 +29,7 @@ api.interceptors.response.use(
         const originalRequest = error.config;
 
         // If backend returns 401 and we haven't tried retrying yet
-        if (error.response?.status === 401 && !originalRequest._retry && !originalRequest.skipAuthRefresh) {
+        if (error.response?.status === 401 && originalRequest && originalRequest.url !== '/auth/refresh' && !originalRequest._retry && !originalRequest.skipAuthRefresh) {
             originalRequest._retry = true;
 
             try {
@@ -54,7 +54,8 @@ api.interceptors.response.use(
                 if (refreshError.response?.status !== 401) return Promise.reject(refreshError);
                 // Refresh token is expired or invalid -> Log user out completely
                 useAuthStore.getState().clearAuth();
-                window.location.href = '/auth/sign-in';
+                const destination = window.location.pathname + window.location.search;
+                window.location.href = `/auth/sign-in?redirect=${encodeURIComponent(destination)}`;
                 return Promise.reject(refreshError);
             }
         }
