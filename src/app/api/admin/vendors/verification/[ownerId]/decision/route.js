@@ -2,12 +2,13 @@ import connectDB from "@/app/lib/connect";
 import { verifyAuth } from "@/app/lib/verifyAuth";
 import VendorVerification from "@/models/VendorVerification";
 import User from "@/models/User";
+import mongoose from "mongoose";
 
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-export async function POST(req, { params }) {
+export async function POST(req, context) {
   const auth = await verifyAuth(req, ["admin"]);
 
   if (!auth.isValid) {
@@ -17,7 +18,14 @@ export async function POST(req, { params }) {
   try {
     await connectDB();
 
-    const { ownerId } = params;
+    const params = await context?.params;
+    const ownerId = params?.ownerId ?? params?.['ownerId'];
+
+    const castedOwnerId = mongoose.Types.ObjectId.isValid(ownerId)
+      ? new mongoose.Types.ObjectId(ownerId)
+      : null;
+    const lookup = castedOwnerId ? { ownerId: castedOwnerId } : { ownerId };
+
     const body = await req.json();
     const action = body?.action;
     const adminNotes = body?.adminNotes?.trim() || "";
@@ -26,7 +34,7 @@ export async function POST(req, { params }) {
       return NextResponse.json({ success: false, message: "Invalid action" }, { status: 400 });
     }
 
-    const verification = await VendorVerification.findOne({ ownerId });
+    const verification = await VendorVerification.findOne(lookup);
     if (!verification) {
       return NextResponse.json({ success: false, message: "Verification not found" }, { status: 404 });
     }
@@ -36,20 +44,28 @@ export async function POST(req, { params }) {
       return NextResponse.json({ success: false, message: `Already ${action}` }, { status: 409 });
     }
 
-    verification.set({
-      status: action,
-      adminNotes,
-      reviewedAt: new Date(),
-      adminId: auth.user?.userId || auth.user?.user_id || auth.user?.sub || auth.user?.id,
-    });
-    await verification.save();
+    const adminId = auth.user?.id ? new mongoose.Types.ObjectId(auth.user.id) : auth.user?.user_id || auth.user?.sub;
+
+    await VendorVerification.findOneAndUpdate(
+      lookup,
+      {
+        $set: {
+          status: action,
+          adminNotes,
+          reviewedAt: new Date(),
+          adminId,
+        },
+      },
+      { new: true }
+    );
 
     if (action === "verified") {
-      await User.updateOne({ _id: ownerId }, { $set: { onBoardingStatus: "completed" } });
+      await User.updateOne({ _id: castedOwnerId || ownerId }, { $set: { onBoardingStatus: "completed" } });
     }
 
     return NextResponse.json({ success: true, message: `Vendor ${action}` }, { status: 200 });
   } catch (error) {
+    console.error("[admin/verification/decision] error:", error);
     return NextResponse.json(
       {
         success: false,

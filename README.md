@@ -196,7 +196,6 @@ Nothing outstanding from the original list. Two known limitations worth stating:
   there is up to a 30-minute delay between a release and the money moving.
 - Disputes are resolved per vendor slice, but a customer disputing a multi-vendor
   order has to open one dispute per vendor rather than one for the whole order.
-
 ## Youverify (BVN verification)
 
 This app includes a **server-side** admin BVN verification flow using Youverify.
@@ -216,12 +215,17 @@ YOUVERIFY_BVN_VERIFY_PATH=/v2/api/identity/ng/bvn
 > **Note:** Youverify authenticates with a single `token` header (not `Authorization: Bearer`). The request body must be `{ "id": "<BVN>", "isSubjectConsent": true }`. The sandbox environment (`api.sandbox.youverify.co`) only accepts test IDs (`11111111111` valid, `00000000000` not found); real BVNs require the production base URL `https://api.youverify.co`.
 
 ### Where it's used
+
 - **Admin vendor verification details page:** `src/app/dashboard/admin/vendors/[ownerId]/page.jsx`
 - **Server endpoint (never expose API keys to the browser):** `src/app/api/admin/vendors/verification/verify-bvn/route.js`
 
 ### Response handling
+
 The route validates Youverify's response envelope (`success === true` and `data.status === "found"`) before marking the vendor's `VendorVerification` record as verified. On failure it returns the Youverify `message` (e.g. `Forbidden: Only Test IDs are allowed`) so the UI can surface the real reason.
 
+### Local testing with ngrok
+
+Youverify calls are **server-to-server** — they don't need a public URL. The ngrok tunnel is only needed for Paystack's callback and webhook. No extra Youverify configuration is required for local dev.
 
 
 A two-sided marketplace for handcrafted leather goods from Aba artisans. Customers browse the storefront, add items to a cart, and check out through a (currently mocked) payment gateway. Vendors manage their own catalog and incoming orders.
@@ -277,6 +281,26 @@ NEXT_PUBLIC_CLOUDINARY_PRESET_NAME=your-unsigned-preset
 
 # Frontend base URL (used by the axios client)
 NEXT_PUBLIC_API_URL=http://localhost:3000/api
+
+# Paystack (test keys)
+NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY=pk_test_xxx
+PAYSTACK_SECRET_KEY=sk_test_xxx
+# Callback URL — the page Paystack redirects to after payment.
+# For local testing with ngrok, use your ngrok URL + /checkout/success
+# Example: https://your-subdomain.ngrok-free.dev/checkout/success
+PAYSTACK_CALLBACK_URL=https://your-ngrok-subdomain.ngrok-free.dev/checkout/success
+# Webhook URL — where Paystack posts events (charge.success, transfer.success, etc).
+# Configure once in Paystack Dashboard → Settings → Webhooks.
+# Example: https://your-ngrok-subdomain.ngrok-free.dev/api/payments/webhook
+
+# Youverify BVN verification (server-side only)
+YOUVERIFY_API_KEY=your-youverify-api-key
+YOUVERIFY_BASE_URL=https://api.sandbox.youverify.co
+# Optional override if the Youverify BVN endpoint path changes
+YOUVERIFY_BVN_VERIFY_PATH=/v2/api/identity/ng/bvn
+
+# Cron secret for /api/jobs/* endpoints (openssl rand -hex 32)
+CRON_SECRET=replace-me-with-a-long-random-string
 ```
 
 ### 4. Seed the database (dev only)
@@ -305,6 +329,39 @@ npm run dev
 ```
 
 Visit `http://localhost:3000`.
+
+### Local development with ngrok (real Paystack + Youverify)
+
+To test real Paystack payments and Youverify BVN verification locally, you need a public HTTPS tunnel:
+
+```bash
+# 1. Start the app
+npm run dev
+
+# 2. In another terminal, expose port 3000
+ngrok http 3000
+```
+
+Ngrok will give you a URL like `https://abc123.ngrok-free.dev`. Update `.env.local`:
+
+```env
+PAYSTACK_CALLBACK_URL=https://abc123.ngrok-free.dev/checkout/success
+# Webhook is configured in Paystack Dashboard → Settings → Webhooks
+# Add: https://abc123.ngrok-free.dev/api/payments/webhook
+```
+
+**Important:** The callback URL must point to `/checkout/success` (the route), **not** `/checkout/success/page.jsx` (the file).
+
+For Youverify, the sandbox (`api.sandbox.youverify.co`) only accepts test BVNs:
+- `11111111111` → returns `found` (with mock data)
+- `00000000000` → returns `not_found`
+- Any real BVN → `403 Forbidden: Only Test IDs are allowed`
+
+Use the production base URL `https://api.youverify.co` for real BVNs.
+
+### Webhook verification
+
+Paystack signs webhook payloads with HMAC-SHA512. The route at `/api/payments/webhook` verifies the signature using `PAYSTACK_SECRET_KEY`. If you rotate the secret, update `.env.local` and redeploy.
 
 ## Routes overview
 
@@ -341,6 +398,10 @@ Visit `http://localhost:3000`.
 - **Visibility rules.** Products have a `status` (`under_review` / `approved` / `rejected`) and an `isPublished` flag. The catalog and single-product endpoints filter to `status === "approved" && isPublished` for customers and vendors browsing the storefront. Admins see everything. The vendor's "My Products" view uses `?scope=mine` to see their own catalog including under-review items.
 - **Pricing.** Cart prices are snapshotted at add time and re-validated against the DB at checkout. The Order schema stores `unitPrice`, `discountPrice`, and `finalUnitPrice` per line item, so the order survives later price changes.
 - **Payments.** The mock payment flow is shaped like Paystack's (`init` returns an `authorizationUrl`, `verify` returns success/failure) so swapping in real Paystack later is a one-route change. Real Paystack is now wired via `src/app/lib/paystack.js` (`POST /transaction/initialize`, `GET /transaction/verify/{reference}`, HMAC-SHA512 webhook verification). The checkout page (`src/app/checkout/page.jsx`) uses the Paystack inline popup with a redirect fallback; `src/app/checkout/success/page.jsx` verifies the transaction on return.
+
+  **Callback URL:** `PAYSTACK_CALLBACK_URL` in `.env.local` (e.g. `https://your-ngrok-subdomain.ngrok-free.dev/checkout/success`). Paystack redirects the customer here after payment.
+
+  **Webhook:** Configure once in **Paystack Dashboard → Settings → Webhooks** (e.g. `https://your-ngrok-subdomain.ngrok-free.dev/api/payments/webhook`). The route verifies the HMAC-SHA512 signature using `PAYSTACK_SECRET_KEY`.
 - **Roles.** A user can be `vendor`, `admin`, or `customer`. There is no public storefront; both vendors and customers must sign in to browse or sell. Vendors see only their own products in their "My Products" view; the storefront shows the union of all approved+published products.
 
 ## Admin Dashboard Enhancements
