@@ -35,15 +35,17 @@ export async function POST() {
 
         const user={
             id: decoded.id,
-            role: decoded.role,
-            email: decoded.email,
+            role: currentUser.role,
+            email: currentUser.email,
+            fullName: currentUser.fullName,
+            profilePicture: currentUser.profilePicture,
             sessionVersion: currentUser.sessionVersion || 0
         }
 
         const accessToken = generateAccessToken({
             id: decoded.id,
-            role: decoded.role,
-            email: decoded.email,
+            role: currentUser.role,
+            email: currentUser.email,
             sessionVersion: currentUser.sessionVersion || 0
 
         });

@@ -2,6 +2,7 @@
 // reading documentation must not require database, mail, or storage credentials.
 import { businessTypeValues } from "./business-types.js";
 import { nigeriaStates } from "./business-location.js";
+import messagingPaths from "./messaging/openapi.js";
 const ref = (name) => ({ $ref: `#/components/schemas/${name}` });
 const json = (schema, example) => ({ "application/json": { schema, ...(example ? { example } : {}) } });
 const response = (description, schema, example) => ({ description, content: json(schema, example) });
@@ -303,4 +304,6 @@ const openapi = {
   },
 };
 
+Object.assign(openapi.paths, messagingPaths);
+openapi.tags.push({ name: "Buyer communication", description: "Private conversations, buyer account screens and order-linked supplier requests." });
 export default openapi;

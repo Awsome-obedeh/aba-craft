@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Bell, ChevronDown, Search, ShoppingCart } from "lucide-react";
+import MessagesLink from "@/components/messaging/MessagesLink";
 import { useCartStore } from "@/app/store/cartStore";
 
 export default function TopNavbar({ email, role }) {
@@ -28,6 +29,7 @@ export default function TopNavbar({ email, role }) {
       </form>
       <div className="ml-auto flex items-center gap-3 sm:gap-5">
         {role === "customer" && <Link href="/cart" aria-label={`Cart${mounted && itemCount ? `, ${itemCount} items` : ""}`} className="relative text-forest"><ShoppingCart size={19} />{mounted && itemCount > 0 && <span className="absolute -right-2 -top-2 rounded-full bg-gold px-1.5 text-[10px] font-bold text-forest">{itemCount}</span>}</Link>}
+        <MessagesLink key={email} />
         <span aria-label="Notifications" className="text-muted"><Bell size={19} /></span>
         <span className="hidden items-center gap-1 border-r border-brandBorder pr-5 text-xs text-muted md:flex">🇬🇧 English <ChevronDown size={13} /></span>
         <Link href={profileHref} className="flex items-center gap-2 text-forest" aria-label="Open profile">

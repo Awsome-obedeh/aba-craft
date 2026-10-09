@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { LayoutDashboard, PackagePlus, Boxes, ShoppingBag, ClipboardList, UserRound, Settings, LogOut, Menu, X } from "lucide-react";
+import { LayoutDashboard, PackagePlus, Boxes, ShoppingBag, ClipboardList, UserRound, Settings, LogOut, Menu, X, MessageCircle } from "lucide-react";
 import { toast } from "react-toastify";
 import { logout } from "@/app/lib/logout";
 
@@ -14,7 +14,7 @@ const linksByRole = {
     // { label: "Upload Product", href: "/dashboard/vendor/upload-product", icon: PackagePlus },
     // { label: "My Inventory", href: "/dashboard/vendor/inventory", icon: Boxes },
     { label: "My Products", href: "/dashboard/vendor/products", icon: ShoppingBag },
-    { label: "RFQ Inbox", href: "/dashboard/vendor/rfq", icon: ClipboardList },
+    { label: "Messages", href: "/dashboard/messages", icon: MessageCircle },
     { label: "Orders & Sales", href: "/dashboard/vendor/orders", icon: ClipboardList },
     { label: "Profile & Verification", href: "/dashboard/vendor/profile", icon: UserRound },
    
@@ -28,7 +28,9 @@ const linksByRole = {
   ],
   customer: [
     { label: "Browse Products", href: "/dashboard/products", icon: ShoppingBag },
-    { label: "My Orders", href: "/account/orders", icon: ClipboardList },
+    { label: "Messages", href: "/dashboard/messages", icon: MessageCircle },
+    { label: "My Orders", href: "/dashboard/buyer/orders", icon: ClipboardList },
+    { label: "Wishlist & Preferences", href: "/dashboard/buyer/wishlist", icon: UserRound },
   ],
 };
 
