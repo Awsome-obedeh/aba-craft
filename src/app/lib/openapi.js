@@ -1,5 +1,6 @@
 // Source of truth for the public API contract. Do not import server services here:
 // reading documentation must not require database, mail, or storage credentials.
+import { businessTypeValues } from "./business-types.js";
 import { nigeriaStates } from "./business-location.js";
 const ref = (name) => ({ $ref: `#/components/schemas/${name}` });
 const json = (schema, example) => ({ "application/json": { schema, ...(example ? { example } : {}) } });
@@ -11,7 +12,7 @@ const password = { type: "string", format: "password", minLength: 8, maxLength: 
 const sellerRole = { type: "string", enum: ["wholesaler_producer", "retailer"], example: "retailer" };
 const accountExample = { email: "seller@example.com", password: "ExamplePass123!", acceptedTerms: true };
 const businessExample = {
-  businessName: "Example Leather Shop", businessType: "leather_retailer",
+  businessName: "Example Leather Shop", businessType: "leather_accessories",
   businessDescription: "Handmade leather shoes and bags.", phoneNumber: "08012345678", countryCode: "+234", email: "shop@example.com",
   state: "Abia", lga: "Aba North", city: "Aba", address: "12 Example Road, Aba", landmark: "Near the community hall",
 };
@@ -34,7 +35,7 @@ const openapi = {
     description: [
       "API reference for the active routes under `/api`. Routes under `/api/test` are intentionally excluded.",
       "### Seller registration\n1. Send a code with `POST /auth/send-code`.\n2. Verify it using `POST /auth/verify` and retain the returned `verificationToken`.\n3. Submit all account, business and identity fields plus the CAC file together using multipart `POST /auth/sign-up`.\n4. Sign in using `POST /auth/sign-in`. Email is verified, but identity/business review remains pending.",
-      "### Authentication\nSign-in returns an access token and sets the HttpOnly `refreshToken` cookie. Paste the access token into **Authorize → bearerAuth** (without the `Bearer` prefix) to access protected document URLs. Refresh uses the browser's existing cookie; you cannot type an HttpOnly cookie into Swagger UI. Use this same-origin documentation page for cookie-based requests. Authorization is not persisted across page reloads.",
+      "### Authentication\nSign-in returns an access token and sets the HttpOnly `refreshToken` cookie. Paste the access token into **Authorize â†’ bearerAuth** (without the `Bearer` prefix) to access protected document URLs. Refresh uses the browser's existing cookie; you cannot type an HttpOnly cookie into Swagger UI. Use this same-origin documentation page for cookie-based requests. Authorization is not persisted across page reloads.",
       "### Trying requests\nSelect **Try it out**, edit the example, then **Execute**. Requests use this site's real API and can send email or create accounts; use your own test email and test documents. Examples are illustrative. JSON requests are limited to 4 KB. Seller multipart requests allow two files of up to 10 MB each plus 64 KB of metadata. File type checks do not verify document authenticity or perform malware scanning.",
     ].join("\n\n"),
   },
@@ -229,12 +230,12 @@ const openapi = {
           businessType: {
             description: "Select one or more services. Legacy single-string values are also accepted and normalized to arrays.",
             oneOf: [
-              { type: "array", minItems: 1, maxItems: 6, uniqueItems: true, items: { type: "string", enum: ["leather_manufacturer", "leather_supplier", "leather_artisan", "leather_retailer", "leather_wholesaler", "other"] } },
-              { type: "string", enum: ["leather_manufacturer", "leather_supplier", "leather_artisan", "leather_retailer", "leather_wholesaler", "other"] },
+              { type: "array", minItems: 1, maxItems: businessTypeValues.length, uniqueItems: true, items: { type: "string", enum: businessTypeValues } },
+              { type: "string", enum: businessTypeValues },
             ],
           },
           businessDescription: { type: "string", maxLength: 6000, description: "Optional, at most 300 words. Trimmed before storage." },
-          phoneNumber: { type: "string", maxLength: 20, description: "7–15 digits after removing spaces and hyphens. Keep the country code in the separate field.", example: "08012345678" },
+          phoneNumber: { type: "string", maxLength: 20, description: "7â€“15 digits after removing spaces and hyphens. Keep the country code in the separate field.", example: "08012345678" },
           countryCode: { type: "string", pattern: "^\\+\\d{1,4}$", example: "+234" },
           email: { ...email, description: "Business contact email; may differ from the account email." },
         }, example: businessExample,

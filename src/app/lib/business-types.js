@@ -1,8 +1,14 @@
-export const businessTypeValues = [
-  "leather_manufacturer", "leather_supplier", "leather_artisan",
-  "leather_retailer", "leather_wholesaler", "other",
+export const businessTypeOptions = [
+  { value: "leather_bags_luggage", label: "Leather Bags & Luggage" },
+  { value: "shoes_footwear", label: "Shoes & Footwear" },
+  { value: "wallets_card_holders", label: "Wallets & Card Holders" },
+  { value: "leather_accessories", label: "Leather Accessories" },
+  { value: "leather_clothing_fashion", label: "Leather Clothing & Fashion" },
+  { value: "custom_leather_products", label: "Custom Leather Products" },
+  { value: "leather_manufacturing", label: "Leather Manufacturing" },
 ];
 
+export const businessTypeValues = businessTypeOptions.map(({ value }) => value);
 // Accept older clients that still submit a single type.
 export function normalizeBusinessTypes(value) {
   return typeof value === "string" ? [value] : value;

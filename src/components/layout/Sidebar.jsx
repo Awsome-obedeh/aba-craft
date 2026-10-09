@@ -14,6 +14,7 @@ const linksByRole = {
     // { label: "Upload Product", href: "/dashboard/vendor/upload-product", icon: PackagePlus },
     // { label: "My Inventory", href: "/dashboard/vendor/inventory", icon: Boxes },
     { label: "My Products", href: "/dashboard/vendor/products", icon: ShoppingBag },
+    { label: "RFQ Inbox", href: "/dashboard/vendor/rfq", icon: ClipboardList },
     { label: "Orders & Sales", href: "/dashboard/vendor/orders", icon: ClipboardList },
     { label: "Profile & Verification", href: "/dashboard/vendor/profile", icon: UserRound },
    

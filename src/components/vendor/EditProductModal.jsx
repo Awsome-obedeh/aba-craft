@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import ProductUpdateResult from "./ProductUpdateResult";
 import axios from "axios";
 import { Camera, Check, Circle, LoaderCircle, Package, UploadCloud, X } from "lucide-react";
 import { api } from "@/app/lib/axios";
@@ -29,6 +30,7 @@ export default function EditProductModal({ product, onClose, onSaved }) {
   const [imageError, setImageError] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState("");
+  const [result, setResult] = useState(null);
   const [dragging, setDragging] = useState(false);
   const [discarding, setDiscarding] = useState(false);
   const [dirty, setDirty] = useState(false);
@@ -103,8 +105,12 @@ export default function EditProductModal({ product, onClose, onSaved }) {
       if (!response.data.success || !response.data.data?._id) throw new Error(response.data.message || "Unable to update product.");
       const saved = response.data.data;
       const category = categories.find(item => item._id === form.category) || (form.category ? { _id: form.category, categoryName: typeof product.category === "string" ? product.category : product.category?.categoryName } : null);
-      onSaved({ ...saved, category, categoryId: form.category, notes: form.notes }, response.data.message);
-    } catch (err) { setError(err.response?.data?.message || err.message || "Unable to update product."); }
+      setDirty(false);
+      setResult({ success: true, product: { ...saved, category, categoryId: form.category, notes: form.notes }, message: response.data.message });
+    } catch (err) {
+      const message = err.response?.data?.message || err.message || "Unable to update product.";
+      setError(message); setResult({ success: false, message });
+    }
     finally { submitting.current = false; setBusy(""); }
   }
   const props = key => ({ "data-field": key, "aria-invalid": !!visibleErrors[key], "aria-describedby": visibleErrors[key] ? `edit-${key}-error` : undefined });
@@ -116,7 +122,7 @@ export default function EditProductModal({ product, onClose, onSaved }) {
   const price = Number(form.discountPrice) > 0 ? Number(form.discountPrice) : Number(form.price || 0) * (1 - Number(form.discountPercentage || 0) / 100);
   const statusHint = availability === "draft" ? "Saved privately. This product will be removed from the storefront." : product.status === "draft" ? "This product will be submitted for admin approval." : product.status === "approved" && product.isPublished ? "Changes to this listing will go live after you update." : "Changes will be saved. Storefront visibility still requires admin approval and publishing.";
 
-  return <dialog ref={dialog} onCancel={e => { e.preventDefault(); close(); }} aria-labelledby="edit-product-title" className="m-auto max-h-[94dvh] w-[calc(100%_-_2rem)] max-w-[1060px] overflow-hidden rounded-xl bg-[#f6f7f9] p-0 text-stone-800 shadow-2xl backdrop:bg-black/50">
+  return <><dialog ref={dialog} onCancel={e => { e.preventDefault(); close(); }} aria-labelledby="edit-product-title" className="m-auto max-h-[94dvh] w-[calc(100%_-_2rem)] max-w-[1060px] overflow-hidden rounded-xl bg-[#f6f7f9] p-0 text-stone-800 shadow-2xl backdrop:bg-black/50">
     <form noValidate onSubmit={submit} className="flex max-h-[94dvh] flex-col">
       <header className="flex shrink-0 items-center justify-between gap-4 px-5 py-4 sm:px-7"><div><h2 id="edit-product-title" className="text-lg font-semibold">Edit Product</h2><p className="mt-1 text-xs text-stone-500">Modify details, pricing, and stock of your store listing.</p></div><button type="button" onClick={close} disabled={!!busy} aria-label="Close edit product" className="rounded-md p-2 hover:bg-stone-200 disabled:opacity-50"><X size={19} /></button></header>
       <div className="min-h-0 overflow-y-auto px-5 pb-5 sm:px-7 sm:pb-7">
@@ -144,5 +150,10 @@ export default function EditProductModal({ product, onClose, onSaved }) {
         </div>
       </div>
     </form>
-  </dialog>;
+  </dialog>
+  {result && <ProductUpdateResult success={result.success} message={result.message} onDismiss={() => {
+    if (result.success) onSaved(result.product, result.message);
+    else setResult(null);
+  }} />}
+  </>;
 }

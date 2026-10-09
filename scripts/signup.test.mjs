@@ -6,7 +6,7 @@ const draft = () => ({
   account: { email: " Seller@example.com ", password: "Secret123!", confirmPassword: "Secret123!", acceptedTerms: true },
   role: "retailer",
   verificationToken: "email-proof",
-  business: { state: "Abia", lga: "Aba North", city: "Aba", address: "12 Example Road, Aba", landmark: "", businessName: "Test business", businessType: "leather_retailer", businessDescription: "Leather goods", phoneNumber: "08012345678", countryCode: "+234", email: "business@example.com" },
+  business: { state: "Abia", lga: "Aba North", city: "Aba", address: "12 Example Road, Aba", landmark: "", businessName: "Test business", businessType: "leather_accessories", businessDescription: "Leather goods", phoneNumber: "08012345678", countryCode: "+234", email: "business@example.com" },
   verification: { cacNumber: "RC1234567", abssin: "0123456789", nin: "01234567890", ninDocument: null, verificationConsent: true, bvn: "01234567890", cacDocument: new File(["certificate"], "cac.pdf", { type: "application/pdf" }) },
 });
 
@@ -46,9 +46,9 @@ test("backend validation messages are readable", () => {
 
 test("signup preserves multiple business types and rejects empty or invalid selections", () => {
   const data = draft();
-  data.business.businessType = ["leather_manufacturer", "leather_retailer"];
+  data.business.businessType = ["leather_manufacturing", "leather_accessories"];
   assert.deepEqual(JSON.parse(buildSignupFormData(data).get("business")).businessType, data.business.businessType);
-  for (const value of [[], ["unknown"], ["leather_retailer", "leather_retailer"], null]) {
+  for (const value of [[], ["unknown"], ["leather_accessories", "leather_accessories"], null]) {
     data.business.businessType = value;
     assert.throws(() => buildSignupFormData(data), /business details/);
   }

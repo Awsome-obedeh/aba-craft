@@ -41,7 +41,7 @@ test("multipart signup matches the handler's string JSON fields and binary file"
   assert.equal(properties.account.type, "string");
   assert.equal(JSON.parse(properties.account.example).acceptedTerms, true);
   assert.equal(properties.business.type, "string");
-  assert.equal(JSON.parse(properties.business.example).businessType, "leather_retailer");
+  assert.equal(JSON.parse(properties.business.example).businessType, "leather_accessories");
   assert.equal(properties.cacDocument.format, "binary");
   assert.deepEqual(openapi.paths["/auth/documents/{businessId}"].get.security, [{ bearerAuth: [] }]);
   assert.deepEqual(openapi.paths["/auth/refresh"].post.security, [{ refreshCookie: [] }]);
