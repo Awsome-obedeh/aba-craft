@@ -1,6 +1,6 @@
 # AbaCraft
 
-A two-sided marketplace for handcrafted leather goods from Aba artisans. Customers browse the storefront, add items to a cart, and check out through a (currently mocked) payment gateway. Vendors manage their own catalog and incoming orders.
+A two-sided marketplace for handcrafted leather goods from Aba artisans. Customers browse the storefront, add items to a cart, and check out through Paystack. Vendors manage their own catalog and incoming orders.
 
 The project name in `package.json` is `thriveabia-project`; the user-facing brand is **AbaCraft**.
 
@@ -99,13 +99,16 @@ Visit `http://localhost:3000`.
 | `/dashboard/vendor/products` | Vendor: their own catalog (incl. under-review items) |
 | `/dashboard/vendor/orders` | Vendor: incoming orders, advance / cancel status |
 | `/cart` | Persistent cart (localStorage) |
-| `/checkout` | Address + mock payment |
-| `/account/orders` | Customer: order history |
+| `/checkout` | Address + Paystack payment |
+| `/checkout/success` | Return page: verifies the Paystack transaction and clears the cart |
+| `/checkout/failed` | Return page for a payment that did not complete |
+| `/account/orders` | Customer: order history, with retry-payment |
 | `/api/products` | Catalog list (visibility scoped by role) |
 | `/api/products/[slug]` | Single product |
 | `/api/orders` | Create + list orders (auth required) |
-| `/api/payments/mock/init` | Initialize payment (auth required) |
-| `/api/payments/mock/verify` | Verify payment (auth required) |
+| `/api/payments/init` | Initialize a Paystack transaction for an order (auth required) |
+| `/api/payments/verify` | Verify a Paystack transaction against an order (auth required) |
+| `/api/payments/webhook` | Paystack webhook receiver (server-to-server, signature checked) |
 | `/api/auth/sign-up`, `/sign-in`, `/verify`, `/resend`, `/logout`, `/refresh` | Auth endpoints |
 
 ## Architectural notes
@@ -113,6 +116,6 @@ Visit `http://localhost:3000`.
 - **Auth.** Access tokens live in Zustand (in-memory). Refresh tokens are stored in an `httpOnly` `Secure` `SameSite=Strict` cookie. The axios client (`src/app/lib/axios.js`) injects the access token on every request and silently refreshes on 401.
 - **Visibility rules.** Products have a `status` (`under_review` / `approved` / `rejected`) and an `isPublished` flag. The catalog and single-product endpoints filter to `status === "approved" && isPublished` for customers and vendors browsing the storefront. Admins see everything. The vendor's "My Products" view uses `?scope=mine` to see their own catalog including under-review items.
 - **Pricing.** Cart prices are snapshotted at add time and re-validated against the DB at checkout. The Order schema stores `unitPrice`, `discountPrice`, and `finalUnitPrice` per line item, so the order survives later price changes.
-- **Payments.** The mock payment flow is shaped like Paystack's (`init` returns an `authorizationUrl`, `verify` returns success/failure) so swapping in real Paystack later is a one-route change.
+- **Payments.** Paystack is the only gateway. `POST /api/payments/init` creates the transaction and returns the hosted checkout URL; the customer is redirected to Paystack and returned to `PAYSTACK_CALLBACK_URL` (`/checkout/success`), which verifies the transaction and clears the cart. The `charge.success` webhook at `/api/payments/webhook` is the source of truth: it is signature-checked, deduplicated on the business fact it describes, and applies the escrow hold and the ledger entry. `POST /api/payments/verify` is the browser's convenience check after the redirect and never overrides the webhook. Every attempt gets a fresh reference, because Paystack rejects a reused one. Configure `PAYSTACK_SECRET_KEY` and `PAYSTACK_CALLBACK_URL`, then point the Paystack dashboard's webhook URL at `PAYSTACK_WEBHOOK_URL` for the `charge.success`, `transfer.success`, `transfer.failed` and `refund.processed` events.
 - **Roles.** A user can be `vendor`, `admin`, or `customer`. There is no public storefront; both vendors and customers must sign in to browse or sell. Vendors see only their own products in their "My Products" view; the storefront shows the union of all approved+published products.
 

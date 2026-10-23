@@ -9,6 +9,7 @@ import { useAuthStore } from "@/app/store/authStore";
 import { api } from "@/app/lib/axios";
 import { formatPrice } from "@/utils/priceFormater";
 import { formatDate } from "@/utils/DateFormater";
+import EscrowCard from "@/components/EscrowCard";
 
 const STATUS_STYLES = {
     pending_payment: "bg-yellow-100 text-yellow-800",
@@ -20,6 +21,68 @@ const STATUS_STYLES = {
 };
 
 const fmtStatus = (s) => s.replace(/_/g, " ");
+
+// Escrow only exists once payment is captured, so there is nothing to show for
+// an unpaid or cancelled order.
+const ESCROW_STATUSES = ["paid", "processing", "shipped", "delivered"];
+
+const fmt = (s) => s.replace(/_/g, " ");
+
+// The escrow read model for one order: one card per vendor slice, from
+// GET /api/orders/{id}/escrow. Customer-only actions (confirm receipt, open a
+// dispute) are exposed via the card's `role="customer"` prop.
+function OrderEscrow({ orderId }) {
+    const [items, setItems] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+    const [busyId, setBusyId] = useState(null);
+    const [reloadKey, setReloadKey] = useState(0);
+
+    useEffect(() => {
+        let cancelled = false;
+        const load = async () => {
+            try {
+                const res = await api.get(`/orders/${orderId}/escrow`);
+                if (!cancelled) {
+                    setItems(res.data?.items || []);
+                    setError("");
+                }
+            } catch (err) {
+                if (!cancelled) {
+                    setError(err.response?.data?.message || "Could not load escrow details");
+                }
+            } finally {
+                if (!cancelled) setLoading(false);
+            }
+        };
+        load();
+        return () => { cancelled = true; };
+    }, [orderId, reloadKey]);
+
+    if (loading) {
+        return <p className="text-xs text-gray-400 animate-pulse">Loading escrow…</p>;
+    }
+    if (error) {
+        return <p className="text-xs text-red-600">{error}</p>;
+    }
+    if (items.length === 0) return null;
+
+    return (
+        <div className="space-y-3">
+            {items.map((item) => (
+                <EscrowCard
+                    key={item.vendorOrderId}
+                    orderId={orderId}
+                    item={item}
+                    role="customer"
+                    busyId={busyId}
+                    onAction={(id, busy) => setBusyId(busy ? id : null)}
+                    onChanged={() => setReloadKey((k) => k + 1)}
+                />
+            ))}
+        </div>
+    );
+}
 
 export default function MyOrdersPage() {
     const router = useRouter();
@@ -55,9 +118,11 @@ export default function MyOrdersPage() {
     const handleRetryPayment = async (orderId) => {
         try {
             setRetrying(orderId);
-            const res = await api.post("/payments/mock/init", { orderId });
+            // Re-initializes the Paystack transaction for this order and hands
+            // the customer back to Paystack's hosted checkout.
+            const res = await api.post("/payments/init", { orderId });
             if (res.data?.success) {
-                router.push(res.data.authorizationUrl);
+                window.location.assign(res.data.authorizationUrl);
             } else {
                 toast.error(res.data?.message || "Could not restart payment");
             }
@@ -108,18 +173,30 @@ export default function MyOrdersPage() {
                                     </li>
                                 ))}
                             </ul>
+                            {ESCROW_STATUSES.includes(o.status) && (
+                                <section className="mt-4 border-t pt-4">
+                                    <p className="text-xs font-bold uppercase text-gray-400 mb-2">Escrow</p>
+                                    <OrderEscrow orderId={o._id} />
+                                </section>
+                            )}
                             <footer className="mt-4 pt-3 border-t flex flex-wrap items-center justify-between gap-3 text-sm">
                                 <div>
                                     <p className="text-xs text-gray-500">Total</p>
                                     <p className="font-bold">{formatPrice(o.total)}</p>
                                 </div>
-                                {o.status === "pending_payment" && (
+                                {o.status === "pending_payment" &&
+                                    o.paymentStatus !== "paid" &&
+                                    o.paymentStatus !== "refunded" && (
                                     <button
                                         onClick={() => handleRetryPayment(o._id)}
                                         disabled={retrying === o._id}
                                         className="bg-black text-white px-4 py-2 rounded-md text-sm disabled:opacity-50"
                                     >
-                                        {retrying === o._id ? "Loading…" : "Retry payment"}
+                                        {retrying === o._id
+                                            ? "Loading…"
+                                            : o.paymentStatus === "failed"
+                                                ? "Retry payment"
+                                                : "Pay now"}
                                     </button>
                                 )}
                             </footer>

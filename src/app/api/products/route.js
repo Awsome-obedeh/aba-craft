@@ -1,6 +1,10 @@
 import connectDB from "@/app/lib/connect";
+import { verifyAuth } from "@/app/lib/verifyAuth";
+import { validateProductInput } from "@/app/lib/product-input";
 import Product from "@/models/Products";
 import Category from "@/models/Category";
+import Business from "@/models/Business";
+import { findDuplicateProduct, createProduct } from "@/app/lib/product-create";
 
 export async function GET(request) {
   const headers = { "Cache-Control": "no-store" };
@@ -39,6 +43,83 @@ export async function GET(request) {
     return Response.json(
       { success: false, message: "Unable to load product catalog. Please try again." },
       { status: 500, headers },
+    );
+  }
+}
+
+export async function POST(request) {
+  const auth = await verifyAuth(request, ["vendor", "admin"]);
+  if (!auth.isValid) {
+    return Response.json({ success: false, message: auth.message }, { status: auth.status });
+  }
+
+  let body;
+  try {
+    body = await request.json();
+    if (!body || typeof body !== "object" || Array.isArray(body)) throw new Error("Invalid product payload.");
+  } catch (error) {
+    return Response.json(
+      { success: false, message: error.message || "Invalid product payload." },
+      { status: 400 },
+    );
+  }
+
+  let fields;
+  try {
+    fields = validateProductInput(body);
+  } catch (error) {
+    return Response.json({ success: false, message: error.message }, { status: 400 });
+  }
+
+  try {
+    await connectDB();
+
+    if (fields.category && !(await Category.exists({ _id: fields.category }))) {
+      return Response.json({ success: false, message: "Select a valid category." }, { status: 400 });
+    }
+
+    const business = await Business.findOne({
+      ownerId: auth.user.id,
+      isActive: true,
+      bannedStatus: "none",
+    });
+    if (!business && auth.user.role === "vendor") {
+      return Response.json(
+        { success: false, message: "No business profile found. Please complete verification setup first." },
+        { status: 403 },
+      );
+    }
+
+    const duplicate = await findDuplicateProduct(fields.productName, Product);
+    if (duplicate) {
+      return Response.json(
+        { success: false, message: "Product with this name already exists" },
+        { status: 409 },
+      );
+    }
+
+    const product = await createProduct({ fields, createdBy: auth.user.id, businessId: business?._id }, Product);
+
+    return Response.json(
+      {
+        success: true,
+        message:
+          fields.status === "draft" ? "Product saved as draft" : "Product submitted for admin review",
+        data: product,
+      },
+      { status: 201 },
+    );
+  } catch (error) {
+    console.error("Product creation error:", error);
+    if (error?.code === 11000) {
+      return Response.json(
+        { success: false, message: "Product with this name already exists" },
+        { status: 409 },
+      );
+    }
+    return Response.json(
+      { success: false, message: "Unable to save product. Please try again." },
+      { status: 500 },
     );
   }
 }

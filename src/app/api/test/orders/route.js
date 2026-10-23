@@ -25,7 +25,7 @@ export const POST = async (req) => {
         await connectDB();
 
         const body = await req.json();
-        const { items, shippingAddress, paymentMethod } = body || {};
+        const { items, shippingAddress } = body || {};
 
         if (!Array.isArray(items) || items.length === 0) {
             return NextResponse.json({ success: false, message: "Cart is empty" }, { status: 400 });
@@ -60,14 +60,15 @@ export const POST = async (req) => {
                     { status: 409 }
                 );
             }
+            const finalUnitPrice = computeFinalUnitPrice(product);
             lineItems.push({
                 product: product._id,
                 productName: product.productName,
                 productImage: (product.productImages && product.productImages[0]) || "",
-                unitPrice: Number(product.price) || 0,                // snapshot of base
+                unitPrice: finalUnitPrice,              // snapshot of the price actually paid
                 discountPrice: Number(product.discountPrice) || 0,
                 discountPercentage: Number(product.discountPercentage) || 0,
-                finalUnitPrice: computeFinalUnitPrice(product),
+                finalUnitPrice,
                 quantity: qty,
                 vendor: product.createdBy,
             });
@@ -82,7 +83,7 @@ export const POST = async (req) => {
             subtotal: totals.subtotal,
             shippingFee: totals.shippingFee,
             total: totals.total,
-            paymentMethod: paymentMethod === "paystack" ? "paystack" : "mock",
+            paymentMethod: "paystack",
             status: "pending_payment",
             paymentStatus: "pending",
         });

@@ -51,11 +51,12 @@ const orderSchema = new mongoose.Schema(
         shippingFee: { type: Number, required: true, min: 0, default: 0 },
         total: { type: Number, required: true, min: 0 },
 
-        // Payment — mocked for v1, structured for real Paystack later
+        // Payment — Paystack is the only gateway. The charge.success webhook
+        // is the source of truth for whether an order is paid.
         paymentMethod: {
             type: String,
-            enum: ["paystack", "mock"],
-            default: "mock",
+            enum: ["paystack"],
+            default: "paystack",
         },
         paymentRef: {
             type: String,

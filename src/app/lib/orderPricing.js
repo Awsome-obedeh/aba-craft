@@ -3,7 +3,7 @@
 // Single source of truth for "what is the final unit price of a product?"
 // Used by checkout to re-validate the cart against the live database.
 
-export const SHIPPING_FEE_NGN = Number(process.env.SHIPPING_FEE_NGN) || 2000;
+export const SHIPPING_FEE_NGN = Number(process.env.SHIPPING_FEE_NGN) || 0;
 
 /**
  * Compute the per-unit final price a customer would actually pay for a

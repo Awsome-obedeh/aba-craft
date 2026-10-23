@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { LayoutDashboard, PackagePlus, Boxes, ShoppingBag, ClipboardList, UserRound, Settings, LogOut, Menu, X, MessageCircle } from "lucide-react";
+import { LayoutDashboard, PackagePlus, Boxes, ShoppingBag, ClipboardList, UserRound, Settings, LogOut, Menu, X, MessageCircle, Wallet, Users, ShieldCheck } from "lucide-react";
 import { toast } from "react-toastify";
 import { logout } from "@/app/lib/logout";
 
@@ -17,6 +17,7 @@ const linksByRole = {
     { label: "Messages", href: "/dashboard/messages", icon: MessageCircle },
     { label: "Orders & Sales", href: "/dashboard/vendor/orders", icon: ClipboardList },
     { label: "Profile & Verification", href: "/dashboard/vendor/profile", icon: UserRound },
+    { label: "Business Verification", href: "/dashboard/vendor/verification", icon: ShieldCheck },
    
    
   ],
@@ -25,6 +26,8 @@ const linksByRole = {
     { label: "Manage Vendors", href: "/dashboard/admin/vendors", icon: UserRound },
     { label: "Approve Products", href: "/dashboard/admin/publish-products", icon: ClipboardList },
     { label: "Products", href: "/dashboard/products", icon: ShoppingBag },
+    { label: "Escrow & Payouts", href: "/dashboard/admin/settlements", icon: Wallet },
+    { label: "User Management", href: "/dashboard/admin/users", icon: Users },
   ],
   customer: [
     { label: "Browse Products", href: "/dashboard/products", icon: ShoppingBag },

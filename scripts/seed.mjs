@@ -22,6 +22,8 @@ import bcrypt from "bcryptjs";
 import User from "../src/models/User.js";
 import Category from "../src/models/Category.js";
 import Product from "../src/models/Products.js";
+import Order from "../src/models/Order.js";
+import VendorOrder from "../src/models/VendorOrder.js";
 
 // ─── Env loading ─────────────────────────────────────────────────────────
 
@@ -240,13 +242,91 @@ async function main() {
     console.log(`  ✓ ${category.categoryName} (${category._id})`);
 
     console.log("\nSeeding products…");
+    const seededProducts = [];
     for (const p of SEED_PRODUCTS) {
         const doc = await upsertProduct(
             p,
             created["vendor@abacraft.test"],
             category._id
         );
+        seededProducts.push(doc);
         console.log(`  ✓ ${p.productName} — stock ${p.quantity}`);
+    }
+
+    console.log("\nSeeding test orders…");
+    const customer = await User.findOne({ email: "ada@example.test" });
+    const vendor = await User.findOne({ email: "vendor@abacraft.test" });
+
+    if (customer && vendor && seededProducts.length > 0) {
+        const product = seededProducts[0];
+        const unitPriceKobo = 2800000; // ₦28,000 in kobo
+        const platformFeeBps = 1200;
+        const platformFeeKobo = Math.round((unitPriceKobo * platformFeeBps) / 10000);
+        const netAmountKobo = unitPriceKobo - platformFeeKobo;
+
+        const order = await Order.create({
+            customer: customer._id,
+            items: [
+                {
+                    product: product._id,
+                    productName: product.productName,
+                    productImage: product.productImages?.[0] || "",
+                    unitPrice: 28000,
+                    discountPrice: 0,
+                    discountPercentage: 0,
+                    finalUnitPrice: 28000,
+                    quantity: 1,
+                    vendor: vendor._id,
+                },
+            ],
+            shippingAddress: {
+                fullName: "Ada Eze",
+                phone: "+2340000000003",
+                addressLine: "12 Owerri Road",
+                city: "Aba",
+                state: "Abia",
+                notes: "",
+            },
+            subtotal: 28000,
+            shippingFee: 0,
+            total: 28000,
+            paymentMethod: "paystack",
+            paymentStatus: "paid",
+            status: "delivered",
+            paidAt: new Date(),
+        });
+
+        const now = new Date();
+        const autoReleaseAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+        await VendorOrder.create({
+            orderId: order._id,
+            vendorId: vendor._id,
+            items: [
+                {
+                    product: product._id,
+                    productName: product.productName,
+                    productImage: product.productImages?.[0] || "",
+                    unitPrice: unitPriceKobo,
+                    quantity: 1,
+                },
+            ],
+            grossAmount: unitPriceKobo,
+            platformFee: platformFeeKobo,
+            netAmount: netAmountKobo,
+            platformFeeBps,
+            fulfillmentStatus: "delivered",
+            escrowStatus: "held",
+            disputeStatus: "none",
+            vendorConfirmedDeliveryAt: now,
+            customerConfirmedReceiptAt: null,
+            autoReleaseAt,
+        });
+
+        console.log(`  ✓ Order ${order._id} — paid & delivered (customer: ada@example.test)`);
+        console.log(`     VendorOrder escrow held — confirm receipt UI available`);
+    } else {
+        console.log("  ⚠ Skipped: missing customer, vendor, or products");
     }
 
     console.log("\nSeed complete. Test credentials:");

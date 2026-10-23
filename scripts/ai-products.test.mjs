@@ -5,7 +5,7 @@ import openapi from "../src/app/lib/openapi.js";
 
 // Execute the real route with the database boundary injected.
 const source = readFileSync(new URL("../src/app/api/products/route.js", import.meta.url), "utf8")
-  .replace(/^import .*;\r?\n/gm, "").replace("export async function GET", "async function GET");
+  .replace(/^import .*;\r?\n/gm, "").replace(/export /g, "");
 const createHandler = new Function("connectDB", "Product", "Category", "console", `${source}\nreturn GET;`);
 const request = new Request("https://shop.example.com/api/products");
 function setup(records, fail = false) {

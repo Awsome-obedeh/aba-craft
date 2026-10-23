@@ -95,7 +95,7 @@ export default function CheckoutPage() {
                     state: data.state,
                     notes: data.notes || "",
                 },
-                paymentMethod: "mock",
+                paymentMethod: "paystack",
             });
 
             if (!orderRes.data?.success) {
@@ -104,15 +104,18 @@ export default function CheckoutPage() {
             }
             const orderId = orderRes.data.data._id;
 
-            // 2. Initialize payment (mock Paystack)
-            const payRes = await api.post("/payments/mock/init", { orderId });
+            // 2. Initialize the Paystack transaction. This creates the charge
+            //    on Paystack and returns the hosted checkout URL.
+            const payRes = await api.post("/payments/init", { orderId });
             if (!payRes.data?.success) {
                 toast.error(payRes.data?.message || "Could not start payment");
                 return;
             }
 
-            // 3. Redirect to simulated gateway
-            router.push(payRes.data.authorizationUrl);
+            // 3. Hand the customer over to Paystack. This has to be a full
+            //    navigation — a router push would stay inside the SPA and the
+            //    hosted checkout would never load.
+            window.location.assign(payRes.data.authorizationUrl);
         } catch (error) {
             console.error("CHECKOUT ERROR:", error);
             if (error.response) toast.error(error.response.data?.message || "Server error");
@@ -200,7 +203,7 @@ export default function CheckoutPage() {
                     <section className="border rounded-2xl p-5">
                         <h2 className="font-bold text-lg">Payment</h2>
                         <p className="text-sm text-gray-500 mt-1">
-                            For this demo, payment is simulated. Clicking <em>Pay</em> will succeed automatically.
+                            You will be redirected to Paystack to pay securely by card, bank transfer, USSD or mobile money.
                         </p>
                     </section>
                 </div>
