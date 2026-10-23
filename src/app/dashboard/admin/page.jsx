@@ -76,7 +76,8 @@ export default function AdminDashboardPage() {
   // Filter logic based on the top pills
   const filteredVendors = vendors.filter(vendor => {
     if (activeTab === 'All Vendors') return true;
-    return vendor.onBoardingStatus.toLowerCase() === activeTab.toLowerCase();
+    const status = vendor.onBoardingStatus || vendor.status || 'not_started';
+    return String(status).toLowerCase() === activeTab.toLowerCase();
   });
 
   // Handle individual row selection
@@ -204,7 +205,7 @@ export default function AdminDashboardPage() {
                   const isSelected = selectedIds.includes(vendor._id);
                   return (
                     <tr
-                      key={vendor._id}
+                      key={vendor.id || vendor._id}
                       className={`hover:bg-slate-50/80 transition-colors ${isSelected ? 'bg-slate-50/50' : ''}`}
                     >
                       <td className="p-4 text-center">
@@ -231,7 +232,7 @@ export default function AdminDashboardPage() {
                       <td className="p-4 font-medium text-slate-600">{vendor.totalProducts}</td>
                       <td className="p-4 text-slate-500 text-xs">{formatDate(vendor.createdAt)}</td>
                       <td className="p-4 text-center">
-                        <Link href={`/dashboard/admin/vendors/${vendor._id}`} className="p-1.5 hover:bg-slate-100 text-slate-400 hover:text-slate-700 rounded-lg transition-colors">
+                        <Link href={`/dashboard/admin/vendors/${vendor.id || vendor._id}`} className="p-1.5 hover:bg-slate-100 text-slate-400 hover:text-slate-700 rounded-lg transition-colors">
                           ➔
                         </Link>
                       </td>

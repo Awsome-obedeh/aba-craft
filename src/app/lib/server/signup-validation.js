@@ -41,7 +41,10 @@ export function hashSecret(value) {
 export function encryptBvn(bvn) {
   const encoded = process.env.BVN_ENCRYPTION_KEY;
   if (!/^[a-f\d]{64}$/i.test(encoded || "")) {
-    throw new SignupError("Identity storage is not configured.", 503);
+    throw new SignupError(
+      "Identity storage is not configured. Set BVN_ENCRYPTION_KEY to 64 hexadecimal characters (generate with: openssl rand -hex 32) and restart the server.",
+      503
+    );
   }
   const iv = randomBytes(12);
   const cipher = createCipheriv("aes-256-gcm", Buffer.from(encoded, "hex"), iv);

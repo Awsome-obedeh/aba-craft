@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import DashboardLayout from "@/components/layout/DashboardLayout";
+import EscrowCard from "@/components/EscrowCard";
 import { useAuthStore } from "@/app/store/authStore";
 import { api } from "@/app/lib/axios";
 import { formatPrice } from "@/utils/priceFormater";
@@ -24,7 +25,70 @@ const NEXT_STATUS = {
     shipped: "delivered",
 };
 
+// Escrow only exists once the payment is captured, so there is nothing to
+// show for an order that has not been paid (or one that was cancelled).
+const ESCROW_STATUSES = ["paid", "processing", "shipped", "delivered"];
+
 const fmt = (s) => s.replace(/_/g, " ");
+
+// The escrow read model for one order: one card per vendor slice, from
+// GET /api/orders/{id}/escrow. A vendor only ever sees their own slice, and
+// the customer-only actions (confirm receipt, open a dispute) are hidden by
+// the card's `role` prop.
+function OrderEscrow({ orderId }) {
+    const [items, setItems] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+    const [busyId, setBusyId] = useState(null);
+    const [reloadKey, setReloadKey] = useState(0);
+
+    useEffect(() => {
+        let cancelled = false;
+        const load = async () => {
+            try {
+                const res = await api.get(`/orders/${orderId}/escrow`);
+                if (!cancelled) {
+                    setItems(res.data?.items || []);
+                    setError("");
+                }
+            } catch (err) {
+                if (!cancelled) {
+                    setError(err.response?.data?.message || "Could not load escrow details");
+                }
+            } finally {
+                if (!cancelled) setLoading(false);
+            }
+        };
+        load();
+        return () => { cancelled = true; };
+    }, [orderId, reloadKey]);
+
+    if (loading) {
+        return <p className="text-xs text-gray-400 animate-pulse">Loading escrow…</p>;
+    }
+    if (error) {
+        return <p className="text-xs text-red-600">{error}</p>;
+    }
+    // No escrow slices yet: the order has not been paid, or holds nothing for
+    // this vendor. Either way there is nothing to render.
+    if (items.length === 0) return null;
+
+    return (
+        <div className="space-y-3">
+            {items.map((item) => (
+                <EscrowCard
+                    key={item.vendorOrderId}
+                    orderId={orderId}
+                    item={item}
+                    role="vendor"
+                    busyId={busyId}
+                    onAction={(id, busy) => setBusyId(busy ? id : null)}
+                    onChanged={() => setReloadKey((k) => k + 1)}
+                />
+            ))}
+        </div>
+    );
+}
 
 export default function VendorOrdersPage() {
     const router = useRouter();
@@ -140,6 +204,13 @@ export default function VendorOrdersPage() {
                                     </ul>
                                 </div>
                             </div>
+
+                            {ESCROW_STATUSES.includes(o.status) && (
+                                <section className="mt-4 border-t pt-4">
+                                    <p className="text-xs font-bold uppercase text-gray-400 mb-2">Escrow</p>
+                                    <OrderEscrow orderId={o._id} />
+                                </section>
+                            )}
 
                             <footer className="mt-4 pt-3 border-t flex flex-wrap items-center justify-between gap-3 text-sm">
                                 <div>

@@ -565,9 +565,7 @@ export function createSignupService({
     };
 
     const proofExists =
-      await Challenge.exists(
-        proofFilter
-      );
+      (await Challenge.findOneAndUpdate(proofFilter, {})) != null;
 
     if (!proofExists) {
       throw new SignupError(

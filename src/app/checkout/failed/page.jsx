@@ -10,6 +10,7 @@ import { FiXCircle } from "react-icons/fi";
 function FailedInner() {
     const searchParams = useSearchParams();
     const orderId = searchParams.get("order");
+    const reference = searchParams.get("reference") || searchParams.get("trxref");
     const user = useAuthStore((s) => s.user);
 
     return (
@@ -19,9 +20,11 @@ function FailedInner() {
                 <h1 className="text-2xl font-bold mt-4">Payment failed</h1>
                 <p className="text-gray-500 mt-2">Your order was created but payment was not completed. You can retry from your orders page.</p>
                 {orderId && <p className="text-xs text-gray-400 mt-2">Order ID: {orderId}</p>}
+                {reference && <p className="text-xs text-gray-400 mt-1">Reference: {reference}</p>}
                 <div className="mt-8 flex flex-col gap-2">
-                    <Link href="/cart" className="bg-black text-white py-3 rounded-md font-medium">Back to cart</Link>
-                    <Link href="/account/orders" className="border py-3 rounded-md text-sm">View my orders</Link>
+                    <Link href="/account/orders" className="bg-black text-white py-3 rounded-md font-medium">Retry payment</Link>
+                    <Link href="/cart" className="border py-3 rounded-md text-sm">Back to cart</Link>
+                    <Link href="/account/orders" className="text-xs text-gray-500 underline">View my orders</Link>
                 </div>
             </div>
         </DashboardLayout>

@@ -42,11 +42,13 @@ const openapi = {
   },
   servers: [{ url: "/api", description: "Current application's API (same origin)" }],
   tags: [
-    { name: "Products", description: "Live public product catalog for AI Automation." },
+    { name: "Products", description: "Live public product catalog for AI Automation, and vendor product creation." },
     { name: "Email verification", description: "Send and verify email codes before completing registration." },
     { name: "Registration", description: "Complete seller registration and the existing customer registration flow." },
     { name: "Authentication", description: "Sign in, refresh access tokens and sign out." },
     { name: "Documents", description: "Access privately stored CAC documents as their owner or an admin." },
+    { name: "Vendors", description: "Vendor business and owner records, readable by admins." },
+    { name: "Payments", description: "Paystack checkout: initialize a transaction, verify it, and receive webhooks." },
     { name: "Documentation", description: "Download this OpenAPI specification." },
   ],
   paths: {
@@ -81,6 +83,24 @@ const openapi = {
             },
           }),
           ...errors(500),
+        },
+      },
+      post: {
+        tags: ["Products"], operationId: "createProduct", summary: "Create a product as a vendor or admin",
+        security: [{ bearerAuth: [] }],
+        description: [
+          "Creates a product owned by the signed-in vendor. Vendors must have an active, non-banned business profile; admins may create products without one.",
+          "A product is never published automatically. `saveAsDraft: true` stores it as `draft`, otherwise it is stored as `under_review` for admin approval, and `isPublished` stays `false` until an admin approves it.",
+          "A product name that is already in use returns 409. Image URLs must be absolute HTTPS links, so upload the files to your own storage first. A slug is generated from the product name and is unique across the catalog.",
+        ].join("\n\n"),
+        requestBody: body(ref("ProductInput"), {
+          productName: "Leather Oxford Shoes", category: "507f1f77bcf86cd799439011",
+          description: "Handmade leather oxford shoes.", brand: "Aba Leather",
+          price: 35000, quantity: 20, stockAlert: 5, productImages: ["https://example.com/shoe.jpg"],
+        }),
+        responses: {
+          201: response("Product created.", ref("ProductCreated"), { success: true, message: "Product submitted for admin review" }),
+          ...errors(400, 401, 403, 409, 500, 503),
         },
       },
     },
@@ -189,6 +209,89 @@ const openapi = {
         },
       },
     },
+    "/vendor/profile/{id}": {
+      get: {
+        tags: ["Vendors"], operationId: "getVendorProfile", summary: "Get a vendor's business and owner details",
+        description: "Admin only. Returns the business record and the owner's public profile for the vendor whose business is owned by the given user id. Bank details are never included. Returns 404 when the id belongs to no business.",
+        security: [{ bearerAuth: [] }],
+        parameters: [{ name: "id", in: "path", required: true, description: "Owner user id of the vendor.", schema: { type: "string", pattern: "^[a-fA-F0-9]{24}$", example: "507f1f77bcf86cd799439011" } }],
+        responses: {
+          200: response("Vendor profile details.", { type: "object", required: ["status", "message", "formattedResponse"], properties: {
+            status: { type: "boolean", example: true },
+            message: { type: "string", example: "Vendor profile details" },
+            formattedResponse: { type: "object", properties: {
+              vendorInfo: { type: "object", nullable: true, description: "The owner's public profile.", properties: {
+                id: { type: "string" }, fullName: { type: "string" }, email: { type: "string", format: "email" },
+                role: { type: "string" }, sex: { type: "string" }, verificationStatus: { type: "string" },
+                phoneNumber: { type: "string" }, joinedDate: { type: "string" }, lastUpdated: { type: "string" },
+              } },
+              businessInfo: { type: "object", nullable: true, description: "The vendor's business record.", properties: {
+                id: { type: "string" }, businessName: { type: "string" }, businessDescription: { type: "string" },
+                businessType: { type: "string" }, verificationStatus: { type: "string" }, country: { type: "string" },
+                lga: { type: "string" }, address: { type: "string" }, state: { type: "string" }, logo: { type: "string" },
+              } },
+            } },
+          } }, { status: true, message: "Vendor profile details" }),
+          ...errors(401, 403, 404, 500, 503),
+        },
+      },
+    },
+    "/payments/init": {
+      post: {
+        tags: ["Payments"], operationId: "initializePayment", summary: "Start a Paystack payment for an order",
+        security: [{ bearerAuth: [] }],
+        description: [
+          "Creates a Paystack transaction for one of the signed-in customer's own orders and returns the hosted checkout URL to send the customer to.",
+          "Each attempt gets a fresh reference — Paystack rejects a reused reference — so retrying an unpaid order is safe. The order must still be awaiting payment; an order that is already paid, refunded or cancelled returns 409.",
+          "The customer is returned to `PAYSTACK_CALLBACK_URL` after paying. The `charge.success` webhook is the source of truth for whether the order was paid.",
+        ].join("\n\n"),
+        requestBody: body(ref("PaymentInitRequest"), { orderId: "507f1f77bcf86cd799439011" }),
+        responses: {
+          200: response("Transaction created. Send the customer to `authorizationUrl`.", ref("PaymentInitResult"), {
+            success: true, reference: "ps_1763456789012_AB12CD34", accessCode: "abc123",
+            authorizationUrl: "https://checkout.paystack.com/abc123", amount: 6500, orderId: "507f1f77bcf86cd799439011",
+          }),
+          ...errors(400, 401, 403, 404, 409, 500, 503),
+        },
+      },
+    },
+    "/payments/verify": {
+      post: {
+        tags: ["Payments"], operationId: "verifyPayment", summary: "Check a Paystack transaction against an order",
+        security: [{ bearerAuth: [] }],
+        description: [
+          "Verifies a transaction with Paystack and reports its state. This is the customer's browser asking what happened after the redirect — the `charge.success` webhook remains the source of truth.",
+          "A successful transaction whose captured amount does not match the order total is refused and never marks the order paid.",
+          "A transaction that is still `ongoing` (a bank transfer or USSD payment awaiting confirmation) is reported as `pending`, not as a failure. Only a genuinely failed transaction flips the order to `paymentStatus: \"failed\"`.",
+        ].join("\n\n"),
+        requestBody: body(ref("PaymentVerifyRequest"), { reference: "ps_1763456789012_AB12CD34" }),
+        responses: {
+          200: response("Transaction state. `status` is `success`, `pending` or `failed`.", ref("PaymentVerifyResult"), {
+            success: true, status: "success", message: "Payment verified successfully",
+            reference: "ps_1763456789012_AB12CD34", amount: 6500, orderId: "507f1f77bcf86cd799439011",
+          }),
+          ...errors(400, 401, 403, 409, 500, 502),
+        },
+      },
+    },
+    "/payments/webhook": {
+      post: {
+        tags: ["Payments"], operationId: "paystackWebhook", summary: "Paystack webhook receiver",
+        security: [],
+        description: [
+          "Server-to-server endpoint Paystack posts to. Not called by the app.",
+          "Every delivery is checked against the `x-paystack-signature` HMAC before it is read. Events are deduplicated on the business fact they describe, so a redelivery is a no-op. The handler returns 5xx on failure so Paystack retries, and 200 for events it does not handle.",
+          "Point the Paystack dashboard's webhook URL at this path for the `charge.success`, `transfer.success`, `transfer.failed` and `refund.processed` events.",
+        ].join("\n\n"),
+        requestBody: { required: true, content: { "application/json": { schema: { type: "object", additionalProperties: true }, example: { event: "charge.success", data: { reference: "ps_1763456789012_AB12CD34", amount: 650000 } } } } },
+        responses: {
+          200: response("Event processed, or an event type this handler ignores.", { type: "string" }, "OK"),
+          400: { description: "The body is not valid JSON, or the event type is missing. Not retried.", content: { "text/plain": { schema: { type: "string" } } } },
+          401: { description: "The `x-paystack-signature` header does not match the body.", content: { "text/plain": { schema: { type: "string" } } } },
+          500: { description: "The event could not be applied. Paystack will retry it.", content: { "text/plain": { schema: { type: "string" } } } },
+        },
+      },
+    },
     "/openapi": {
       get: {
         tags: ["Documentation"], operationId: "getOpenApi", summary: "Download the OpenAPI specification", security: [],
@@ -287,6 +390,69 @@ const openapi = {
       Error: { type: "object", required: ["success", "message"], properties: { success: { type: "boolean", enum: [false] }, message: { type: "string" } } },
       MessageError: { type: "object", required: ["message"], properties: { message: { type: "string" } } },
       UnverifiedEmailError: { allOf: [ref("Error"), { type: "object", required: ["code"], properties: { code: { type: "string", enum: ["EMAIL_NOT_VERIFIED"] } } }] },
+      ProductInput: {
+        type: "object", required: ["productName"],
+        properties: {
+          productName: { type: "string", minLength: 3, maxLength: 200, example: "Leather Oxford Shoes" },
+          category: { type: "string", pattern: "^[a-fA-F0-9]{24}$", example: "507f1f77bcf86cd799439011", description: "Category id. Required unless the product is saved as a draft." },
+          description: { type: "string", maxLength: 5000, description: "Required unless the product is saved as a draft." },
+          brand: { type: "string", maxLength: 200 },
+          shortDescription: { type: "string", maxLength: 150 },
+          productType: { type: "string", maxLength: 100 },
+          sku: { type: "string", maxLength: 100 },
+          hsn: { type: "string", maxLength: 30 },
+          dimensions: { type: "string", maxLength: 100 },
+          notes: { type: "string", maxLength: 1000, description: "Private vendor note. Never shown to buyers." },
+          weight: { type: "number", minimum: 0 },
+          price: { type: "number", minimum: 0, example: 35000, description: "Selling price in NGN. Must be greater than zero unless the product is saved as a draft." },
+          quantity: { type: "number", minimum: 0, example: 20 },
+          stockAlert: { type: "number", minimum: 0 },
+          compareAtPrice: { type: "number", minimum: 0, description: "Must be greater than the selling price." },
+          discountPrice: { type: "number", minimum: 0, description: "Must be lower than the selling price." },
+          discountPercentage: { type: "number", minimum: 0, maximum: 100 },
+          productImages: { type: "array", maxItems: 7, items: { type: "string", format: "uri" }, description: "Up to 7 absolute HTTPS image URLs. At least one is required unless the product is saved as a draft." },
+          isFeatured: { type: "boolean", default: false },
+          redirectWhatsapp: { type: "boolean", default: false },
+          saveAsDraft: { type: "boolean", default: false, description: "Store the product as a draft instead of submitting it for admin review." },
+        },
+      },
+      ProductCreated: {
+        type: "object", required: ["success", "message"],
+        properties: {
+          success: { type: "boolean", enum: [true] }, message: { type: "string" },
+          data: { type: "object", description: "The created product, including its generated slug, status and isPublished flag." },
+        },
+      },
+      PaymentInitRequest: {
+        type: "object", required: ["orderId"],
+        properties: { orderId: { type: "string", pattern: "^[a-fA-F0-9]{24}$", example: "507f1f77bcf86cd799439011", description: "The order to pay for. Must belong to the signed-in customer." } },
+      },
+      PaymentInitResult: {
+        type: "object", required: ["success", "reference", "authorizationUrl"],
+        properties: {
+          success: { type: "boolean", enum: [true] },
+          reference: { type: "string", example: "ps_1763456789012_AB12CD34", description: "Paystack transaction reference. Unique per attempt." },
+          accessCode: { type: "string", description: "Paystack access code, part of the hosted checkout URL." },
+          authorizationUrl: { type: "string", format: "uri", description: "Paystack's hosted checkout. Send the customer here to pay." },
+          amount: { type: "number", example: 6500, description: "Amount charged, in naira." },
+          orderId: { type: "string", description: "The order being paid." },
+        },
+      },
+      PaymentVerifyRequest: {
+        type: "object", required: ["reference"],
+        properties: { reference: { type: "string", example: "ps_1763456789012_AB12CD34", description: "The Paystack reference returned by initialize." } },
+      },
+      PaymentVerifyResult: {
+        type: "object", required: ["success", "status"],
+        properties: {
+          success: { type: "boolean", description: "True only when the transaction succeeded and its amount matches the order." },
+          status: { type: "string", enum: ["success", "pending", "failed"], description: "`pending` means the bank has not confirmed the payment yet." },
+          message: { type: "string" },
+          reference: { type: "string" },
+          amount: { type: "number", description: "Captured amount, in naira." },
+          orderId: { type: "string", nullable: true },
+        },
+      },
     },
     responses: Object.fromEntries(Object.entries({
       400: ["Invalid input, malformed body, or invalid/expired verification code.", "Enter a valid email address."],
