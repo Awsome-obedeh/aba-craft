@@ -21,12 +21,15 @@ const SETTLEMENT_STYLES = {
     cancelled: "bg-gray-200 text-gray-600",
 };
 
+const SETTLEMENT_FILTERS = ["all", "pending", "processing", "paid", "failed", "cancelled"];
+
 export default function VendorSettlementsPage() {
     const router = useRouter();
     const user = useAuthStore((s) => s.user);
     const [data, setData] = useState(null);
     const [recipient, setRecipient] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [settlementFilter, setSettlementFilter] = useState("all");
 
     const load = useCallback(async () => {
         try {
@@ -64,6 +67,9 @@ export default function VendorSettlementsPage() {
     // A vendor with money owed but no payout account cannot be paid, so this
     // is the single most actionable thing on the page.
     const needsPayoutAccount = !recipient && (data?.availableToWithdraw?.kobo > 0);
+    const filteredSettlements = (data?.settlements || []).filter(
+        (settlement) => settlementFilter === "all" || settlement.status === settlementFilter
+    );
 
     return (
         <DashboardLayout role="vendor" email={user?.email}>
@@ -128,16 +134,39 @@ export default function VendorSettlementsPage() {
                     </div>
 
                     <section className="mt-8">
-                        <h2 className="text-sm font-bold uppercase tracking-widest text-gray-400">
-                            Payout history
-                        </h2>
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                            <h2 className="text-sm font-bold uppercase tracking-widest text-gray-400">
+                                Payout history
+                            </h2>
+                            <div className="flex flex-wrap gap-2" role="group" aria-label="Filter payout history by status">
+                                {SETTLEMENT_FILTERS.map((filter) => (
+                                    <button
+                                        key={filter}
+                                        type="button"
+                                        aria-pressed={settlementFilter === filter}
+                                        onClick={() => setSettlementFilter(filter)}
+                                        className={`rounded-full border px-3 py-1.5 text-xs font-semibold capitalize transition-colors ${
+                                            settlementFilter === filter
+                                                ? "border-forest bg-forest text-white"
+                                                : "border-brandBorder bg-white text-muted hover:bg-cream"
+                                        }`}
+                                    >
+                                        {filter}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
                         {data.settlements.length === 0 ? (
                             <p className="py-8 text-sm text-gray-500">
                                 No payouts yet. Funds appear here once an order clears.
                             </p>
+                        ) : filteredSettlements.length === 0 ? (
+                            <p className="py-8 text-sm text-gray-500">
+                                No {settlementFilter} payouts.
+                            </p>
                         ) : (
                             <ul className="mt-3 space-y-2">
-                                {data.settlements.map((s) => (
+                                {filteredSettlements.map((s) => (
                                     <li
                                         key={s._id}
                                         className="border rounded-xl p-4 bg-white flex flex-wrap items-center justify-between gap-3"
@@ -146,6 +175,21 @@ export default function VendorSettlementsPage() {
                                             <p className="font-mono text-xs text-gray-400">
                                                 {s.transferReference || s._id}
                                             </p>
+                                            {s.orderDetails?.length > 0 && (
+                                                <ul className="mt-2 space-y-1 text-xs text-gray-600">
+                                                    {s.orderDetails.map((order) => (
+                                                        <li key={order.orderNo}>
+                                                            <span className="font-semibold">
+                                                                Order #{order.orderNo}
+                                                            </span>
+                                                            {" · "}
+                                                            {order.products.join(", ")}
+                                                            {" · "}
+                                                            Customer: {order.customerName}
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            )}
                                             <p className="text-sm mt-0.5">
                                                 {naira(s.amountSent)} to{" "}
                                                 {recipient?.accountName || "your bank account"}
