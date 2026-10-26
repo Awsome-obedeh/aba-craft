@@ -4,7 +4,7 @@ import Link from "next/link";
 import BrandLogo from "@/components/BrandLogo";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { LayoutDashboard, PackagePlus, Boxes, ShoppingBag, ClipboardList, UserRound, Settings, LogOut, Menu, X, MessageCircle, Wallet, Users, ShieldCheck } from "lucide-react";
+import { LayoutDashboard, PackagePlus, Boxes, ShoppingBag, ClipboardList, UserRound, Settings, LogOut, Menu, X, MessageCircle, Wallet, Users, ShieldCheck, Landmark, } from "lucide-react";
 import { toast } from "react-toastify";
 import { logout } from "@/app/lib/logout";
 
@@ -19,7 +19,7 @@ const linksByRole = {
     { label: "Messages", href: "/dashboard/messages", icon: MessageCircle },
     { label: "Orders & Sales", href: "/dashboard/vendor/orders", icon: ClipboardList },
     { label: "Finances and Escrow", href: "/dashboard/vendor/settlements", icon: Wallet },
-    { label: "Payout Account", href: "/dashboard/vendor/payout-account", icon: Wallet},
+    { label: "Payout Account", href: "/dashboard/vendor/payout-account", icon: Landmark },
     { label: "Profile & Verification", href: "/dashboard/vendor/profile", icon: UserRound },
     { label: "Business Verification", href: "/dashboard/vendor/verification", icon: ShieldCheck },
    
