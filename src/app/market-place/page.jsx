@@ -1,10 +1,10 @@
-import React from 'react'
+import Marketplace from "@/components/marketplace/Marketplace";
+
+export const metadata = {
+  title: "Marketplace | AbiaCraft",
+  description: "Shop admin-approved leather goods from Aba vendors and discover wholesale deals from local manufacturers.",
+};
 
 export default function MarketPlacePage() {
-  return (
-    <div>
-      <h1>Market Place</h1>
-      <p>Here is the market place page</p>
-    </div>
-  )
+  return <Marketplace />;
 }

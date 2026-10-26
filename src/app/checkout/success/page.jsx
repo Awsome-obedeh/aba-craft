@@ -22,7 +22,7 @@ function SuccessInner() {
                     <p className="text-xs text-gray-400 mt-2">Order ID: {orderId}</p>
                 )}
                 <div className="mt-8 flex flex-col gap-2">
-                    <Link href="/dashboard/products" className="bg-black text-white py-3 rounded-md font-medium">Continue shopping</Link>
+                    <Link href="/market-place" className="bg-black text-white py-3 rounded-md font-medium">Continue shopping</Link>
                     <Link href="/account/orders" className="border py-3 rounded-md text-sm">View my orders</Link>
                 </div>
             </div>

@@ -48,7 +48,7 @@ export default function RfqDetailsPage() {
 
   useEffect(() => {
     if (!user) { router.replace("/auth/sign-in"); return; }
-    if (user.role !== "vendor") { router.replace(user.role === "admin" ? "/dashboard/admin" : "/dashboard/products"); return; }
+    if (user.role !== "vendor") { router.replace(user.role === "admin" ? "/dashboard/admin" : "../../market-place"); return; }
     let active = true;
     api.get(`/rfqs/vendor/${encodeURIComponent(id)}`, { baseURL: "/api" })
       .then(response => { if (active) { setRfq(response.data.request); setError(""); } })

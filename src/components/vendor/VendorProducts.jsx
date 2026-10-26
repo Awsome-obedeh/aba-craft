@@ -50,7 +50,7 @@ function Catalog() {
 
   useEffect(() => {
     if (!accessToken || !user) { router.replace("/auth/sign-in"); return; }
-    if (user.role !== "vendor") { router.replace("/dashboard/products"); return; }
+    if (user.role !== "vendor") { router.replace("/market-place"); return; }
     const controller = new AbortController();
     async function load() {
       setLoading(true);

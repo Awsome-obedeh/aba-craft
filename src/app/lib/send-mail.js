@@ -58,7 +58,7 @@ export async function sendPasswordResetMail(email, url) {
 }
 
 // Propagate delivery errors so the caller cannot report that an unsent OTP was sent.
-export async function sendMail(email, otp) {
+export async function sendMail(email, otp, { passwordReset = false } = {}) {
   if (!process.env.EMAIL_ADDRESS || !process.env.EMAIL_APP_PASSWORD) {
     throw new Error("Email delivery is not configured.");
   }
@@ -74,10 +74,10 @@ export async function sendMail(email, otp) {
   await transport.sendMail({
     from: process.env.EMAIL_ADDRESS,
     to: email,
-    subject: process.env.VERIFICATION_EMAIL_SUBJECT || "Verify your Abacrafts email",
-    text: "Your Abacrafts verification code is " + otp + ". It expires in 15 minutes. If you did not request this, ignore this email.",
-    html: renderAccountEmail("Verify your email", "Your Aba Crafts verification code expires in 15 minutes.", `
-      <p style="margin:0 0 24px;font-size:16px;line-height:1.7;">Welcome to Aba Crafts. Enter the verification code below to verify your email address.</p>
+    subject: passwordReset ? "Reset your Aba Crafts password" : process.env.VERIFICATION_EMAIL_SUBJECT || "Verify your Abacrafts email",
+    text: `Your Aba Crafts ${passwordReset ? "password reset" : "verification"} code is ${otp}. It expires in 15 minutes. If you did not request this, ignore this email.`,
+    html: renderAccountEmail(passwordReset ? "Reset your password" : "Verify your email", "Your Aba Crafts verification code expires in 15 minutes.", `
+      <p style="margin:0 0 24px;font-size:16px;line-height:1.7;">${passwordReset ? "Enter this code to confirm your email and reset your password. If you did not request a password reset, ignore this email." : "Welcome to Aba Crafts. Enter the verification code below to verify your email address."}</p>
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="center" bgcolor="#FDF1EC" style="padding:24px 12px;border:1px solid #E6EAE7;border-radius:8px;">
         <p style="margin:0 0 10px;color:#66706B;font-size:12px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;">Your verification code</p>
         <p style="margin:0;color:#A3431D;font-family:'Courier New',monospace;font-size:32px;font-weight:bold;letter-spacing:6px;line-height:1.4;">${escapeHtml(otp)}</p>
@@ -86,6 +86,8 @@ export async function sendMail(email, otp) {
     `),
   });
 }
+
+export const sendBuyerPasswordResetCode = (email, code) => sendMail(email, code, { passwordReset: true });
 
 export const sendProductApprovalMail = async (email, productSlug, productImage, subject, frontEndUrl) => {
   try {

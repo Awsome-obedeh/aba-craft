@@ -146,7 +146,7 @@ function ConversationResults({ query, selectedId, role }) {
               Open a product and select Contact vendor to ask your first
               question.
               <Link
-                href="/dashboard/products"
+                href="/market-place"
                 className="mt-5 block font-semibold text-clay underline underline-offset-4"
               >
                 Explore the marketplace

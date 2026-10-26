@@ -1,4 +1,6 @@
 import React from 'react';
+import BrandLogo from '@/components/BrandLogo';
+import Link from 'next/link';
 import Image from 'next/image';
 
 const UploadProduct = () => {
@@ -7,7 +9,7 @@ const UploadProduct = () => {
 
     <div class="flex min-h-screen">
         <aside class="w-64 bg-sidebarBg text-white flex flex-col fixed h-full z-30">
-            <div class="p-8 pb-10 text-2xl font-bold tracking-tight">Aba Crafts</div>
+            <div className="p-8 pb-10"><Link href="/" aria-label="Aba Crafts home"><BrandLogo light /></Link></div>
             <nav class="flex-1 px-4 space-y-1">
                 <a href="#" class="flex items-center px-4 py-3 text-[11px] font-medium text-white/60 hover:text-white transition">
                     Dashboard Overview

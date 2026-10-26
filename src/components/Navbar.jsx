@@ -1,11 +1,14 @@
 "use client";
 import Image from 'next/image';
+import Link from 'next/link';
+import BrandLogo from '@/components/BrandLogo';
 
 export default function Navbar({ setIsOpen }) {
   return (
     <header className="flex items-center justify-between bg-gray-100 p-4 w-screen">
       {/* Left */}
       <div className="flex items-center gap-3">
+        <Link href="/" aria-label="Aba Crafts home"><BrandLogo /></Link>
         <button
           onClick={() => setIsOpen(true)}
           className="md:hidden text-xl"

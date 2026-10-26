@@ -127,7 +127,7 @@ export default function SignUpPage() {
                     {/* Logo */}
                     <div className="flex justify-center mb-6">
                          <div className="w-16 h-16  rounded-full flex items-center justify-center">
-                                                <Image src='/aba-crafts-logo.PNG' width={300} height={400} alt="logo"/>
+                                                <Image src='/images/brand/logo-dark.png' width={70} height={64} alt="Aba Crafts" className="object-contain"/>
                                             </div>
                     </div>
 

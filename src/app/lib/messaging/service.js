@@ -106,7 +106,7 @@ async function describeConversation(conversation, user) {
         product?.isActive &&
         product.isPublished &&
         product.status === "approved"
-          ? `/dashboard/products/${encodeURIComponent(product.slug)}`
+          ? `//${encodeURIComponent(product.slug)}`
           : null,
     },
     canReply: Boolean(peer && peer.role === expectedRole && businessAvailable),

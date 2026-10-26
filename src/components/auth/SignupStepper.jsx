@@ -1,5 +1,6 @@
 ﻿"use client";
 import Link from "next/link";
+import BrandLogo from "@/components/BrandLogo";
 import { Check, ShieldCheck } from "lucide-react";
 const steps = [
   ["Create account", "Your email and password"],
@@ -11,7 +12,7 @@ const steps = [
 export default function SignupStepper({ currentStep }) {
   return (
     <aside className="signup-stepper hidden w-[280px] shrink-0 flex-col border-r border-brandBorder bg-white p-8 text-brandText md:flex">
-      <Link href="/" className="font-serif text-3xl font-semibold">Aba Crafts<span className="text-gold">.</span></Link>
+      <Link href="/" aria-label="Aba Crafts home"><BrandLogo /></Link>
       <p className="mt-2 text-[10px] uppercase tracking-[0.22em] text-muted">Made by hand. Built with pride.</p>
       <div className="my-10 h-px bg-brandBorder" />
       <p className="mb-6 text-[10px] uppercase tracking-[0.2em] text-muted">Your artisan journey</p>

@@ -30,7 +30,7 @@ export async function GET(request) {
       quantity: product.quantity,
       inStock: product.quantity > 0,
       productImages: product.productImages || [],
-      productLink: new URL(`/dashboard/products/${encodeURIComponent(product.slug)}`, request.url).href,
+      productLink: new URL(`/market-place/${encodeURIComponent(product.slug)}`, request.url).href,
     }));
 
     return Response.json({ success: true, data, totalItems: data.length }, { headers });

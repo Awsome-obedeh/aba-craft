@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import BrandLogo from "@/components/BrandLogo";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/app/lib/axios";
@@ -60,7 +61,7 @@ export function ProductCard({ product }) {
   return (
     <Link
       className="buyer-product"
-      href={`/dashboard/products/${encodeURIComponent(product.slug)}`}
+      href={`/market-place/${encodeURIComponent(product.slug)}`}
     >
       <div className="buyer-product-photo">
         {product.productImages?.[0] ? (
@@ -145,7 +146,7 @@ export default function BuyerShell({ section, children }) {
           ].map(([label, icon]) => (
             <Link
               key={label}
-              href={`/dashboard/products?search=${encodeURIComponent(label)}`}
+              href={`/market-place/products?search=${encodeURIComponent(label)}`}
             >
               <DesignIcon name={icon} size={14} />
               {label}
@@ -162,18 +163,8 @@ export default function BuyerShell({ section, children }) {
           >
             <DesignIcon name="imgMenu" size={22} />
           </button>
-          <Link href="/" className="buyer-brand">
-            <Image
-              src="/images/buyer/imgLogo12.png"
-              width={46}
-              height={37}
-              alt=""
-            />
-            <span>
-              Aba<b>Craft</b>
-            </span>
-          </Link>
-          <form className="buyer-search" action="/dashboard/products">
+          <Link href="/" className="buyer-brand" aria-label="Aba Crafts home"><BrandLogo /></Link>
+          <form className="buyer-search" action="/market-place">
             <DesignIcon name="imgSearch" size={16} />
             <input
               aria-label="Search products"
@@ -216,7 +207,7 @@ export default function BuyerShell({ section, children }) {
         ].map(([label, icon, search]) => (
           <Link
             key={label}
-            href={`/dashboard/products?search=${encodeURIComponent(search)}`}
+            href={`/market-place?search=${encodeURIComponent(search)}`}
           >
             <DesignIcon name={icon} size={24} />
             {label}
@@ -228,6 +219,7 @@ export default function BuyerShell({ section, children }) {
           id="buyer-navigation"
           className={`buyer-sidebar ${menuOpen ? "is-open" : ""}`}
         >
+          <Link href="/" className="buyer-sidebar-brand" aria-label="Aba Crafts home"><BrandLogo /></Link>
           <Link className="buyer-account-title" href="/dashboard/profile">
             <DesignIcon name="imgGroup3" />
             My Aba Craft Account

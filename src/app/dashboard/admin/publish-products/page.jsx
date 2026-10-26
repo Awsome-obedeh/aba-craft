@@ -129,7 +129,7 @@ export default function AdminPendingProducts() {
                       className="group bg-white rounded-2xl border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.02)] overflow-hidden flex flex-col hover:shadow-[0_12px_30px_rgba(0,0,0,0.04)] transition-all duration-300"
                     >
                       {/* Product Image preview */}
-                      <Link href={`/dashboard/products/${product.slug}`} className="relative aspect-video w-full bg-slate-100 overflow-hidden">
+                      <Link href={`../../market-place/${product.slug}`} className="relative aspect-video w-full bg-slate-100 overflow-hidden">
                         <Image
                           src={product.productImages[0]}
                           alt={product.productName}
@@ -186,7 +186,7 @@ export default function AdminPendingProducts() {
                             Reject
                           </button>
                           <button
-                            onClick={() => router.push(`/dashboard/products/${product.slug}`)}
+                            onClick={() => router.push(`../../market-place/${product.slug}`)}
                             className="px-3 py-2 text-xs font-semibold text-white bg-black hover:bg-black/70 rounded-xl shadow-sm transition-all"
                           >
                             View Details
