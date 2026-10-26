@@ -163,6 +163,8 @@ const productSchema = new mongoose.Schema(
     }
 );
 
+productSchema.index({ createdBy: 1, isActive: 1, createdAt: -1 });
+
 // Auto-update stock status
 productSchema.pre("save", function () {
     this.inStock = this.quantity > 0;

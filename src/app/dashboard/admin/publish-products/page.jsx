@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { toast } from 'react-toastify';
 import { useAuthStore } from '@/app/store/authStore';
 import DashboardLayout from '@/components/layout/DashboardLayout';
+import { RejectProductModal } from '@/components/RejectProductModal';
 import { useRouter } from 'next/navigation';
 // import { DeleteConfirmationModal } from './DeleteConfirmationModal'; // If you want to reuse your modal
 
@@ -36,6 +37,10 @@ export default function AdminPendingProducts() {
   const email = user?.email;
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  // The product the admin is currently rejecting, and whether the reject
+  // request is still in flight.
+  const [rejecting, setRejecting] = useState(null);
+  const [rejectingBusy, setRejectingBusy] = useState(false);
 
 
 
@@ -47,7 +52,7 @@ export default function AdminPendingProducts() {
       try {
         const res = await api.get('/products/admin/pending');
         if (isActive) {
-          setProducts(res.data.products);
+          setProducts(res.data.products || []);
         }
       } catch {
         if (isActive) {
@@ -65,11 +70,8 @@ export default function AdminPendingProducts() {
       isActive = false;
     };
   }, []);
-
   //  Group products by vendor dynamically
-
-
-  const groupedProducts = loading && products.length > 0 && products.reduce((acc, product) => {
+  const groupedProducts = products.reduce((acc, product) => {
     const vendor = product.vendorName;
     if (!acc[vendor]) {
       acc[vendor] = [];
@@ -78,16 +80,31 @@ export default function AdminPendingProducts() {
     return acc;
   }, {});
 
+  // Rejecting a product needs a reason, so the action opens the modal rather
+  // than firing the request straight away.
+  const handleReject = (product) => {
+    setRejecting(product);
+  };
 
-
-
-
-  console.log("PENDING PRODUCTS", products, "GROUPED PRODUCTS: ", groupedProducts,);
-
-
-  const handleReject = (productId) => {
-    // API Call or open your modal here
-    setProducts(prev => prev.filter(p => p.id !== productId));
+  const handleConfirmReject = async (rejectionReason) => {
+    if (!rejecting) return;
+    const product = rejecting;
+    try {
+      setRejectingBusy(true);
+      // PUT /api/products/admin/reject/{slug}, body: { rejectionReason }.
+      const res = await api.put(`/products/admin/reject/${product.slug}`, { rejectionReason });
+      if (res.data?.success) {
+        toast.success(res.data.message || 'Product rejected successfully!');
+        setProducts(prev => prev.filter(p => p.id !== product.id));
+        setRejecting(null);
+      } else {
+        toast.error(res.data?.message || 'Could not reject product');
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Could not reject product');
+    } finally {
+      setRejectingBusy(false);
+    }
   };
 
   return (
@@ -101,7 +118,11 @@ export default function AdminPendingProducts() {
         </div>
 
         <div className="max-w-7xl mx-auto space-y-12">
-          {loading && Object.keys(groupedProducts).length === 0 ? (
+          {loading ? (
+            <div className="text-center py-20 bg-white border border-dashed border-slate-200 rounded-2xl">
+              <p className="text-slate-400 font-medium">Loading pending products…</p>
+            </div>
+          ) : Object.keys(groupedProducts).length === 0 ? (
             <div className="text-center py-20 bg-white border border-dashed border-slate-200 rounded-2xl">
               <p className="text-slate-400 font-medium">All caught up! No pending products to review.</p>
             </div>
@@ -123,7 +144,7 @@ export default function AdminPendingProducts() {
 
                 {/* Responsive horizontal grid row for this vendor's items */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                  {loading && vendorProducts.map((product) => (
+                  {vendorProducts.map((product) => (
                     <div
                       key={product.id}
                       className="group bg-white rounded-2xl border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.02)] overflow-hidden flex flex-col hover:shadow-[0_12px_30px_rgba(0,0,0,0.04)] transition-all duration-300"
@@ -180,7 +201,7 @@ export default function AdminPendingProducts() {
                         {/* Action Triggers */}
                         <div className="grid grid-cols-2 gap-2 mt-4">
                           <button
-                            onClick={() => handleReject(product.id)}
+                            onClick={() => handleReject(product)}
                             className="px-3 py-2 text-xs font-medium text-slate-600 hover:text-rose-600 hover:bg-rose-50 rounded-xl border border-slate-100 transition-colors"
                           >
                             Reject
@@ -203,6 +224,14 @@ export default function AdminPendingProducts() {
 
 
       </div>
+
+      <RejectProductModal
+        isOpen={Boolean(rejecting)}
+        onClose={() => { if (!rejectingBusy) setRejecting(null); }}
+        onConfirm={handleConfirmReject}
+        productName={rejecting?.productName}
+        loading={rejectingBusy}
+      />
     </DashboardLayout>
   );
 }   

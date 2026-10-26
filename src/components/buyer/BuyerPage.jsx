@@ -22,6 +22,8 @@ import BuyerShell, {
 } from "./BuyerShell";
 import BuyerRequestForm from "./BuyerRequestForm";
 
+import EscrowCard from "@/components/EscrowCard";
+
 const config = { baseURL: "/api" };
 export const dateLabel = (date) =>
   new Date(date).toLocaleDateString("en-NG", {
@@ -480,6 +482,64 @@ function Preferences({ section, data }) {
   );
 }
 
+// Escrow section for buyer orders: countdown timer + confirm receipt button.
+// Fetches per-order vendor-order slices from /api/orders/{id}/escrow and
+// renders one EscrowCard per slice with role="customer".
+const ESCROW_STATUSES = ["paid", "processing", "shipped", "delivered"];
+
+function OrderEscrow({ orderId }) {
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [busyId, setBusyId] = useState(null);
+  const [reloadKey, setReloadKey] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const res = await api.get(`/orders/${orderId}/escrow`);
+        if (!cancelled) {
+          setItems(res.data?.items || []);
+          setError("");
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(err.response?.data?.message || "Could not load escrow details");
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    load();
+    return () => { cancelled = true; };
+  }, [orderId, reloadKey]);
+
+  if (loading) {
+    return <p className="text-xs text-gray-400 animate-pulse">Loading escrow…</p>;
+  }
+  if (error) {
+    return <p className="text-xs text-red-600">{error}</p>;
+  }
+  if (items.length === 0) return null;
+
+  return (
+    <div className="space-y-3">
+      {items.map((item) => (
+        <EscrowCard
+          key={item.vendorOrderId}
+          orderId={orderId}
+          item={item}
+          role="customer"
+          busyId={busyId}
+          onAction={(id, busy) => setBusyId(busy ? id : null)}
+          onChanged={() => setReloadKey((k) => k + 1)}
+        />
+      ))}
+    </div>
+  );
+}
+
 function OrderScreens({ section, data, refresh }) {
   const [cancelled, setCancelled] = useState(false);
   const [selected, setSelected] = useState("");
@@ -672,6 +732,12 @@ function OrderScreens({ section, data, refresh }) {
                   </button>
                 </div>
               </details>
+              {ESCROW_STATUSES.includes(order.status) && (
+                <section className="buyer-escrow">
+                  <p className="text-xs font-bold uppercase text-gray-400 mb-2">Escrow</p>
+                  <OrderEscrow orderId={order._id} />
+                </section>
+              )}
             </div>
           </article>
         ))}

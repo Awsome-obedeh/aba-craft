@@ -45,8 +45,8 @@ export default function ProductsPage() {
             try {
                 const res = await api.get(`/products?${searchParams.toString()}`);
                 if (isActive) {
-                    setProducts(res.data.data);
-                    setPagination(res.data.pagination);
+                    setProducts(res.data.data || []);
+                    setPagination({ currentPage: 1, totalPages: 1, totalItems: res.data.totalItems ?? (res.data.data?.length ?? 0) });
                 }
             } catch (err) {
                 if (isActive) {
@@ -150,7 +150,7 @@ export default function ProductsPage() {
                             /* Grid Partition lines created purely out of structural borders */
                             <div className="grid grid-cols-1 md:grid-cols-3 border-b border-black">
                                 {products.map((product) => (
-                                    <Link key={product._id} href={`products/${product.slug}`} className="border-b md:border-b-0 md:border-r border-black p-6 flex flex-col justify-between hover:bg-neutral-50 group transition-colors duration-300 min-h-[380px]">
+                                    <Link key={product.id || product._id} href={`products/${product.slug}`} className="border-b md:border-b-0 md:border-r border-black p-6 flex flex-col justify-between hover:bg-neutral-50 group transition-colors duration-300 min-h-[380px]">
                                         <div>
                                             <div className="relative w-full aspect-4/3 bg-neutral-100 flex items-center justify-center border border-neutral-200 group-hover:border-black transition-colors duration-300">
                                                 <span className="font-mono text-[10px] text-neutral-400 uppercase tracking-widest">Product Image</span>

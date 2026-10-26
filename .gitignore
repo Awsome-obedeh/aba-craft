@@ -43,5 +43,7 @@ next-env.d.ts
 # local AI prompt logs
 /prompts.md
 
-
-
+#test findings
+findings_report.txt
+findings.txt
+diff_full.txt

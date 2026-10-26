@@ -19,6 +19,7 @@ import { IoChevronBackCircleOutline } from "react-icons/io5";
 import { toast } from 'react-toastify';
 import { DeleteConfirmationModal } from '@/components/DeleteConfirmationModal';
 import { ApproveProductModal } from '@/components/ApproveProductModal';
+import { RejectProductModal } from '@/components/RejectProductModal';
 
 export default function ProductDetailsPage({ params }) {
     const router = useRouter();
@@ -32,6 +33,7 @@ export default function ProductDetailsPage({ params }) {
     const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
     const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
     const [isProductUpdated, setIsProductUpdated] = useState(false);
+    const [isProductRejected, setIsProductRejected] = useState(false);
     const [isPending, startTransition] = useTransition();
 
     // Customer-facing add-to-cart
@@ -202,6 +204,44 @@ export default function ProductDetailsPage({ params }) {
         }
     }
     // setProducts(prev => prev.filter(p => p.id !== productId));
+  };
+
+
+  const handleReject = async (rejectionReason) => {
+    // The rejection route lives at /api/products/admin/reject/{slug} (there is
+    // no /api/test twin of it), and it takes the reason in the body.
+    try {
+        setIsProductRejected(true);
+        const res = await api.put(`/products/admin/reject/${product.slug}`, { rejectionReason });
+        if (res.data.success) {
+            toast.success("Product rejected successfully!");
+            setIsRejectModalOpen(false);
+            setProduct(res.data.data);
+        }
+    }
+    catch (error) {
+        console.error("REJECTING PRODUCT ERROR:", error);
+        if (error.response) {
+            toast.error(
+                error.response.data.message ||
+                "Something went wrong"
+            );
+        }
+        else if (error.request) {
+            toast.error(
+                "Network error. Check your internet connection."
+            );
+        }
+
+        else {
+            toast.error(
+                "Unexpected error occurred"
+            );
+        }
+    }
+    finally {
+        setIsProductRejected(false);
+    }
   };
 
 
@@ -494,16 +534,13 @@ export default function ProductDetailsPage({ params }) {
                     slug={product?.slug}
                     loading={isProductUpdated}
                 />
-                {/* <RejectProductModal
+                <RejectProductModal
                     isOpen={isRejectModalOpen}
                     onClose={() => setIsRejectModalOpen(false)}
-                    onConfirm={() => {
-                        // Implement the reject product logic here, such as calling an API endpoint to update the product status to "rejected"
-                        // After successful rejection, you can refetch the product details to reflect the updated status
-                        toast.success("Product rejected successfully!");
-                    }}
-                    slug={product?.slug}
-                /> */}
+                    onConfirm={handleReject}
+                    productName={product?.productName}
+                    loading={isProductRejected}
+                />
             </div>
         </DashboardLayout>
     );
