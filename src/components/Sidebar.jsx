@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { FiMenu, FiX } from "react-icons/fi";
 import Link from "next/link";
+import BrandLogo from "@/components/BrandLogo";
 export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -64,13 +65,13 @@ export default function Sidebar() {
       >
         {/* Close button (mobile) */}
         <div className="flex justify-between items-center p-4 md:hidden">
-          <h2 className="text-lg font-bold">Aba Crafts</h2>
+          <Link href="/" aria-label="Aba Crafts home"><BrandLogo light /></Link>
           <FiX size={24} onClick={() => setIsOpen(false)} />
         </div>
 
         {/* Logo */}
         <div className="hidden md:block p-6 text-xl font-bold border-b border-gray-700">
-          Aba Crafts
+          <Link href="/" aria-label="Aba Crafts home"><BrandLogo light /></Link>
         </div>
 
         {/* Menu */}

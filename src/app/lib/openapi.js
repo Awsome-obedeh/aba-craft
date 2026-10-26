@@ -55,7 +55,7 @@ const openapi = {
     "/products": {
       get: {
         tags: ["Products"], operationId: "listProducts", summary: "Get the live product catalog for AI Automation", security: [],
-        description: "Public database-backed catalog of active, approved, published products with a product slug. Returns all matching products, including out-of-stock items, newest first. Prices are base prices in NGN (naira, not kobo). Category is a display name and id is the MongoDB product ID. productLink is an absolute URL on the API request's origin pointing to /dashboard/products/{slug}; the product page requires sign-in. No authentication is required for this endpoint. Responses are not cached.",
+        description: "Public database-backed catalog of active, approved, published products with a product slug. Returns all matching products, including out-of-stock items, newest first. Prices are base prices in NGN (naira, not kobo). Category is a display name and id is the MongoDB product ID. productLink is an absolute URL on the API request's origin pointing to /market-place/{slug}; the product page requires sign-in. No authentication is required for this endpoint. Responses are not cached.",
         responses: {
           200: response("Product catalog", {
             type: "object", required: ["success", "data", "totalItems"],
@@ -67,7 +67,7 @@ const openapi = {
                 required: ["id", "productName", "slug", "description", "category", "brand", "price", "currency", "quantity", "inStock", "productImages", "productLink"],
                 properties: {
                   id: { type: "string", example: "507f1f77bcf86cd799439011" },
-                  productLink: { type: "string", format: "uri", example: "https://example.com/dashboard/products/leather-oxford-shoes", description: "Absolute link to this product's detail page. Requires sign-in to view." },
+                  productLink: { type: "string", format: "uri", example: "https://example.com/market-place/leather-oxford-shoes", description: "Absolute link to this product's detail page. Requires sign-in to view." },
                   productName: { type: "string", example: "Leather Oxford Shoes" },
                   slug: { type: "string", example: "leather-oxford-shoes" },
                   description: { type: "string" },

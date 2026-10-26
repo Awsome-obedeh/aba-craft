@@ -142,7 +142,7 @@ export default function MyOrdersPage() {
             ) : orders.length === 0 ? (
                 <div className="py-24 text-center text-gray-500">
                     You haven&apos;t placed any orders yet.{" "}
-                    <Link href="/dashboard/products" className="underline">Start shopping →</Link>
+                    <Link href="../market-place" className="underline">Start shopping →</Link>
                 </div>
             ) : (
                 <div className="mt-8 space-y-4">

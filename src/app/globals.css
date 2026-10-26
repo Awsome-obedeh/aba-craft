@@ -1,6 +1,11 @@
 @import "tailwindcss";
 
+.brand-logo { display: block; width: 70px; height: 64px; object-fit: contain; flex-shrink: 0; }
+@media (max-width: 600px) { .brand-logo { width: 60px; height: 56px; } }
+
 :root {
+  --font-cambria: Cambria, "Hoefler Text", Georgia, "Times New Roman", serif;
+  --toastify-font-family: var(--font-cambria);
   --background: #FAF7F2;
   --foreground: #2A2F2D;
 }
@@ -8,9 +13,9 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-inter);
-  --font-serif: var(--font-playfair);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-cambria);
+  --font-serif: var(--font-cambria);
+  --font-mono: var(--font-cambria);
 
   /* Custom Earthy/Artisan Colors */
   --color-clay: #C4572A;
@@ -57,9 +62,9 @@
 
 /* Shared visual language, preserving the original brand palette. */
 @layer base {
-  body { background: var(--background); color: var(--foreground); font-family: var(--font-inter), Arial, sans-serif; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  body { background: var(--background); color: var(--foreground); font-family: var(--font-cambria); line-height: 1.6; -webkit-font-smoothing: antialiased; }
   h1, h2, h3 { letter-spacing: -0.035em; text-wrap: balance; }
-  button, input, select, textarea { font-family: inherit; }
+  button, input, select, textarea { font-family: var(--font-cambria); }
   button:enabled, select { cursor: pointer; }
   :focus-visible { outline: 2px solid #C9A84C; outline-offset: 4px; }
   input, textarea, select { accent-color: #1E3329; }
@@ -68,7 +73,7 @@
 .signup-shell { background-color: #1E3329; }
 .signup-shell > .absolute:first-child { opacity: .45; }
 .signup-shell > section { border-radius: 24px; border: 1px solid rgba(255,255,255,.18); background: #FAF7F2; box-shadow: 0 32px 90px rgba(0,0,0,.25); }
-.signup-shell h1 { font-family: var(--font-playfair), Georgia, serif; letter-spacing: -.035em; line-height: 1.2; }
+.signup-shell h1 { font-family: var(--font-cambria); letter-spacing: -.035em; line-height: 1.2; }
 .signup-shell input:not([type="checkbox"]):not([type="file"]), .signup-shell select, .signup-shell textarea { min-height: 44px; font-size: 14px; border-radius: 10px; }
 .signup-shell input:focus, .signup-shell select:focus, .signup-shell textarea:focus { outline: 2px solid rgba(201,168,76,.4); outline-offset: 2px; }
 .signup-shell section section { box-shadow: 0 4px 18px rgba(30,51,41,.025); }
@@ -92,7 +97,7 @@
   /* Hide the moving bar while letting its configured timer finish. */
   .Toastify__progress-bar--animated { opacity: 0; }
 }
-.storefront .font-serif { font-family: var(--font-playfair), Georgia, serif; font-weight: 600; }
+.storefront .font-serif { font-family: var(--font-cambria); font-weight: 600; }
 .storefront nav { height: 80px; background: rgba(255,255,255,.96); backdrop-filter: blur(16px); }
 .storefront .rounded-2xl { box-shadow: 0 8px 32px rgba(30,51,41,.045); }
 .storefront .group { transition: box-shadow .25s ease; }
@@ -100,11 +105,11 @@
 .storefront h2 { line-height: 1.2; }
 .storefront p { line-height: 1.75; }
 @media (min-width: 1024px) { .storefront section.py-20 { padding-block: 104px; } }
-.account-surface { font-family: var(--font-geist-sans), Arial, sans-serif; }
+.account-surface { font-family: var(--font-cambria); }
 .account-surface :is(input, select, textarea, button, a):focus-visible { outline: 2px solid #C4572A; outline-offset: 3px; }
 .account-surface input[readonly] { background: #FAF7F2; color: #66706B; }
 .account-surface input:disabled, .account-surface textarea:disabled { opacity: .65; }
 
 /* Keep focus visible throughout the inbox without changing other screens. */
-.messaging-surface { font-family: var(--font-geist-sans), Arial, sans-serif; }
+.messaging-surface { font-family: var(--font-cambria); }
 .messaging-surface :is(a, button, input, textarea, [tabindex]):focus-visible { outline: 2px solid #C4572A; outline-offset: 3px; }

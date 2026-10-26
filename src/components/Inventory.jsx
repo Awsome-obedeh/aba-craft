@@ -1,4 +1,6 @@
 import React from 'react';
+import BrandLogo from '@/components/BrandLogo';
+import Link from 'next/link';
 import Image from 'next/image';
 import { MoreVertical, Search, Bell, Globe } from 'lucide-react';
 
@@ -61,7 +63,7 @@ const Inventory = () => {
     <div className="flex min-h-screen bg-[#F3E8FF]">
       {/* Sidebar - Hidden on mobile */}
       <aside className="hidden lg:flex w-64 bg-[#1A1A1A] text-gray-400 flex-col p-6 space-y-8">
-        <h1 className="text-white font-bold text-xl px-2">Aba Crafts</h1>
+        <Link href="/" aria-label="Aba Crafts home"><BrandLogo light /></Link>
         <nav className="space-y-2">
           {["Dashboard Overview", "Upload Product", "My Inventory", "Orders & Leads", "Sales Automation", "Profile & Verification"].map((item) => (
             <div 

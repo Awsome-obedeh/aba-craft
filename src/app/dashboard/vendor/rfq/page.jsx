@@ -33,7 +33,7 @@ export default function RfqInboxPage() {
 
   useEffect(() => {
     if (!user) { router.replace("/auth/sign-in"); return; }
-    if (user.role !== "vendor") { router.replace(user.role === "admin" ? "/dashboard/admin" : "/dashboard/products"); return; }
+    if (user.role !== "vendor") { router.replace(user.role === "admin" ? "/dashboard/admin" : "/market-place"); return; }
     let active = true;
     api.get("/rfqs/vendor", { baseURL: "/api" })
       .then(response => { if (active) { setRequests(response.data.requests); setError(""); } })

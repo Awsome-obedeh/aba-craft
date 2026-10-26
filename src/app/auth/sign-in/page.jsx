@@ -11,6 +11,7 @@ import { FaRegEyeSlash } from "react-icons/fa6";
 import { IoEyeSharp } from "react-icons/io5";
 import { useAuthStore } from "@/app/store/authStore";
 import { api } from "@/app/lib/axios";
+import { buyerEmailError, buyerPasswordError } from "@/app/lib/buyer-validation";
 
 
 export default function LoginPage() {
@@ -22,6 +23,8 @@ export default function LoginPage() {
     const {
         register,
         handleSubmit,
+        setError,
+        clearErrors,
         formState: { errors }
 
     } = useForm();
@@ -29,10 +32,14 @@ export default function LoginPage() {
     const onSubmit = async (data) => {
         try {
             setLoading(true);
-            const res = await api.post('/auth/sign-in', { ...data }, { baseURL: '/api', skipAuthRefresh: true });
+            clearErrors("root");
+            const res = await api.post('/auth/sign-in', { email: data.email.trim().toLowerCase(), password: data.password }, { baseURL: '/api', skipAuthRefresh: true });
 
             // Extract token and user data from backend response
             const { accessToken, user } = res.data;
+            if (!res.data.success || !accessToken || !user?.role) {
+                throw new Error("Sign in could not be completed. Please try again.");
+            }
 
 
             // Save to memory (Zustand) -> Interceptor picks this up immediately
@@ -50,11 +57,11 @@ export default function LoginPage() {
             } else if (user.role === "admin") {
                 next = "/dashboard";
             } else {
-                next = "/dashboard/products";
+                next = "/market-place";
             }
 
             toast.success("Welcome back!");
-            router.push(next);
+            router.replace(next);
         } catch (error) {
             // Server replied with EMAIL_NOT_VERIFIED — send them back to the
             // verify screen rather than dumping a generic toast.
@@ -65,7 +72,7 @@ export default function LoginPage() {
                 return;
             }
 
-            
+            setError("root.server", { message: error.response?.data?.message || (error.request ? "Network error. Check your internet connection." : error.message || "Unable to sign in. Please try again.") });
             if (error.response) {
                 toast.error(error.response.data?.message || "Something went wrong");
             } else if (error.request) {
@@ -98,7 +105,7 @@ export default function LoginPage() {
                 )}
                 <h1 id="login-title" className="text-3xl font-semibold tracking-tight text-black">Welcome back</h1>
                 <p className="mt-1 max-w-sm text-sm leading-relaxed text-neutral-600">
-                    Log in to your account to start selling your leather goods<br className="hidden sm:block" /> on Aba Crafts
+                    Sign in to shop handcrafted goods or manage your business on Aba Crafts.
                 </p>
                 <form className="mt-6" onSubmit={handleSubmit(onSubmit)} noValidate aria-busy={loading}>
                     <div>
@@ -107,7 +114,7 @@ export default function LoginPage() {
                             <Mail size={15} className="shrink-0 text-neutral-500" aria-hidden="true" />
                             <input id="email" type="email" autoComplete="username" aria-invalid={!!errors.email} aria-describedby={errors.email ? "email-error" : undefined}
                                 className="min-w-0 flex-1 bg-transparent py-3 text-sm text-neutral-900 outline-none focus-visible:outline-none" placeholder="Enter your email address"
-                                {...register("email", { required: "Email is required", pattern: { value: /^\S+@\S+$/i, message: "Invalid email address" } })}
+                                {...register("email", { validate: (value) => buyerEmailError(value) || true })}
                             />
                         </div>
                         {errors.email && <p id="email-error" role="alert" className="mt-1 text-xs text-red-600">{errors.email.message}</p>}
@@ -118,7 +125,7 @@ export default function LoginPage() {
                             <LockKeyhole size={15} className="shrink-0 text-neutral-500" aria-hidden="true" />
                             <input id="password" type={showPassword ? "text" : "password"} autoComplete="current-password" aria-invalid={!!errors.password} aria-describedby={errors.password ? "password-error" : undefined}
                                 className="min-w-0 flex-1 bg-transparent py-3 text-sm text-neutral-900 outline-none focus-visible:outline-none" placeholder="Enter your password"
-                                {...register("password", { required: "Password is required", minLength: { value: 8, message: "Password must be at least 8 characters long" } })}
+                                {...register("password", { validate: (value) => buyerPasswordError(value) || true })}
                             />
                             <button type="button" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? "Hide password" : "Show password"} aria-pressed={showPassword} className="flex size-11 shrink-0 items-center justify-center rounded text-neutral-500 hover:text-neutral-900">
                                 {showPassword ? <IoEyeSharp size={17} aria-hidden="true" /> : <FaRegEyeSlash size={17} aria-hidden="true" />}
@@ -129,6 +136,7 @@ export default function LoginPage() {
                     <div className="mt-2 text-right">
                         <Link href="/auth/forgot-password" className="inline-block py-1 text-xs text-neutral-700 hover:underline">Forgot password?</Link>
                     </div>
+                    {errors.root?.server && <p role="alert" className="mt-4 text-sm text-red-600">{errors.root.server.message}</p>}
                     <div className="mt-7 flex flex-col items-center sm:ml-auto sm:w-64">
                         <button type="submit" disabled={loading} className="min-h-10 w-full rounded bg-[#b39126] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#9b7c1d] disabled:cursor-wait disabled:opacity-60">
                             {loading ? "Logging in..." : "Login"}

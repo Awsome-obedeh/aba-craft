@@ -46,7 +46,7 @@ export default function CartPage() {
             {items.length === 0 ? (
                 <div className="py-20 text-center">
                     <p className="text-gray-500">Your cart is empty.</p>
-                    <Link href="/dashboard/products" className="inline-block mt-4 bg-black text-white px-5 py-2 rounded-md text-sm">
+                    <Link href="/market-place" className="inline-block mt-4 bg-black text-white px-5 py-2 rounded-md text-sm">
                         Continue shopping
                     </Link>
                 </div>
@@ -61,7 +61,7 @@ export default function CartPage() {
                                         {item.image && <Image src={item.image} alt={item.name} fill className="object-cover" />}
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <Link href={`/dashboard/products/${item.slug}`} className="font-medium hover:underline line-clamp-1">
+                                        <Link href={`/market-place/${item.slug}`} className="font-medium hover:underline line-clamp-1">
                                             {item.name}
                                         </Link>
                                         <p className="text-xs text-gray-500">{item.brand}</p>

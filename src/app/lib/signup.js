@@ -28,8 +28,13 @@ async function post(path, data) {
 export const sendSignupCode = (email) =>
   post("/auth/send-code", { email });
 
+export const registerBuyer = (email, password) =>
+  post("/auth/sign-up", { email, password, role: "customer" });
+
 export const verifySignupCode = (email, otp) =>
   post("/auth/verify", { email, otp });
+
+export const completeBuyerSignup = (data) => post("/auth/buyer-signup", data);
 
 export function scanSignupDocument(data, file, purpose) {
   const body = new FormData();

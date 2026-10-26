@@ -1,10 +1,6 @@
-import React from 'react'
+import MarketplaceProductDetail from "@/components/marketplace/MarketplaceProductDetail";
 
-export default function SingleMarketPlaceProductPage() {
-  return (
-    <div>
-      <h1>Single Market Place Product</h1>
-      <p>Here is the page for a single product in the market place.</p>
-    </div>
-  )
+export default async function SingleMarketPlaceProductPage({ params }) {
+  const { slug } = await params;
+  return <MarketplaceProductDetail key={slug} slug={slug} />;
 }

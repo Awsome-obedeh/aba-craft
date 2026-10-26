@@ -92,7 +92,7 @@ function SuccessInner() {
                 )}
                 <div className="mt-8 flex flex-col gap-2">
                     {state === "success" && (
-                        <Link href="/dashboard/products" className="bg-black text-white py-3 rounded-md font-medium">Continue shopping</Link>
+                        <Link href="/market-place" className="bg-black text-white py-3 rounded-md font-medium">Continue shopping</Link>
                     )}
                     {state === "failed" && (
                         <Link href="/account/orders" className="bg-black text-white py-3 rounded-md font-medium">Retry payment</Link>

@@ -1,0 +1,35 @@
+.backdrop { position:fixed; inset:0; z-index:100; overflow:auto; padding:32px 20px; background:#0007; display:flex; align-items:flex-start; justify-content:center; }
+.popup { width:100%; max-width:1040px; background:#f5f5f5; border-radius:16px; padding:14px 14px 26px; box-shadow:0 20px 70px #0003; color:#333; font-family: var(--font-cambria); max-height:calc(100dvh - 64px); overflow:auto; }
+.top { display:flex; align-items:center; gap:9px; }
+.search { flex:1; min-width:0; display:flex; align-items:center; border:1px solid #aaa; background:white; border-radius:30px; padding-left:23px; color:#999; }
+.search input { flex:1; min-width:0; background:none; border:0; padding:13px 19px; font-size:15px; color:#333; outline:none; }
+.search:focus-within { border-color:#b39126; box-shadow:0 0 0 2px #b3912622; }
+.search button { padding:13px 29px; background:#b39126; color:white; border-radius:30px; font-size:14px; }
+.close { display:flex; width:32px; height:32px; align-items:center; justify-content:center; border-radius:50%; color:#777; }
+.close:hover { background:#e5e5e5; }
+.mode { display:flex; gap:15px; width:fit-content; margin:0 auto 28px; background:white; padding:10px 12px; border-radius:0 0 12px 12px; }
+.mode button { min-width:120px; padding:7px 17px; font-size:12px; border:1px solid #888; border-radius:22px; background:#e9e9e9; }
+.mode button[aria-pressed=true] { background:#b39126; color:white; border-color:#b39126; }
+.suggestions { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px; background:white; padding:14px 12px; border-radius:8px; margin:0 6px 26px; }
+.product { display:flex; align-items:center; gap:13px; min-width:0; border-radius:6px; padding:2px; }
+.product:hover { background:#faf7ef; }
+.product img { width:55px; height:55px; border-radius:12px; object-fit:contain; flex-shrink:0; background:#f4f2ee; }
+.productText { min-width:0; display:flex; flex-direction:column; gap:5px; font-size:12px; }
+.productText>span:first-child { overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+.productText strong { font-size:13px; font-weight:600; }
+.stars { display:flex; gap:2px; align-items:center; color:#b39126; }
+.stars span { color:#444; font-size:10px; margin-left:4px; white-space:nowrap; }
+.history { background:white; border-radius:12px; padding:26px 32px 36px; }
+.heading { display:flex; align-items:center; justify-content:space-between; gap:15px; margin-bottom:38px; }
+.heading h3 { font-size:23px; font-weight:500; }
+.heading button { color:#b39126; font-size:17px; white-space:nowrap; }
+.heading button:disabled { opacity:.5; }
+.chips { display:flex; flex-wrap:wrap; gap:16px 12px; }
+.chips button { max-width:100%; overflow-wrap:anywhere; padding:7px 12px; border-radius:25px; background:#e9e9e9; font-size:14px; line-height:1.3; }
+.chips button:hover { background:#efe4bf; }
+.history section+section { margin-top:48px; }
+.hint { color:#888; font-size:13px; }
+.empty { grid-column:1/-1; color:#777; text-align:center; font-size:13px; padding:15px; }
+.popup button:focus-visible,.popup a:focus-visible { outline:2px solid #b39126; outline-offset:3px; }
+@media(max-width:700px) { .backdrop { padding:12px 8px; }.popup { padding:10px 8px 15px; max-height:calc(100dvh - 24px); }.search { padding-left:14px; }.search input { font-size:12px; padding:12px 10px; }.search button { padding:12px 18px; font-size:12px; }.mode { margin-bottom:20px; gap:12px; }.mode button { min-width:100px; font-size:11px; }.suggestions { gap:12px; padding:12px; margin:0 0 18px; grid-template-columns:repeat(2,minmax(0,1fr)); }.product:last-child { display:none; }.productText { font-size:10px; }.productText strong { font-size:12px; }.product img { width:42px; height:42px; }.stars svg { width:9px; }.stars span { font-size:9px; }.history { padding:24px 18px 30px; }.heading { margin-bottom:28px; }.heading h3 { font-size:18px; }.heading button { font-size:14px; }.chips { gap:13px 9px; }.chips button { font-size:12px; padding:7px 10px; }.history section+section { margin-top:35px; } }
+@media(max-width:380px) { .suggestions { grid-template-columns:1fr; }.product:last-child { display:flex; }.productText { font-size:12px; }.heading h3 { font-size:16px; }.search button { padding-inline:13px; } }

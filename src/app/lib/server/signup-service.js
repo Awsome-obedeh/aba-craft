@@ -939,27 +939,35 @@ export function createSignupService({
 
     if (existing) {
       throw new SignupError(
-        "An account with this email already exists. Sign in or resend your verification code.",
+        "email already exist error",
         409
       );
     }
 
-    await User.create({
-      email,
-
-      password,
-
-      role:
-        "customer",
-
-      emailVerified:
-        false,
-    });
+    let createdUser;
+    try {
+      createdUser = await User.create({
+        email,
+        password,
+        role: "customer",
+        emailVerified: false,
+        onBoardingStatus: "completed",
+      });
+    } catch (error) {
+      if (error.code === 11000) throw new SignupError("email already exist error", 409);
+      throw error;
+    }
 
     /*
      * Send verification email after creating customer.
      */
-    return sendCode(email);
+    try {
+      return await sendCode(email);
+    } catch (error) {
+      // A failed initial email must not leave the buyer unable to retry signup.
+      await User.deleteOne({ _id: createdUser._id, emailVerified: false });
+      throw error;
+    }
   }
 
   /**
@@ -967,10 +975,50 @@ export function createSignupService({
    * PUBLIC SERVICE METHODS
    * ======================================================
    */
+  async function registerVerifiedCustomer(body) {
+    const email = normalizeEmail(body?.email);
+    const rawPassword = validatePassword(body?.password);
+    if (rawPassword !== body?.confirmPassword) {
+      throw new SignupError("Passwords must match.");
+    }
+    if (typeof body?.verificationToken !== "string" || !/^[a-f0-9]{64}$/.test(body.verificationToken)) {
+      throw new SignupError("Verify your email before creating your password.");
+    }
+    const proofHash = hashSecret(body.verificationToken);
+    await connect();
+    const existing = await User.findOne({ email }).select("+signupProofHash");
+    if (existing) {
+      if (existing.role === "customer" && existing.signupProofHash === proofHash) {
+        return { success: true, message: "Your buyer account has been created. Please sign in." };
+      }
+      throw new SignupError("email already exist error", 409);
+    }
+    const password = await bcrypt.hash(rawPassword, 12);
+    const challenge = await Challenge.findOneAndUpdate({
+      email, proofHash, proofExpiresAt: { $gt: new Date() }, usedAt: { $exists: false },
+    }, { $set: { usedAt: new Date() } }, { returnDocument: "after" });
+    if (!challenge) throw new SignupError("Your email verification has expired or was already used. Verify your email again.", 400);
+    try {
+      await User.create({ email, password, role: "customer", emailVerified: true,
+        onBoardingStatus: "completed", signupProofHash: proofHash });
+    } catch (error) {
+      // Restore proof only when the write definitely did not commit.
+      const committed = await User.findOne({ email }).select("+signupProofHash");
+      if (committed?.role === "customer" && committed.signupProofHash === proofHash) {
+        return { success: true, message: "Your buyer account has been created. Please sign in." };
+      }
+      await Challenge.updateOne({ _id: challenge._id, proofHash }, { $unset: { usedAt: "" } });
+      if (error.code === 11000) throw new SignupError("email already exist error", 409);
+      throw error;
+    }
+    return { success: true, message: "Your buyer account has been created. Please sign in." };
+  }
+
   return {
     sendCode,
     verifyCode,
     registerSeller,
     registerCustomer,
+    registerVerifiedCustomer,
   };
 }

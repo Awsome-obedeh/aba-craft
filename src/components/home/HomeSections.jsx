@@ -1,9 +1,10 @@
 import Image from 'next/image';
+import BrandLogo from '@/components/BrandLogo';
 import Link from 'next/link';
 import { ArrowUpRight, ArrowRight, ShieldCheck, HandHeart, Truck, BadgeCheck, ShoppingBag, Menu, Scissors } from 'lucide-react';
 import s from './home.module.css';
 
-const shop = '/dashboard/products';
+const shop = '/';
 const products = [
   { name: 'Leather Handbags', image: 'bag', description: 'Made to carry your everyday.', search: 'handbag', tag: 'HANDCRAFTED' },
   { name: 'Premium Leather Shoes', image: 'shoes', description: 'A better step, beautifully made.', search: 'shoes', tag: 'TIMELESS STYLE' },
@@ -16,15 +17,16 @@ function Photo({ name, alt, className = '', hero = false }) {
   return <div className={`${s.photo} ${className}`}><Image src={`/images/home/${name}.webp`} alt={alt} fill sizes={hero ? '(max-width: 700px) 100vw, 50vw' : '(max-width: 700px) 50vw, 30vw'} preload={hero} /></div>;
 }
 function Eyebrow({ children }) { return <p className={s.eyebrow}>{children}</p>; }
-function Button({ children, href = shop, light = false, gold = false }) {
+function Button({ children, href = "/auth/sign-in", light = false, gold = false }) {
   return <Link className={`${s.button} ${light ? s.buttonLight : ''} ${gold ? s.buttonGold : ''}`} href={href}>{children}<ArrowUpRight size={16} /></Link>;
 }
 function TextLink({ children, href = shop }) { return <Link className={s.textLink} href={href}>{children}<ArrowUpRight size={15} /></Link>; }
-function Brand() { return <Link href="/" className={s.brand} aria-label="AbaCraft home"><span className={s.brandMark}><Image src="/aba-crafts-logo.PNG" width={40} height={40} alt="logo picture"/></span><span>AbaCraft<span className={s.brandDot}>.</span></span></Link>; }
+function Brand({ light = false }) { return <Link href="/" className={s.brand} aria-label="AbaCraft home"><BrandLogo light={light} /></Link>; }
 
 export function HomeHeader() {
   const links = [['Home', '/'], ['Collections', '#collections'], ['How it works', '#how-it-works'], ['Our story', '#our-story']];
-  return <header className={s.header}><div className={`${s.container} ${s.nav}`}><Brand /><nav aria-label="Main navigation" className={s.desktopNav}>{links.map(([label, href]) => <Link href={href} key={label}>{label}</Link>)}</nav><div className={s.navActions}><Link className={s.sellLink} href="/auth/sign-up">Become a seller <ArrowUpRight size={14} /></Link><Button gold>Shop now</Button></div><details className={s.mobileMenu}><summary aria-label="Open navigation"><Menu size={25} /></summary><nav aria-label="Mobile navigation">{links.map(([label, href]) => <Link href={href} key={label}>{label}</Link>)}<Link href="/auth/sign-up">Become a seller</Link><Link href={shop}>Shop now</Link></nav></details></div></header>;
+  return <header className={s.header}><div className={`${s.container} ${s.nav}`}><Brand /><nav aria-label="Main navigation" className={s.desktopNav}>{links.map(([label, href]) => <Link href={href} key={label}>{label}</Link>)}</nav><div className={s.navActions}><Link className={s.sellLink} href="/auth/sign-up">Become a seller <ArrowUpRight size={14} /></Link><Button gold>Shop now</Button></div><details className={s.mobileMenu}><summary aria-label="Open navigation"><Menu size={25} /></summary><nav aria-label="Mobile navigation">{links.map(([label, href]) => <Link href={href} key={label}>{label}</Link>)}<Link href="/auth/sign-up">Become a seller</Link>
+  <Link href="/auth/customer-signup">Shop now</Link></nav></details></div></header>;
 }
 
 export function Hero() {
@@ -60,6 +62,6 @@ export function ArtisanStory() {
 export function ShopBanner() { return <section className={`${s.container} ${s.bannerWrap}`}><div className={s.banner}><div><Eyebrow>YOUR NEXT FAVOURITE IS WAITING</Eyebrow><h2>Ready to discover something made in Aba?</h2><p>A little more character. A little more care. Find quality pieces with a story worth carrying.</p></div><Button gold>Start shopping</Button></div></section>; }
 
 export function HomeFooter() {
-  return <footer className={s.footer}><div className={s.container}><div className={s.footerTop}><div className={s.footerAbout}><Brand /><p>Authentic craftsmanship. Everyday quality.<br />{' '}Made in Aba, for you and the world.</p><span className={s.footerMade}>LOCAL HANDS. LASTING QUALITY.</span></div><div><h3>SHOP</h3>{products.map(item => <Link key={item.name} href={productUrl(item.search)}>{item.name.replace('Premium ', '')}</Link>)}</div><div><h3>ABOUT</h3><Link href="#our-story">Our story</Link><Link href="#how-it-works">How it works</Link><Link href="/auth/sign-up">Become a seller</Link></div><div><h3>YOUR ACCOUNT</h3><Link href="/auth/sign-in">Sign in</Link><Link href="/account/orders">Your orders</Link><Link href="/cart">Shopping bag <ArrowRight size={12} /></Link></div></div><div className={s.footerBottom}><span>© {new Date().getFullYear()} AbaCraft. All rights reserved.</span><span>Proudly crafted in Aba, Nigeria.</span></div></div></footer>;
+  return <footer className={s.footer}><div className={s.container}><div className={s.footerTop}><div className={s.footerAbout}><Brand light /><p>Authentic craftsmanship. Everyday quality.<br />{' '}Made in Aba, for you and the world.</p><span className={s.footerMade}>LOCAL HANDS. LASTING QUALITY.</span></div><div><h3>SHOP</h3>{products.map(item => <Link key={item.name} href={productUrl(item.search)}>{item.name.replace('Premium ', '')}</Link>)}</div><div><h3>ABOUT</h3><Link href="#our-story">Our story</Link><Link href="#how-it-works">How it works</Link><Link href="/auth/sign-up">Become a seller</Link></div><div><h3>YOUR ACCOUNT</h3><Link href="/auth/sign-in">Sign in</Link><Link href="/account/orders">Your orders</Link><Link href="/cart">Shopping bag <ArrowRight size={12} /></Link></div></div><div className={s.footerBottom}><span>© {new Date().getFullYear()} AbaCraft. All rights reserved.</span><span>Proudly crafted in Aba, Nigeria.</span></div></div></footer>;
 }
 

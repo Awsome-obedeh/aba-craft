@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import BrandLogo from "@/components/BrandLogo";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { LayoutDashboard, PackagePlus, Boxes, ShoppingBag, ClipboardList, UserRound, Settings, LogOut, Menu, X, MessageCircle, Wallet, Users, ShieldCheck } from "lucide-react";
@@ -14,6 +15,7 @@ const linksByRole = {
     // { label: "Upload Product", href: "/dashboard/vendor/upload-product", icon: PackagePlus },
     // { label: "My Inventory", href: "/dashboard/vendor/inventory", icon: Boxes },
     { label: "My Products", href: "/dashboard/vendor/products", icon: ShoppingBag },
+    { label: "RFQ", href: "/dashboard/vendor/rfq", icon: ShoppingBag },
     { label: "Messages", href: "/dashboard/messages", icon: MessageCircle },
     { label: "Orders & Sales", href: "/dashboard/vendor/orders", icon: ClipboardList },
     { label: "Finances and Escrow", href: "/dashboard/vendor/settlements", icon: Wallet },
@@ -27,12 +29,13 @@ const linksByRole = {
     { label: "Dashboard", href: "/dashboard/admin", icon: LayoutDashboard },
     { label: "Manage Vendors", href: "/dashboard/admin/vendors", icon: UserRound },
     { label: "Approve Products", href: "/dashboard/admin/publish-products", icon: ClipboardList },
-    { label: "Products", href: "/dashboard/products", icon: ShoppingBag },
+    { label: "Products", href: "/dashboard/admin/products", icon: ShoppingBag },
+    { label: "Products", href: "/dashboard/admin/products", icon: ShoppingBag },
     { label: "Escrow & Payouts", href: "/dashboard/admin/settlements", icon: Wallet },
     { label: "User Management", href: "/dashboard/admin/users", icon: Users },
   ],
   customer: [
-    { label: "Browse Products", href: "/dashboard/products", icon: ShoppingBag },
+    { label: "Browse Products", href: "/market-place", icon: ShoppingBag },
     { label: "Messages", href: "/dashboard/messages", icon: MessageCircle },
     { label: "My Orders", href: "/dashboard/buyer/orders", icon: ClipboardList },
     { label: "Wishlist & Preferences", href: "/dashboard/buyer/wishlist", icon: UserRound },
@@ -59,7 +62,7 @@ export default function Sidebar({ role }) {
     {open && <button type="button" aria-label="Close dashboard menu" onClick={() => setOpen(false)} className="fixed inset-0 z-40 bg-black/40 lg:hidden" />}
     <aside className={`fixed inset-y-0 left-0 z-50 flex w-[244px] flex-col border-r border-brandBorder bg-white transition-transform duration-300 ${open ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0`}>
       <div className="flex h-[76px] items-center justify-between border-b border-brandBorder px-6">
-        <Link href="/" className="font-serif text-2xl font-bold tracking-tight text-forest">Aba Crafts<span className="text-gold">.</span></Link>
+        <Link href="/" aria-label="Aba Crafts home"><BrandLogo /></Link>
         <button type="button" aria-label="Close dashboard menu" onClick={() => setOpen(false)} className="lg:hidden"><X size={20} /></button>
       </div>
       <nav aria-label="Dashboard navigation" className="flex-1 space-y-1 px-3 py-6">

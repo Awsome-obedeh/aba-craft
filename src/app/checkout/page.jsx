@@ -66,7 +66,7 @@ export default function CheckoutPage() {
             <DashboardLayout role="customer" email={user.email}>
                 <div className="py-32 text-center">
                     <p className="text-gray-500">Your cart is empty.</p>
-                    <Link href="/dashboard/products" className="inline-block mt-4 bg-black text-white px-5 py-2 rounded-md text-sm">
+                    <Link href="../market-place" className="inline-block mt-4 bg-black text-white px-5 py-2 rounded-md text-sm">
                         Browse products
                     </Link>
                 </div>

@@ -38,7 +38,7 @@ export function BuyerEmpty({ title, children }) {
       <DesignIcon name="imgUiAnnotationPlus" size={36} />
       <h2>{title}</h2>
       <p>{children}</p>
-      <Link className="buyer-button" href="/dashboard/products">
+      <Link className="buyer-button" href="/market-place">
         Continue Shopping
       </Link>
     </div>
@@ -292,7 +292,7 @@ function Collections({ section, data, refresh }) {
               />
               <div className="buyer-row-info">
                 <h2>
-                  <Link href={`/dashboard/products/${product.slug}`}>
+                  <Link href={`/market-place/${product.slug}`}>
                     {product.productName}
                   </Link>
                 </h2>

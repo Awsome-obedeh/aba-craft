@@ -58,6 +58,10 @@ function fixture() {
         state[collection].push(...values);
         return Array.isArray(input) ? values : values[0];
       },
+      async deleteOne(filter) {
+        const index = state[collection].findIndex((row) => matches(row, filter));
+        if (index >= 0) state[collection].splice(index, 1);
+      },
     };
   }
   const service = createSignupService({
@@ -129,6 +133,58 @@ test("valid OTP returns opaque proof without creating a seller", async () => {
   assert.match(token, /^[a-f0-9]{64}$/);
   assert.equal(f.state().challenges[0].proofHash, hashSecret(token));
   assert.equal(f.state().users.length, 0);
+});
+
+test("buyer registration persists hashed credentials before verification and rejects duplicate emails", async () => {
+  const f = fixture();
+  const body = { email: " Buyer@Example.com ", password: "BuyerSecret123!", role: "customer" };
+  await f.service.registerCustomer(body);
+  const user = f.state().users[0];
+  assert.equal(user.email, "buyer@example.com");
+  assert.equal(user.role, "customer");
+  assert.equal(user.emailVerified, false);
+  const { default: bcrypt } = await import("bcryptjs");
+  assert.equal(await bcrypt.compare(body.password, user.password), true);
+  await assert.rejects(f.service.registerCustomer({ ...body, email: "buyer@example.com" }), (error) => error.status === 409 && error.message === "email already exist error");
+  assert.equal(f.state().users.length, 1);
+  await f.service.verifyCode(user.email, f.events.emails[0].code);
+  assert.equal(f.state().users[0].emailVerified, true);
+});
+
+test("buyer registration removes its unverified user if initial email delivery fails", async () => {
+  const f = fixture();
+  f.failures.mail = true;
+  await assert.rejects(f.service.registerCustomer({ email: "buyer@example.com", password: "BuyerSecret123!", role: "customer" }), (error) => error.status === 503);
+  assert.equal(f.state().users.length, 0);
+});
+
+test("buyer password creation consumes proof, hashes password, forces customer role and accepts a retry", async () => {
+  const f = fixture();
+  const verificationToken = await verified(f);
+  const body = { email: "seller@example.com", password: "BuyerSecret123!", confirmPassword: "BuyerSecret123!", verificationToken, role: "admin" };
+  assert.equal((await f.service.registerVerifiedCustomer(body)).success, true);
+  const user = f.state().users[0];
+  assert.equal(user.role, "customer");
+  assert.equal(user.emailVerified, true);
+  assert.equal(user.onBoardingStatus, "completed");
+  const { default: bcrypt } = await import("bcryptjs");
+  assert.equal(await bcrypt.compare(body.password, user.password), true);
+  assert.ok(f.state().challenges[0].usedAt);
+  assert.equal((await f.service.registerVerifiedCustomer(body)).success, true);
+  assert.equal(f.state().users.length, 1);
+});
+
+test("buyer signup rejects mismatched passwords, wrong email, expired proof and replaced proof", async () => {
+  const f = fixture();
+  const verificationToken = await verified(f);
+  const body = { email: "seller@example.com", password: "BuyerSecret123!", confirmPassword: "BuyerSecret123!", verificationToken };
+  await assert.rejects(f.service.registerVerifiedCustomer({ ...body, confirmPassword: "different" }));
+  await assert.rejects(f.service.registerVerifiedCustomer({ ...body, email: "other@example.com" }));
+  await assert.rejects(f.service.registerVerifiedCustomer({ ...body, verificationToken: "a".repeat(64) }));
+  f.state().challenges[0].proofExpiresAt = new Date(0);
+  await assert.rejects(f.service.registerVerifiedCustomer(body));
+  assert.equal(f.state().users.length, 0);
+  assert.equal(f.state().challenges[0].usedAt, undefined);
 });
 
 test("final signup writes both records, hides raw BVN, and safely accepts a retry", async () => {
