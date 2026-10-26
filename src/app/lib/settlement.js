@@ -8,6 +8,7 @@ import { postPayout } from "@/app/lib/ledger";
 import { enqueueNotification } from "@/app/lib/notifications";
 import {
     createTransferRecipient,
+    getTransferRecipientAccountName,
     verifyTransferRecipient,
     initiateTransfer,
 } from "@/app/lib/paystack";
@@ -70,11 +71,12 @@ async function getRecipientCode(vendorId) {
     // Confirm the account name matches what the vendor gave us. Without this we
     // could pay a mistyped account number.
     const verified = await verifyTransferRecipient(code);
-    if (!verified.ok || verified.data?.status !== true) {
+    const accountName = getTransferRecipientAccountName(verified);
+    if (!verified.ok || verified.data?.status !== true || !accountName) {
         return { ok: false, reason: "Recipient verification failed; check account details" };
     }
 
-    return { ok: true, code, accountName: verified.data.data?.account_name };
+    return { ok: true, code, accountName };
 }
 
 /** Create a pending settlement batch from a set of released vendor orders. */

@@ -207,6 +207,16 @@ export default function EscrowCard({ orderId, item, onChanged, role = "customer"
                 </p>
             )}
 
+            {role === "vendor" && item.canConfirmDelivery && (
+                <button
+                    onClick={() => act("confirm-delivery")}
+                    disabled={busy}
+                    className="mt-2 bg-amber-600 text-white px-3 py-1.5 rounded-md text-xs font-semibold disabled:opacity-50"
+                >
+                    {busy ? "Confirming…" : "Confirm delivery"}
+                </button>
+            )}
+
             {role === "customer" && item.canConfirmReceipt && (
                 <button
                     onClick={() => act("confirm-receipt")}

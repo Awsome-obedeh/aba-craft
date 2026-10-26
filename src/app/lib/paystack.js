@@ -79,6 +79,12 @@ export const verifyTransferRecipient = async (recipientCode) => {
     });
 };
 
+export const getTransferRecipientAccountName = (response) => {
+    const recipient = response?.data?.data ?? response?.data ?? response;
+    const accountName = recipient?.details?.account_name ?? recipient?.account_name;
+    return typeof accountName === "string" ? accountName.trim() : "";
+};
+
 // Send money to a recipient. Amount is in kobo, matching our ledger.
 export const initiateTransfer = async ({ amount, recipientCode, reference, reason }) => {
     return paystackRequest("/transfer", {
