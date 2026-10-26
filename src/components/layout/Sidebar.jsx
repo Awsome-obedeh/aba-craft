@@ -16,6 +16,7 @@ const linksByRole = {
     { label: "My Products", href: "/dashboard/vendor/products", icon: ShoppingBag },
     { label: "Messages", href: "/dashboard/messages", icon: MessageCircle },
     { label: "Orders & Sales", href: "/dashboard/vendor/orders", icon: ClipboardList },
+    { label: "Payouts", href: "/dashboard/vendor/settlements", icon: Wallet },
     { label: "Profile & Verification", href: "/dashboard/vendor/profile", icon: UserRound },
     { label: "Business Verification", href: "/dashboard/vendor/verification", icon: ShieldCheck },
    

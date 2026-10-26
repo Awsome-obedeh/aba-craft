@@ -135,7 +135,25 @@ export default function VendorOrdersPage() {
         if (!next) return;
         try {
             setUpdating(order._id);
+
+            // The order status on the parent document is not enough for escrow:
+            // a vendor updates their per-vendor fulfilment state and, once the
+            // item is delivered, confirms delivery so the buyer sees the timer.
+            await api.post(`/orders/${order._id}/escrow`, {
+                action: "advance-fulfillment",
+                nextStatus: next,
+            });
+
+            if (next === "delivered") {
+                await api.post(`/orders/${order._id}/escrow`, {
+                    action: "confirm-delivery",
+                });
+            }
+
+            // Keep the parent order's customer-facing status in sync with the
+            // vendor-specific fulfilment state displayed on this page.
             await api.patch(`/orders/${order._id}`, { status: next });
+
             toast.success(`Marked as ${fmt(next)}`);
             await load();
         } catch (err) {

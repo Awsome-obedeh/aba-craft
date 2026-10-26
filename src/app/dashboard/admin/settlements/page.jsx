@@ -394,11 +394,11 @@ export default function AdminSettlementsPage() {
                                             className="border rounded-xl p-4 bg-white flex flex-wrap items-center justify-between gap-3"
                                         >
                                             <div>
-                                                <p className="text-sm font-mono font-semibold">
-                                                    {a.code}
+                                                <p className="text-sm font-semibold">
+                                                    {a.name || a.code.replaceAll("_", " ").toLowerCase()}
                                                 </p>
                                                 <p className="text-xs text-gray-500">
-                                                    {a.label}
+                                                    Normal balance: {fmt(a.normalBalance)}
                                                 </p>
                                             </div>
                                             <div className="text-right">

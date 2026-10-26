@@ -11,7 +11,11 @@ import connectDB from "@/app/lib/connect";
 import { verifyAuth } from "@/app/lib/verifyAuth";
 import VendorRecipient from "@/models/VendorRecipient";
 import { NextResponse } from "next/server";
-import { createTransferRecipient, verifyTransferRecipient } from "@/app/lib/paystack";
+import {
+    createTransferRecipient,
+    getTransferRecipientAccountName,
+    verifyTransferRecipient,
+} from "@/app/lib/paystack";
 
 export const dynamic = "force-dynamic";
 
@@ -98,19 +102,37 @@ async function saveRecipient(req) {
         // Confirm the resolved account name matches. This is what stops us
         // paying a mistyped account number.
         const verified = await verifyTransferRecipient(code);
-        const paystackAccountName = verified?.data?.data?.account_name || "";
+        const paystackAccountName = getTransferRecipientAccountName(verified);
         const nameMatches =
             paystackAccountName &&
             paystackAccountName.replace(/\s/g, "").toLowerCase() ===
                 String(accountName).replace(/\s/g, "").toLowerCase();
 
-        if (!verified.ok || verified.data?.status !== true || !nameMatches) {
+        if (!verified.ok || verified.data?.status !== true) {
             return NextResponse.json(
                 {
                     success: false,
-                    message: paystackAccountName
-                        ? `Account name mismatch: Paystack has "${paystackAccountName}" on this account`
-                        : verified.data?.message || "Could not verify this account with Paystack",
+                    message: verified.data?.message || "Could not verify this account with Paystack",
+                },
+                { status: 400 }
+            );
+        }
+
+        if (!paystackAccountName) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    message: "Paystack retrieved the recipient but did not return a bank account name to verify. Please contact support.",
+                },
+                { status: 400 }
+            );
+        }
+
+        if (!nameMatches) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    message: `Account name mismatch: Paystack has "${paystackAccountName}" on this account`,
                 },
                 { status: 400 }
             );
