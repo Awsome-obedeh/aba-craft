@@ -7,6 +7,7 @@
 import connectDB from "@/app/lib/connect";
 import { verifyAuth } from "@/app/lib/verifyAuth";
 import VendorOrder, { ESCROW } from "@/models/VendorOrder";
+import Order from "@/models/Order";
 import Settlement from "@/models/Settlement";
 import mongoose from "mongoose";
 import { NextResponse } from "next/server";
@@ -49,6 +50,33 @@ export async function GET(req) {
             .limit(50)
             .lean();
 
+        const settlementVendorOrderIds = settlements.flatMap((settlement) =>
+            settlement.vendorOrderIds || []
+        );
+        const settlementVendorOrders = settlementVendorOrderIds.length
+            ? await VendorOrder.find({
+                _id: { $in: settlementVendorOrderIds },
+                vendorId,
+            })
+                .select("orderId items")
+                .lean()
+            : [];
+        const settlementOrderIds = [
+            ...new Set(settlementVendorOrders.map((vendorOrder) => String(vendorOrder.orderId))),
+        ];
+        const settlementOrders = settlementOrderIds.length
+            ? await Order.find({ _id: { $in: settlementOrderIds } })
+                .select("orderNo customer shippingAddress")
+                .populate("customer", "fullName")
+                .lean()
+            : [];
+        const orderById = new Map(
+            settlementOrders.map((order) => [String(order._id), order])
+        );
+        const vendorOrdersById = new Map(
+            settlementVendorOrders.map((vendorOrder) => [String(vendorOrder._id), vendorOrder])
+        );
+
         return NextResponse.json({
             success: true,
             data: {
@@ -69,6 +97,22 @@ export async function GET(req) {
                     ...s,
                     netAmountNaira: koboToNaira(s.netAmount),
                     amountSentNaira: koboToNaira(s.amountSent),
+                    orderDetails: (s.vendorOrderIds || []).flatMap((vendorOrderId) => {
+                        const vendorOrder = vendorOrdersById.get(String(vendorOrderId));
+                        const order = vendorOrder
+                            ? orderById.get(String(vendorOrder.orderId))
+                            : null;
+                        if (!vendorOrder || !order) return [];
+
+                        return [{
+                            orderNo: order.orderNo || String(order._id).slice(-8).toUpperCase(),
+                            customerName:
+                                order.customer?.fullName ||
+                                order.shippingAddress?.fullName ||
+                                "Customer",
+                            products: (vendorOrder.items || []).map((item) => item.productName),
+                        }];
+                    }),
                 })),
             },
         });
