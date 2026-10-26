@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import BrandLogo from "@/components/BrandLogo";
 import { useRouter } from "next/navigation";
@@ -179,7 +180,7 @@ export default function Marketplace() {
       <header className={styles.header}>
         <div className={styles.top}>
           <Link href="/market-place" className={styles.logo} aria-label="AbaCraft marketplace"><BrandLogo /></Link>
-          <form role="search" className={styles.search} onSubmit={(event) => { event.preventDefault(); setSearchOpen(true); }}><Search size={16} aria-hidden="true" /><input aria-label="Search products, brands and categories" aria-haspopup="dialog" aria-expanded={searchOpen} aria-controls={searchOpen ? "market-search-popup" : undefined} value={query} onFocus={() => setSearchOpen(true)} onChange={(event) => setQuery(event.target.value)} placeholder="Search products, brands and categories" /><button ref={searchButton} type="submit" aria-haspopup="dialog" aria-expanded={searchOpen}>Search</button></form>
+          <form role="search" className={styles.search} onSubmit={(event) => { event.preventDefault(); setSearchOpen(true); }}><Search size={16} aria-hidden="true" /><input aria-label="Search products, brands and categories" aria-haspopup="dialog" aria-controls={searchOpen ? "market-search-popup" : undefined} value={query} onFocus={() => setSearchOpen(true)} onChange={(event) => setQuery(event.target.value)} placeholder="Search products, brands and categories" /><button ref={searchButton} type="submit" aria-haspopup="dialog" aria-expanded={searchOpen}>Search</button></form>
           <nav aria-label="Account" className={styles.actions}><Link href={user ? "/dashboard/profile" : "/auth/sign-in"}><UserRound size={16} />{user ? `Hi, ${user.fullName?.split(" ")[0] || user.email?.split("@")[0] || "Buyer"}` : "Sign in"}<ChevronDown size={12} /></Link><button type="button" aria-expanded={help} aria-controls="market-help" onClick={() => setHelp(!help)}><CircleHelp size={16} /><span className={styles.helpLabel}>Help</span><ChevronDown size={12} /></button><Link href="/cart"><ShoppingCart size={19} /> Cart{cartCount > 0 && ` (${cartCount})`}</Link></nav>
         </div>
         <nav aria-label="Product categories" className={styles.categories}><button type="button" aria-pressed={!category} onClick={() => setCategory("")}><Grid2X2 size={15} /> Categories</button>{categories.map((name, index) => { const Icon = [ShoppingBag, Footprints, Wallet, Tag, BriefcaseBusiness][index % 5]; return <button type="button" key={name} aria-pressed={category === name} onClick={() => setCategory(name)}><Icon size={15} /> {name}</button>; })}</nav>
@@ -187,10 +188,10 @@ export default function Marketplace() {
       </header>
       <main>
         <section className={styles.hero} aria-label="Discover Aba craftsmanship">
-          {/* eslint-disable-next-line @next/next/no-img-element */}<img className={styles.heroImage} src={heroes[hero][3]} alt="Handcrafted leather goods in an Aba artisan workshop" />
+          <Image fill sizes="(max-width: 1440px) 100vw, 1440px" className={styles.heroImage} src={heroes[hero][3]} alt="Handcrafted leather goods in an Aba artisan workshop" />
           <div className={styles.heroCopy}><h1>{heroes[hero][0]}<span>{heroes[hero][1]}</span></h1><p>{heroes[hero][2]}</p><a href="#flash-sales"><Zap size={17} fill="currentColor" /> SHOP LEATHER DEALS <ArrowRight size={15} /></a></div><div className={styles.heroDots}>{heroes.map((slide, index) => <button key={slide[1]} type="button" aria-label={`Show promotion ${index + 1}`} aria-pressed={hero === index} onClick={() => setHero(index)} />)}</div>
         </section>
-        <nav aria-label="Featured collections" className={styles.tiles}>{tiles.map(([label, term, image]) => <button type="button" key={label} className={styles.tile} onClick={() => { filter(term); document.getElementById("storefront")?.scrollIntoView({ behavior: "smooth" }); }}>{/* eslint-disable-next-line @next/next/no-img-element */}<img src={image} alt="" loading="lazy" /><span>{label}</span></button>)}</nav>
+        <nav aria-label="Featured collections" className={styles.tiles}>{tiles.map(([label, term, image]) => <button type="button" key={label} className={styles.tile} onClick={() => { filter(term); document.getElementById("storefront")?.scrollIntoView({ behavior: "smooth" }); }}><Image fill sizes="(max-width: 600px) 33vw, 17vw" src={image} alt="" loading="lazy" /><span>{label}</span></button>)}</nav>
         {(search || category || searchMode !== "all") && <div className={styles.filterSummary}><p>{visible.length} {searchMode !== "all" ? searchMode : ""} products {search && `matching “${search}”`} {category && `in ${category}`}</p><button onClick={() => { filter(""); setCategory(""); }}>Clear filters</button></div>}
         {notice && <p role="status" className={styles.notice}>{notice}</p>}
         {error ? <div role="alert" className={styles.notice}><h2>We couldn&apos;t load the marketplace</h2><p>{error}</p><button type="button" onClick={() => load()}>Try again</button></div> : loading ? <div aria-label="Loading products" aria-busy="true" className={styles.loading}>{Array.from({ length: 6 }, (_, index) => <div key={index} />)}</div> : <>

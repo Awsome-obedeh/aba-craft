@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { createPortal } from "react-dom";
 import { useEffect, useRef, useState } from "react";
@@ -59,7 +60,7 @@ export default function MarketplaceSearch({ products, query, onQuery, mode, onSe
       <div className={styles.mode} role="group" aria-label="Seller type"><button type="button" aria-pressed={selectedMode === "wholesale"} onClick={() => setSelectedMode(selectedMode === "wholesale" ? "all" : "wholesale")}>WHOLESALE</button><button type="button" aria-pressed={selectedMode === "retail"} onClick={() => setSelectedMode(selectedMode === "retail" ? "all" : "retail")}>RETAIL</button></div>
       <div className={styles.suggestions} aria-label="Suggested products" aria-live="polite">
         {error ? <p className={styles.empty}>{error}</p> : loading ? <p className={styles.empty}>Loading products...</p> : matches.length ? matches.map((product) => <Link key={product._id} href={`/market-place/${encodeURIComponent(product.slug)}`} className={styles.product} onClick={() => { onVisit(product); onClose(); }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}<img src={product.productImages[0] || "/images/buyer/imgFiRsBox.svg"} alt={product.productName} onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = "/images/buyer/imgFiRsBox.svg"; }} />
+          <Image unoptimized width={55} height={55} src={product.productImages[0] || "/images/buyer/imgFiRsBox.svg"} alt={product.productName} onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = "/images/buyer/imgFiRsBox.svg"; }} />
           <span className={styles.productText}><span>{product.productName}</span><strong>{money(marketplacePrice(product).current)}</strong><span className={styles.stars}>{Array.from({ length: 5 }, (_, index) => <Star key={index} size={12} fill={index < Math.round(product.rating) ? "currentColor" : "none"} aria-hidden="true" />)}<span>{product.reviewCount ? `(${product.reviewCount})` : "No reviews yet"}</span></span></span>
         </Link>) : <p className={styles.empty}>No matching products. Try another search or seller type.</p>}
       </div>

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import BrandLogo from "@/components/BrandLogo";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, CheckCircle2, ChevronDown, CircleHelp, Heart, Home, MessageSquare, Package, Search, Share2, ShieldCheck, ShoppingCart, Star, Truck, UserRound } from "lucide-react";
 import { api } from "@/app/lib/axios";
 import { useAuthStore } from "@/app/store/authStore";
@@ -59,10 +59,10 @@ export default function MarketplaceProductDetail({ slug }) {
 
   useEffect(() => {
     const controller = new AbortController();
-    setLoading(true); setError("");
     fetch(`/api/marketplace/${encodeURIComponent(slug)}`, { signal: controller.signal, cache: "no-store" })
       .then(async (response) => { const result = await response.json(); if (!response.ok || !result.success) throw new Error(result.message || "Unable to load this product."); return result; })
       .then((result) => {
+        if (controller.signal.aborted) return;
         setData(result);
         try { const previous = JSON.parse(localStorage.getItem("marketplace-recent") || "[]"); const ids = Array.isArray(previous) ? previous.filter((id) => typeof id === "string" && id !== result.product._id) : []; localStorage.setItem("marketplace-recent", JSON.stringify([result.product._id, ...ids].slice(0, 40))); } catch {}
       }).catch((error) => { if (!controller.signal.aborted) setError(error.message); })
@@ -78,17 +78,30 @@ export default function MarketplaceProductDetail({ slug }) {
     api.get("/buyer/wishlist", { baseURL: "/api", signal: controller.signal }).then(({ data }) => setSaved(data.products?.some((item) => item._id === product._id) || false)).catch(() => {});
     return () => controller.abort();
   }, [product?._id, user?.id, user?.role]);
-  const fetchComments = useCallback(async (signal) => {
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch(`/api/marketplace/${encodeURIComponent(slug)}/comments?page=${commentPage}`, { cache: "no-store", signal: controller.signal })
+      .then(async (response) => {
+        const result = await response.json();
+        if (!response.ok || !result.success) throw new Error(result.message || "Unable to load comments.");
+        return result;
+      })
+      .then((result) => {
+        if (controller.signal.aborted) return;
+        setComments(result.comments); setHasMore(result.hasMore);
+      })
+      .catch((error) => { if (!controller.signal.aborted) setCommentsError(error.message); })
+      .finally(() => { if (!controller.signal.aborted) setCommentsLoading(false); });
+    return () => controller.abort();
+  }, [slug, commentPage, commentAttempt]);
+
+  function retryProduct() {
+    setLoading(true); setError(""); setAttempt((value) => value + 1);
+  }
+  function loadComments(page = commentPage) {
     setCommentsLoading(true); setCommentsError("");
-    try {
-      const response = await fetch(`/api/marketplace/${encodeURIComponent(slug)}/comments?page=${commentPage}`, { cache: "no-store", signal });
-      const result = await response.json();
-      if (!response.ok || !result.success) throw new Error(result.message || "Unable to load comments.");
-      setComments(result.comments); setHasMore(result.hasMore);
-    } catch (error) { if (!signal?.aborted) setCommentsError(error.message); }
-    finally { if (!signal?.aborted) setCommentsLoading(false); }
-  }, [slug, commentPage]);
-  useEffect(() => { const controller = new AbortController(); fetchComments(controller.signal); return () => controller.abort(); }, [fetchComments, commentAttempt]);
+    setCommentPage(page); setCommentAttempt((value) => value + 1);
+  }
 
   function closeSearch() { setSearchOpen(false); requestAnimationFrame(() => searchButton.current?.focus({ preventScroll: true })); }
   function search(value, mode) { router.push(`/market-place?search=${encodeURIComponent(value)}&type=${mode}`); closeSearch(); }
@@ -124,7 +137,7 @@ export default function MarketplaceProductDetail({ slug }) {
     commentRequest.current ||= crypto.randomUUID();
     try {
       await api.post(`/marketplace/${encodeURIComponent(slug)}/comments`, { text: text.trim(), clientId: commentRequest.current }, { baseURL: "/api" });
-      setText(""); commentRequest.current = null; setCommentPage(1); setCommentAttempt((value) => value + 1); setNotice("Your comment has been posted.");
+      setText(""); commentRequest.current = null; loadComments(1); setNotice("Your comment has been posted.");
     } catch (error) { setTextError(error.response?.data?.message || "Unable to post your comment. Please try again."); }
     finally { postingRef.current = false; setPosting(false); }
   }
@@ -135,17 +148,17 @@ export default function MarketplaceProductDetail({ slug }) {
   return <div className={styles.page} inert={searchOpen}>
     {searchOpen && <MarketplaceSearch key={user?.id || "guest"} products={catalog} query={query} onQuery={setQuery} mode="all" onSearch={search} onClose={closeSearch} onVisit={() => {}} userId={user?.id} loading={false} error="" />}
     <div className={styles.wrap}>
-      <header className={header.header}><div className={header.top}><Link href="/market-place" className={header.logo}><BrandLogo /></Link><form className={header.search} role="search" onSubmit={(event) => { event.preventDefault(); setSearchOpen(true); }}><Search size={15} /><input value={query} onChange={(event) => setQuery(event.target.value)} onFocus={() => setSearchOpen(true)} placeholder="Search products, brands and categories" aria-label="Search products, brands and categories" aria-haspopup="dialog" aria-expanded={searchOpen} /><button ref={searchButton} type="submit">Search</button></form><nav className={header.actions} aria-label="Account"><Link href={user ? "/dashboard/profile" : signIn}><UserRound size={15} />{user ? `Hi, ${user.fullName?.split(" ")[0] || user.email?.split("@")[0] || "Buyer"}` : "Sign in"}<ChevronDown size={12} /></Link><button type="button" aria-expanded={help} onClick={() => setHelp(!help)}><CircleHelp size={15} /> Help</button><Link href="/cart"><ShoppingCart size={17} /> Cart{cart.length > 0 && ` (${cart.reduce((sum, item) => sum + item.quantity, 0)})`}</Link></nav></div>{help && <p className={header.help}>Use Chat Now to discuss product options, delivery and returns with the seller. Review your cart before checkout.</p>}</header>
+      <header className={header.header}><div className={header.top}><Link href="/market-place" className={header.logo}><BrandLogo /></Link><form className={header.search} role="search" onSubmit={(event) => { event.preventDefault(); setSearchOpen(true); }}><Search size={15} /><input value={query} onChange={(event) => setQuery(event.target.value)} onFocus={() => setSearchOpen(true)} placeholder="Search products, brands and categories" aria-label="Search products, brands and categories" aria-haspopup="dialog" /><button ref={searchButton} type="submit" aria-haspopup="dialog" aria-expanded={searchOpen} aria-controls={searchOpen ? "market-search-popup" : undefined}>Search</button></form><nav className={header.actions} aria-label="Account"><Link href={user ? "/dashboard/profile" : signIn}><UserRound size={15} />{user ? `Hi, ${user.fullName?.split(" ")[0] || user.email?.split("@")[0] || "Buyer"}` : "Sign in"}<ChevronDown size={12} /></Link><button type="button" aria-expanded={help} onClick={() => setHelp(!help)}><CircleHelp size={15} /> Help</button><Link href="/cart"><ShoppingCart size={17} /> Cart{cart.length > 0 && ` (${cart.reduce((sum, item) => sum + item.quantity, 0)})`}</Link></nav></div>{help && <p className={header.help}>Use Chat Now to discuss product options, delivery and returns with the seller. Review your cart before checkout.</p>}</header>
       <div className={styles.back}><Link href="/market-place"><ArrowLeft size={20} /><span>Search on AbaCraft</span></Link><Link href="/cart" aria-label="Your cart"><ShoppingCart size={18} /></Link></div>
       <main>
-        {loading ? <p className={styles.loading} role="status">Loading product...</p> : error ? <section className={styles.panel}><h1>Product unavailable</h1><p role="alert" className={styles.error}>{error}</p><button className={`${styles.button} mt-5`} onClick={() => setAttempt((value) => value + 1)}>Try again</button><Link href="/market-place" className="ml-5 underline">Back to marketplace</Link></section> : product && <>
+        {loading ? <p className={styles.loading} role="status">Loading product...</p> : error ? <section className={styles.panel}><h1>Product unavailable</h1><p role="alert" className={styles.error}>{error}</p><button className={`${styles.button} mt-5`} onClick={retryProduct}>Try again</button><Link href="/market-place" className="ml-5 underline">Back to marketplace</Link></section> : product && <>
           <section className={styles.gallery} aria-label="Product images"><Photo src={product.productImages[imageIndex]} alt={product.productName} className={styles.mainImage} /><div className={styles.thumbnails}>{product.productImages.map((image, index) => <button key={`${image}-${index}`} aria-label={`View product image ${index + 1}`} aria-pressed={imageIndex === index} onClick={() => setImageIndex(index)}><Photo src={image} alt={`${product.productName}, view ${index + 1}`} /></button>)}</div></section>
           {notice && <p role="status" className={styles.notice}>{notice} <Link href="/cart" className="underline">View cart</Link></p>}
           <section className={styles.panel}><h1 className={styles.title}>{product.productName}</h1><p className={styles.brand}>Brand: {product.brand || product.manufacturer}{product.brand && <> | <button type="button" onClick={() => document.getElementById("similar-products")?.scrollIntoView({ behavior: "smooth" })}>Similar products from {product.brand}</button></>}</p><p className={styles.price}>{money(price.current)}</p>{price.discount > 0 && <p className={styles.old}><s>{money(price.original)}</s><span>-{price.discount}%</span></p>}<p className={styles.stock}>{product.quantity === 0 ? "Out of stock" : product.quantity <= 5 ? `Low stock: ${product.quantity} remaining` : `${product.quantity} items in stock`}</p><p className="mt-2 text-xs">Delivery options and fees are confirmed at checkout.</p><div className={styles.ratingLine}><Stars rating={product.rating} count={product.reviewCount} /><div className={styles.utilities}><button type="button" onClick={share} aria-label="Share product"><Share2 size={18} /><span>Share</span></button><button disabled={busy} type="button" onClick={wishlist} aria-label={saved ? "Remove from wishlist" : "Save to wishlist"} aria-pressed={saved}><Heart size={18} fill={saved ? "currentColor" : "none"} /><span>{saved ? "Saved" : "Save"}</span></button></div></div><div className={styles.specs}>{product.productType && <span>{product.productType}</span>}<span>{product.category}</span>{product.dimensions && <span>Dimensions: {product.dimensions}</span>}{product.weight > 0 && <span>Weight: {product.weight} kg</span>}</div><label className={styles.quantity}>Quantity<input type="number" min={1} max={Math.min(99, product.quantity)} disabled={!product.quantity} value={quantity} onChange={(event) => setQuantity(Number(event.target.value))} /></label><p className={styles.description}>{product.description}</p><p className="mt-3 text-xs text-neutral-500">Need a specific size or variation? Confirm available options with the seller before ordering.</p></section>
           {highlights.length > 0 && <section className={styles.panel}><h2>Featured Products</h2><div className={styles.strip}>{highlights.map((item) => <Link key={item._id} href={`/market-place/${encodeURIComponent(item.slug)}`} className={styles.smallCard}><Photo src={item.productImages[0]} alt={item.productName} /><h3>{item.productName}</h3><p>{money(marketplacePrice(item).current)}</p>{marketplacePrice(item).discount > 0 && <s>{money(marketplacePrice(item).original)}</s>}</Link>)}</div></section>}
           <section className={styles.panel}><h2>Delivery and Returns info</h2><p className={styles.location}>Ships from {product.seller.location || "the seller's location"}</p><div className={styles.delivery}><Package size={23} /><div><h3>Pickup options</h3><p>Ask the seller whether pickup is available for this product.</p><details><summary>Details</summary><p>Confirm the pickup point, opening times and any fees in your conversation with the seller.</p></details></div></div><div className={styles.delivery}><Truck size={23} /><div><h3>Delivery</h3><p>Enter your shipping address at checkout to review the shipping fee before paying.</p><details><summary>Details</summary><p>Delivery availability and timing depend on the destination. Confirm any required delivery date with the seller.</p></details></div></div><div className={styles.delivery}><ShieldCheck size={23} /><div><h3>Returns</h3><p>Confirm the return conditions with the seller before placing your order.</p></div></div></section>
           <section className={styles.panel} aria-labelledby="reviews-title"><div className={styles.row}><h2 id="reviews-title">Product Rating &amp; Reviews</h2><a href="#product-comments" className="text-xs underline">Comments</a></div><div className={styles.ratingSummary}><strong>{product.rating ? product.rating.toFixed(1) : "—"}/5</strong><span>({product.reviewCount} ratings)</span></div>{data.reviews.length ? data.reviews.map((review) => <article className={styles.review} key={review.id}><div className={styles.reviewTop}><Stars rating={review.rating} /><time dateTime={review.createdAt}>{date(review.createdAt)}</time></div><p>{review.text}</p><div className={styles.byline}><span>AbaCraft buyer</span><span className={styles.verified}><CheckCircle2 size={14} fill="currentColor" stroke="white" />Verified Purchase</span></div></article>) : <p className={styles.empty}>No purchase reviews yet.</p>}
-            <div id="product-comments" className={styles.commentsTitle}><h2>Comments about this product</h2>{commentsLoading ? <p className={styles.empty} role="status">Loading comments...</p> : commentsError ? <p role="alert" className={styles.error}>{commentsError} <button className="underline" onClick={() => setCommentAttempt((value) => value + 1)}>Retry</button></p> : comments.length ? comments.map((comment) => <article key={comment.id} className={styles.review}><div className={styles.reviewTop}><strong className="text-xs">{comment.authorName}</strong><time dateTime={comment.createdAt}>{date(comment.createdAt)}</time></div><p>{comment.text}</p>{comment.verifiedPurchase && <div className={styles.byline}><span className={styles.verified}><CheckCircle2 size={14} />Verified Purchase</span></div>}</article>) : <p className={styles.empty}>No comments yet. Be the first to start the conversation.</p>}{(commentPage > 1 || hasMore) && <div className={styles.pagination}><button disabled={commentsLoading || commentPage === 1} onClick={() => setCommentPage((value) => value - 1)}>Previous</button><span>Page {commentPage}</span><button disabled={commentsLoading || !hasMore} onClick={() => setCommentPage((value) => value + 1)}>Next</button></div>}
+            <div id="product-comments" className={styles.commentsTitle}><h2>Comments about this product</h2>{commentsLoading ? <p className={styles.empty} role="status">Loading comments...</p> : commentsError ? <p role="alert" className={styles.error}>{commentsError} <button className="underline" onClick={() => loadComments()}>Retry</button></p> : comments.length ? comments.map((comment) => <article key={comment.id} className={styles.review}><div className={styles.reviewTop}><strong className="text-xs">{comment.authorName}</strong><time dateTime={comment.createdAt}>{date(comment.createdAt)}</time></div><p>{comment.text}</p>{comment.verifiedPurchase && <div className={styles.byline}><span className={styles.verified}><CheckCircle2 size={14} />Verified Purchase</span></div>}</article>) : <p className={styles.empty}>No comments yet. Be the first to start the conversation.</p>}{(commentPage > 1 || hasMore) && <div className={styles.pagination}><button disabled={commentsLoading || commentPage === 1} onClick={() => loadComments(commentPage - 1)}>Previous</button><span>Page {commentPage}</span><button disabled={commentsLoading || !hasMore} onClick={() => loadComments(commentPage + 1)}>Next</button></div>}
               {user?.role === "customer" ? <form onSubmit={postComment} className={styles.commentForm}><label htmlFor="product-comment">Leave a comment</label><textarea id="product-comment" maxLength={2000} disabled={posting} value={text} onChange={(event) => { setText(event.target.value); setTextError(""); commentRequest.current = null; }} aria-invalid={!!textError} aria-describedby="product-comment-error" placeholder="Ask a question or share your experience with this product." /><p id="product-comment-error" role="alert" className={styles.error}>{textError}</p><button type="submit" className={styles.button} disabled={posting}>{posting ? "Posting..." : "Post comment"}</button></form> : <p className="mt-5 text-sm">{user ? "Sign in with a buyer account to leave a comment." : <Link href={signIn} className="underline">Sign in to leave a comment</Link>}</p>}
             </div>
           </section>
