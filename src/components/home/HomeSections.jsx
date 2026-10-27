@@ -25,8 +25,8 @@ function Brand({ light = false }) { return <Link href="/" className={s.brand} ar
 
 export function HomeHeader() {
   const links = [['Home', '/'], ['Collections', '#collections'], ['How it works', '#how-it-works'], ['Our story', '#our-story']];
-  return <header className={s.header}><div className={`${s.container} ${s.nav}`}><Brand /><nav aria-label="Main navigation" className={s.desktopNav}>{links.map(([label, href]) => <Link href={href} key={label}>{label}</Link>)}</nav><div className={s.navActions}><Link className={s.sellLink} href="/auth/sign-up">Become a seller <ArrowUpRight size={14} /></Link><Button gold>Shop now</Button></div><details className={s.mobileMenu}><summary aria-label="Open navigation"><Menu size={25} /></summary><nav aria-label="Mobile navigation">{links.map(([label, href]) => <Link href={href} key={label}>{label}</Link>)}<Link href="/auth/sign-up">Become a seller</Link>
-  <Link href="/auth/customer-signup">Shop now</Link></nav></details></div></header>;
+  return <header className={s.header}><div className={`${s.container} ${s.nav}`}><Brand /><nav aria-label="Main navigation" className={s.desktopNav}>{links.map(([label, href]) => <Link href={href} key={label}>{label}</Link>)}</nav><div className={s.navActions}><Link className={s.sellLink} href="/auth/sign-up">Become a seller <ArrowUpRight size={14} /></Link><Button gold href="/market-place">Shop now</Button></div><details className={s.mobileMenu}><summary aria-label="Open navigation"><Menu size={25} /></summary><nav aria-label="Mobile navigation">{links.map(([label, href]) => <Link href={href} key={label}>{label}</Link>)}<Link href="/auth/sign-up">Become a seller</Link>
+  <Link href="/market-place">Shop now</Link></nav></details></div></header>;
 }
 
 export function Hero() {
@@ -64,4 +64,3 @@ export function ShopBanner() { return <section className={`${s.container} ${s.ba
 export function HomeFooter() {
   return <footer className={s.footer}><div className={s.container}><div className={s.footerTop}><div className={s.footerAbout}><Brand light /><p>Authentic craftsmanship. Everyday quality.<br />{' '}Made in Aba, for you and the world.</p><span className={s.footerMade}>LOCAL HANDS. LASTING QUALITY.</span></div><div><h3>SHOP</h3>{products.map(item => <Link key={item.name} href={productUrl(item.search)}>{item.name.replace('Premium ', '')}</Link>)}</div><div><h3>ABOUT</h3><Link href="#our-story">Our story</Link><Link href="#how-it-works">How it works</Link><Link href="/auth/sign-up">Become a seller</Link></div><div><h3>YOUR ACCOUNT</h3><Link href="/auth/sign-in">Sign in</Link><Link href="/account/orders">Your orders</Link><Link href="/cart">Shopping bag <ArrowRight size={12} /></Link></div></div><div className={s.footerBottom}><span>© {new Date().getFullYear()} AbaCraft. All rights reserved.</span><span>Proudly crafted in Aba, Nigeria.</span></div></div></footer>;
 }
-

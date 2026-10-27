@@ -138,7 +138,7 @@ export default function AdminUsersPage() {
               <p className="text-sm font-semibold text-slate-800">{user?.name || user?.businessName || 'Admin User'}</p>
               <p className="text-xs text-slate-400 capitalize">{role}</p>
             </div>
-            <Image width={36} height={36} src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100" className="w-9 h-9 rounded-full object-cover border-2 border-white" alt="" />
+            <Image width={36} height={36} src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100" className="w-9 h-9 rounded-full object-cover border-2 border-white" alt={`${user?.name || user?.businessName || 'Admin User'} profile photo`} />
           </div>
         </div>
 
@@ -253,7 +253,7 @@ export default function AdminUsersPage() {
                         </td>
                         <td className="p-4 font-medium text-slate-800">
                           <div className="flex items-center gap-3">
-                            <Image unoptimized width={32} height={32} src={user.avatar || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100'} alt={user.name} className="w-8 h-8 rounded-full object-cover border-2 border-white" />
+                            <Image unoptimized width={32} height={32} src={user.avatar || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100'} alt={`${user.name || user.businessName || 'User'} profile photo`} className="w-8 h-8 rounded-full object-cover border-2 border-white" />
                             <div>
                               <p className="font-medium text-slate-800">{user.name}</p>
                               {user.businessName && (
