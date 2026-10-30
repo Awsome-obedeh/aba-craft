@@ -144,7 +144,7 @@ export default function LoginPage() {
                         <p className="mt-2 text-center text-xs text-neutral-900">
                             Don&apos;t have an account? <Link href="/auth/sign-up" className="underline underline-offset-2">Sign up</Link>
                         </p>
-                        <Link href="/auth/customer-signup" className="mt-2 text-xs text-neutral-600 underline underline-offset-2 hover:text-neutral-900">Create a buyer account</Link>
+                        <Link href="/auth/customer-signup" className="mt-2 text-md text-neutral-600 underline underline-offset-2 hover:text-neutral-900">Create a buyer account</Link>
                     </div>
                 </form>
             </section>

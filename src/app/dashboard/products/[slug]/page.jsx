@@ -449,7 +449,6 @@ export default function ProductDetailsPage({ params }) {
                                         onClick={() => {
                                             if (!product) return;
                                             addToCart(product, qty);
-                                            toast.success(`Added ${qty} × ${product.productName} to cart`);
                                         }}
                                         className="w-full bg-black text-white py-3 rounded-md font-medium hover:opacity-90 transition disabled:opacity-40 disabled:cursor-not-allowed"
                                     >

@@ -25,12 +25,11 @@ const linksByRole = {
    
   ],
   admin: [
-    { label: "Dashboard", href: "/dashboard/admin", icon: LayoutDashboard },
-    { label: "Manage Vendors", href: "/dashboard/admin/vendors", icon: UserRound },
-    { label: "Approve Products", href: "/dashboard/admin/publish-products", icon: ClipboardList },
-    { label: "Products", href: "/dashboard/admin/products", icon: ShoppingBag },
-    { label: "Products", href: "/dashboard/admin/products", icon: ShoppingBag },
-    { label: "Escrow & Payouts", href: "/dashboard/admin/settlements", icon: Wallet },
+    { label: "Dashboard Overview", href: "/dashboard/admin", icon: LayoutDashboard },
+    { label: "Inbox", href: "/dashboard/messages", icon: MessageCircle },
+    { label: "Vendor Management", href: "/dashboard/admin/vendors", icon: Users },
+    { label: "Product Inventory", href: "/dashboard/admin/publish-products", icon: ClipboardList },
+    { label: "Disputes & Payouts", href: "/dashboard/admin/settlements", icon: Wallet },
     { label: "User Management", href: "/dashboard/admin/users", icon: Users },
   ],
   customer: [
@@ -66,7 +65,9 @@ export default function Sidebar({ role }) {
       </div>
       <nav aria-label="Dashboard navigation" className="flex-1 space-y-1 px-3 py-6">
         {links.map(({ label, href, icon: Icon }) => {
-          const active = pathname === href || (href !== "/dashboard/vendor" && pathname.startsWith(`${href}/`));
+          const active = role === "admin" && pathname === "/dashboard/admin"
+            ? href === "/dashboard/admin/vendors"
+            : pathname === href || (!["/dashboard/vendor", "/dashboard/admin"].includes(href) && pathname.startsWith(`${href}/`));
           return <Link key={href} href={href} onClick={() => setOpen(false)} aria-current={active ? "page" : undefined} className={`flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-colors ${active ? "bg-[#F7F0DE] text-[#8B691E]" : "text-muted hover:bg-cream hover:text-forest"}`}>
             <Icon size={18} strokeWidth={1.8} />{label}
           </Link>;

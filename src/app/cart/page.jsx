@@ -87,7 +87,6 @@ export default function CartPage() {
                                     <button
                                         onClick={() => {
                                             removeItem(item.productId);
-                                            toast.info("Removed from cart");
                                         }}
                                         className="text-gray-400 hover:text-red-500 self-start"
                                         aria-label="Remove"

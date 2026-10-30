@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import BrandLogo from "@/components/BrandLogo";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Bell, ChevronDown, Search, ShoppingCart } from "lucide-react";
@@ -24,7 +23,6 @@ export default function TopNavbar({ email, role }) {
 
   return <header className="sticky top-0 z-30 flex h-[76px] items-center border-b border-brandBorder bg-white px-4 pl-16 sm:px-6 sm:pl-16 lg:px-8">
     <div className="flex w-full items-center justify-between gap-5">
-      <Link href="/" aria-label="Aba Crafts home"><BrandLogo /></Link>
       <form role="search" onSubmit={submitSearch} className="hidden h-10 w-full max-w-sm items-center gap-2 rounded-full border border-brandBorder bg-[#F7F8F6] px-4 text-muted sm:flex">
         <Search size={17} aria-hidden="true" />
         <input value={search} onChange={event => setSearch(event.target.value)} aria-label="Search products" placeholder="Search products" className="w-full bg-transparent text-sm text-forest outline-none" />
