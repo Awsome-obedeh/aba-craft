@@ -163,7 +163,6 @@ export default function BuyerShell({ section, children }) {
           >
             <DesignIcon name="imgMenu" size={22} />
           </button>
-          <Link href="/" className="buyer-brand" aria-label="Aba Crafts home"><BrandLogo /></Link>
           <form className="buyer-search" action="/market-place">
             <DesignIcon name="imgSearch" size={16} />
             <input

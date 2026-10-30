@@ -1,0 +1,93 @@
+[
+  {
+    "file": "hero.webp",
+    "source": "martin-yOCIkYb1L5g-unsplash.jpg",
+    "width": 1066,
+    "height": 1600,
+    "bytes": 127908
+  },
+  {
+    "file": "handbag.webp",
+    "source": "genesis-warner-FskOHt3xuig-unsplash.jpg",
+    "width": 1494,
+    "height": 1600,
+    "bytes": 88238
+  },
+  {
+    "file": "backpack.webp",
+    "source": "wiser-by-the-mile-SwWCo1k92M4-unsplash.jpg",
+    "width": 1068,
+    "height": 1600,
+    "bytes": 60384
+  },
+  {
+    "file": "travel.webp",
+    "source": "jed-owen-PpzBE1hWeGI-unsplash.jpg",
+    "width": 1600,
+    "height": 1063,
+    "bytes": 100456
+  },
+  {
+    "file": "accessories.webp",
+    "source": "logan-weaver-lgnwvr-WPokfelaBfE-unsplash.jpg",
+    "width": 1313,
+    "height": 1600,
+    "bytes": 238014
+  },
+  {
+    "file": "collection.webp",
+    "source": "muneeb-malhotra-eCSEAlw85zc-unsplash.jpg",
+    "width": 1132,
+    "height": 1600,
+    "bytes": 107108
+  },
+  {
+    "file": "crossbody.webp",
+    "source": "solace-leather-4NVpQDko9vA-unsplash.jpg",
+    "width": 1600,
+    "height": 1600,
+    "bytes": 102062
+  },
+  {
+    "file": "commuter.webp",
+    "source": "aren-nagulyan-vlRNbZ0v_ao-unsplash.jpg",
+    "width": 1600,
+    "height": 1067,
+    "bytes": 293842
+  },
+  {
+    "file": "satchel.webp",
+    "source": "derick-mckinney-kIfPF4dDrF4-unsplash.jpg",
+    "width": 1600,
+    "height": 1252,
+    "bytes": 413350
+  },
+  {
+    "file": "wallet.webp",
+    "source": "marcin-kempa-cjUxiJoVzc0-unsplash.jpg",
+    "width": 1280,
+    "height": 1600,
+    "bytes": 108818
+  },
+  {
+    "file": "detail.webp",
+    "source": "omar-al-ghosson-g0zYSJRY8n4-unsplash.jpg",
+    "width": 1600,
+    "height": 1067,
+    "bytes": 83358
+  },
+  {
+    "file": "discover.webp",
+    "source": "tomasz-anusiewicz-e7OSGgUD3iM-unsplash.jpg",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 273002
+  },
+  {
+    "file": "checkout.webp",
+    "source": "mostafa-mahmoudi-J4DnKxz_3sA-unsplash.jpg",
+    "width": 1600,
+    "height": 999,
+    "bytes": 89166
+  }
+]

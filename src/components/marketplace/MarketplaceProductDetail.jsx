@@ -127,7 +127,7 @@ export default function MarketplaceProductDetail({ slug }) {
   }
   function addToCart() {
     if (!Number.isInteger(quantity) || quantity < 1 || quantity > Math.min(99, product.quantity)) { setNotice("Choose a quantity within the available stock."); return; }
-    addItem(product, quantity); setNotice(`${product.productName} added to your cart.`);
+    addItem(product, quantity);
   }
   async function postComment(event) {
     event.preventDefault();

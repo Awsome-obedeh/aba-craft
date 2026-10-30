@@ -314,7 +314,6 @@ function Collections({ section, data, refresh }) {
                     disabled={product.quantity < 1}
                     onClick={() => {
                       addItem(product);
-                      setFeedback(`${product.productName} added to your cart.`);
                     }}
                   >
                     Add to Cart

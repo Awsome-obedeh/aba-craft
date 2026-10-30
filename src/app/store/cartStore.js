@@ -10,6 +10,7 @@
 
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
+import { toast } from "react-toastify";
 
 const MAX_QTY_PER_ITEM = 99;
 
@@ -39,15 +40,21 @@ export const useCartStore = create(
 
                 if (idx >= 0) {
                     const next = items[idx].quantity + qty;
+                    const nextQuantity = Math.min(MAX_QTY_PER_ITEM, Math.min(items[idx].stock || MAX_QTY_PER_ITEM, next));
+                    if (nextQuantity <= items[idx].quantity) {
+                        toast.info("You already have the maximum available quantity in your cart.");
+                        return;
+                    }
                     items[idx] = {
                         ...items[idx],
-                        quantity: Math.min(MAX_QTY_PER_ITEM, Math.min(items[idx].stock || MAX_QTY_PER_ITEM, next)),
+                        quantity: nextQuantity,
                     };
                 } else {
                     items.push({ ...snapshot, quantity: Math.min(qty, snapshot.stock || MAX_QTY_PER_ITEM) });
                 }
 
                 set({ items });
+                toast.success(`${snapshot.name || "Product"} added to your cart.`);
             },
 
             updateQuantity: (productId, quantity) => {
@@ -60,7 +67,10 @@ export const useCartStore = create(
             },
 
             removeItem: (productId) => {
+                const item = get().items.find(i => i.productId === productId);
+                if (!item) return;
                 set({ items: get().items.filter(i => i.productId !== productId) });
+                toast.info(`${item.name || "Product"} removed from your cart.`);
             },
 
             clear: () => set({ items: [] }),

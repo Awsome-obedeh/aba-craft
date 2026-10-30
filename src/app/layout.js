@@ -5,7 +5,7 @@ import "react-toastify/dist/ReactToastify.css";
 
 
 export const metadata = {
- title: "Abia Crafts — Handmade in Aba, Loved Worldwide",
+ title: "Abia Crafts - Handmade in Aba, Loved Worldwide",
   description: "Aba Craft is Nigeria's premier marketplace for authentic handmade leather shoes, bags, garments and more — crafted by Aba's finest artisans.",
 };
 
