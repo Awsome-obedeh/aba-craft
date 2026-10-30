@@ -4,7 +4,7 @@ import Link from "next/link";
 import BrandLogo from "@/components/BrandLogo";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { LayoutDashboard, PackagePlus, Boxes, ShoppingBag, ClipboardList, UserRound, Settings, LogOut, Menu, X, MessageCircle, Wallet, Users, ShieldCheck } from "lucide-react";
+import { LayoutDashboard, PackagePlus, Boxes, ShoppingBag, ClipboardList, UserRound, Settings, LogOut, Menu, X, MessageCircle, Wallet, Users, ShieldCheck, Landmark, } from "lucide-react";
 import { toast } from "react-toastify";
 import { logout } from "@/app/lib/logout";
 
@@ -18,7 +18,8 @@ const linksByRole = {
     { label: "RFQ", href: "/dashboard/vendor/rfq", icon: ShoppingBag },
     { label: "Messages", href: "/dashboard/messages", icon: MessageCircle },
     { label: "Orders & Sales", href: "/dashboard/vendor/orders", icon: ClipboardList },
-    { label: "Payouts", href: "/dashboard/vendor/settlements", icon: Wallet },
+    { label: "Finances and Escrow", href: "/dashboard/vendor/settlements", icon: Wallet },
+    { label: "Payout Account", href: "/dashboard/vendor/payout-account", icon: Landmark },
     { label: "Profile & Verification", href: "/dashboard/vendor/profile", icon: UserRound },
     { label: "Business Verification", href: "/dashboard/vendor/verification", icon: ShieldCheck },
    
@@ -30,6 +31,9 @@ const linksByRole = {
     { label: "Vendor Management", href: "/dashboard/admin/vendors", icon: Users },
     { label: "Product Inventory", href: "/dashboard/admin/publish-products", icon: ClipboardList },
     { label: "Disputes & Payouts", href: "/dashboard/admin/settlements", icon: Wallet },
+    { label: "Approve Products", href: "/dashboard/admin/publish-products", icon: ClipboardList },
+    //{ label: "Products", href: "/dashboard/admin/products", icon: ShoppingBag },
+    { label: "Escrow & Payouts", href: "/dashboard/admin/settlements", icon: Wallet },
     { label: "User Management", href: "/dashboard/admin/users", icon: Users },
   ],
   customer: [
